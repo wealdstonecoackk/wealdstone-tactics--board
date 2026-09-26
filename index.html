@@ -2,33 +2,63 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111111">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Wealdstone Tactics">
 <link rel="manifest" href="manifest.json">
-<title>Wealdstone FC Tactics Board</title>
+<title>Wealdstone FC Coach Board</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#111;color:#fff;text-align:center}
-h1{margin:14px 0 4px;font-size:25px}p{margin:0 0 10px}.controls{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:8px}
-button{padding:10px 14px;border:0;border-radius:8px;font-weight:bold;font-size:14px}button.active{background:#174ea6;color:#fff}
-#pitch{position:relative;margin:10px auto;width:94%;max-width:700px;height:min(75vh,850px);min-height:500px;background:#16833b;border:4px solid #fff;border-radius:8px;overflow:hidden}
-.mark{position:absolute;border:2px solid #fff;pointer-events:none}.mid{top:50%;left:0;width:100%;border-top:2px solid #fff}.circle{top:50%;left:50%;width:120px;height:120px;border-radius:50%;transform:translate(-50%,-50%)}
+h1{margin:12px 0 2px;font-size:24px}p{margin:0 0 8px;color:#ccc}.bar{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:7px}.bar button,button{border:0;border-radius:8px;padding:9px 11px;font-weight:700;font-size:13px;background:#eee;color:#111}button.active{background:#174ea6;color:#fff}button.danger{background:#a51d2d;color:#fff}
+#pitch{position:relative;margin:8px auto;width:94%;max-width:720px;height:min(70vh,800px);min-height:500px;background:#16833b;border:4px solid #fff;border-radius:8px;overflow:hidden;touch-action:none}
+.mark{position:absolute;border:2px solid #fff;pointer-events:none}.mid{top:50%;left:0;width:100%;border-top:2px solid #fff}.circle{top:50%;left:50%;width:120px;height:120px;border-radius:50%;transform:translate(-50%,-50%)}.spot{position:absolute;width:7px;height:7px;background:#fff;border-radius:50%;left:50%;transform:translateX(-50%);pointer-events:none}
 .box.top{top:0;left:20%;width:60%;height:17%}.box.bottom{bottom:0;left:20%;width:60%;height:17%}.goal.top{top:0;left:38%;width:24%;height:5%}.goal.bottom{bottom:0;left:38%;width:24%;height:5%}
-.player{position:absolute;width:48px;height:48px;border-radius:50%;background:#174ea6;border:3px solid #fff;color:#fff;font-weight:bold;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;cursor:grab}.player.gk{background:#f5c400;color:#111}.player.selected{outline:4px solid #fff;outline-offset:3px}
-@media(max-width:600px){#pitch{min-height:520px;height:70vh}.player{width:46px;height:46px}}
+.player{position:absolute;width:48px;height:48px;border-radius:50%;background:#174ea6;border:3px solid #fff;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;z-index:3;transform:translate(-50%,-50%);box-shadow:0 2px 5px #0008}.player.gk{background:#f5c400;color:#111}.player.selected{outline:4px solid #fff;outline-offset:3px}.name{position:absolute;top:45px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11px;text-shadow:0 1px 3px #000;font-weight:700}
+#arrows{position:absolute;inset:0;z-index:2;pointer-events:none}.arrow{stroke:#fff;stroke-width:3;fill:none;marker-end:url(#arrowhead);opacity:.9}
+.panel{width:94%;max-width:720px;margin:8px auto;text-align:left}.panel textarea{width:100%;min-height:75px;border-radius:8px;padding:10px;font:14px Arial}.status{font-size:12px;color:#aaa;margin:4px}
+@media(max-width:600px){#pitch{min-height:520px;height:67vh}.player{width:45px;height:45px}.name{top:42px;font-size:10px}}
 </style>
 </head>
 <body>
-<h1>WEALDSTONE FC</h1><p>Tactics Board</p>
-<div class="controls"><button class="active" onclick="setFormation('433',this)">4-3-3</button><button onclick="setFormation('442',this)">4-4-2</button><button onclick="setFormation('352',this)">3-5-2</button><button onclick="resetBoard()">Reset</button></div>
-<div id="pitch"><div class="mark mid"></div><div class="mark circle"></div><div class="mark box top"></div><div class="mark box bottom"></div><div class="mark goal top"></div><div class="mark goal bottom"></div></div>
+<h1>WEALDSTONE FC</h1><p>Coach Tactics Board</p>
+<div class="bar">
+<button class="active" onclick="setFormation('433',this)">4-3-3</button><button onclick="setFormation('442',this)">4-4-2</button><button onclick="setFormation('352',this)">3-5-2</button><button onclick="setFormation('4231',this)">4-2-3-1</button><button onclick="setFormation('4141',this)">4-1-4-1</button>
+</div>
+<div class="bar">
+<button onclick="renamePlayers()">Player Names</button><button onclick="toggleArrowMode(this)">Add Arrow</button><button onclick="clearArrows()">Clear Arrows</button><button onclick="saveTactic()">Save Tactic</button><button onclick="loadTactic()">Load Tactic</button><button onclick="resetBoard()">Reset</button>
+</div>
+<div id="pitch">
+<svg id="arrows" width="100%" height="100%" viewBox="0 0 1000 700" preserveAspectRatio="none"><defs><marker id="arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="white"/></marker></defs></svg>
+<div class="mark mid"></div><div class="mark circle"></div><div class="spot" style="top:50%"></div><div class="mark box top"></div><div class="mark box bottom"></div><div class="goal top"></div><div class="goal bottom"></div>
+</div>
+<div class="panel"><textarea id="notes" placeholder="Coach notes: set pieces, opposition, triggers, instructions..."></textarea><div class="status" id="status">Double-tap a player to rename. Use Add Arrow to show runs/passing.</div></div>
 <script>
-const pitch=document.getElementById("pitch"),formations={433:[[50,88],[18,72],[38,76],[62,76],[82,72],[30,57],[50,62],[70,57],[18,32],[50,25],[82,32]],442:[[50,88],[18,72],[38,76],[62,76],[82,72],[18,52],[38,57],[62,57],[82,52],[35,30],[65,30]],352:[[50,88],[25,72],[50,76],[75,72],[15,55],[35,58],[50,52],[65,58],[85,55],[35,30],[65,30]]};let players=[];
-for(let i=0;i<11;i++){let p=document.createElement("div");p.className="player"+(i===0?" gk":"");p.textContent=i+1;makeDraggable(p);pitch.appendChild(p);players.push(p)}
-function setFormation(name,btn){document.querySelectorAll(".controls button").forEach(b=>b.classList.remove("active"));btn.classList.add("active");formations[name].forEach((pos,i)=>{players[i].style.left=pos[0]+"%";players[i].style.top=pos[1]+"%"})}
-function makeDraggable(el){let move=e=>{let r=pitch.getBoundingClientRect(),x=e.clientX-r.left-el.offsetWidth/2,y=e.clientY-r.top-el.offsetHeight/2;el.style.left=Math.max(0,Math.min(r.width-el.offsetWidth,x))+"px";el.style.top=Math.max(0,Math.min(r.height-el.offsetHeight,y))+"px"};el.addEventListener("pointerdown",e=>{el.classList.add("selected");el.setPointerCapture(e.pointerId);el.addEventListener("pointermove",move);el.addEventListener("pointerup",()=>{el.removeEventListener("pointermove",move);el.classList.remove("selected")},{once:true})})}
-function resetBoard(){setFormation("433",document.querySelector(".controls button"))}setFormation("433",document.querySelector(".controls button"));
+const pitch=document.getElementById("pitch"),svg=document.getElementById("arrows"),notes=document.getElementById("notes"),status=document.getElementById("status");
+const formations={
+433:[[50,88],[18,72],[38,76],[62,76],[82,72],[30,57],[50,62],[70,57],[18,32],[50,25],[82,32]],
+442:[[50,88],[18,72],[38,76],[62,76],[82,72],[18,52],[38,57],[62,57],[82,52],[35,30],[65,30]],
+352:[[50,88],[25,72],[50,76],[75,72],[15,55],[35,58],[50,52],[65,58],[85,55],[35,30],[65,30]],
+4231:[[50,88],[18,72],[38,76],[62,76],[82,72],[35,58],[65,58],[18,36],[50,42],[82,36],[50,25]],
+4141:[[50,88],[18,72],[38,76],[62,76],[82,72],[50,63],[18,43],[38,48],[62,48],[82,43],[50,25]]
+};
+let players=[], names=Array.from({length:11},(_,i)=>"Player "+(i+1)), arrowMode=false, arrowStart=null, currentFormation="433", arrows=[];
+for(let i=0;i<11;i++){let p=document.createElement("div");p.className="player"+(i===0?" gk":"");p.innerHTML='<span class="num">'+(i+1)+'</span><span class="name"></span>';pitch.appendChild(p);players.push(p);makeDraggable(p);p.ondblclick=()=>renameOne(i)}
+function renderNames(){players.forEach((p,i)=>p.querySelector(".name").textContent=names[i])}
+function setFormation(name,btn){currentFormation=name;document.querySelectorAll(".bar button").forEach(b=>b.classList.remove("active"));if(btn)btn.classList.add("active");formations[name].forEach((pos,i)=>{players[i].style.left=pos[0]+"%";players[i].style.top=pos[1]+"%"});status.textContent=name+" formation loaded."}
+function makeDraggable(el){let move=e=>{let r=pitch.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*100,y=(e.clientY-r.top)/r.height*100;el.style.left=Math.max(3,Math.min(97,x))+"%";el.style.top=Math.max(4,Math.min(96,y))+"%";drawArrows()};el.addEventListener("pointerdown",e=>{if(arrowMode){chooseArrow(el);e.preventDefault();return}el.classList.add("selected");el.setPointerCapture(e.pointerId);el.addEventListener("pointermove",move);el.addEventListener("pointerup",()=>{el.removeEventListener("pointermove",move);el.classList.remove("selected")},{once:true})})}
+function renameOne(i){let n=prompt("Player "+(i+1)+" name:",names[i]);if(n!==null&&n.trim()){names[i]=n.trim();renderNames();}}
+function renamePlayers(){for(let i=0;i<11;i++){let n=prompt("Player "+(i+1)+" name:",names[i]);if(n===null)break;if(n.trim())names[i]=n.trim()}renderNames();status.textContent="Player names updated."}
+function toggleArrowMode(btn){arrowMode=!arrowMode;arrowStart=null;btn.classList.toggle("active",arrowMode);status.textContent=arrowMode?"Arrow mode: tap the start player, then the destination player.":"Arrow mode off."}
+function chooseArrow(p){if(!arrowStart){arrowStart=p;players.forEach(x=>x.classList.remove("selected"));p.classList.add("selected");status.textContent="Now tap the destination player."}else if(arrowStart!==p){arrows.push([players.indexOf(arrowStart),players.indexOf(p)]);arrowStart.classList.remove("selected");arrowStart=null;drawArrows();status.textContent="Arrow added.";}}
+function clearArrows(){arrows=[];drawArrows();status.textContent="Arrows cleared."}
+function drawArrows(){svg.querySelectorAll(".arrow").forEach(x=>x.remove());let r=pitch.getBoundingClientRect();arrows.forEach(a=>{let A=players[a[0]],B=players[a[1]],ra=A.getBoundingClientRect(),rb=B.getBoundingClientRect();let x1=(ra.left+ra.width/2-r.left)/r.width*1000,y1=(ra.top+ra.height/2-r.top)/r.height*700,x2=(rb.left+rb.width/2-r.left)/r.width*1000,y2=(rb.top+rb.height/2-r.top)/r.height*700;let l=document.createElementNS("http://www.w3.org/2000/svg","line");l.setAttribute("x1",x1);l.setAttribute("y1",y1);l.setAttribute("x2",x2);l.setAttribute("y2",y2);l.setAttribute("class","arrow");svg.appendChild(l)})}
+function getState(){return{formation:currentFormation,names,notes:notes.value,positions:players.map(p=>({left:p.style.left,top:p.style.top})),arrows}}
+function saveTactic(){localStorage.setItem("wealdstoneTactic",JSON.stringify(getState()));status.textContent="Tactic saved on this phone."}
+function loadTactic(){let s=localStorage.getItem("wealdstoneTactic");if(!s){status.textContent="No saved tactic yet.";return}let d=JSON.parse(s);currentFormation=d.formation||"433";names=d.names||names;notes.value=d.notes||"";d.positions?.forEach((x,i)=>{if(players[i]){players[i].style.left=x.left;players[i].style.top=x.top}});arrows=d.arrows||[];renderNames();drawArrows();status.textContent="Saved tactic loaded."}
+function resetBoard(){names=Array.from({length:11},(_,i)=>"Player "+(i+1));notes.value="";arrows=[];setFormation("433",document.querySelector(".bar button"));renderNames();drawArrows();status.textContent="Board reset."}
+renderNames();setFormation("433",document.querySelector(".bar button"));
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"));
-</script></body></html>
+</script>
+</body></html>
