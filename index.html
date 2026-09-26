@@ -1,11 +1,132 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Wealdstone Tactics Board</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wealdstone Tactics Board</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#111;
+  color:white;
+  text-align:center;
+}
+h1{margin:18px 0 10px}
+button{
+  padding:10px 16px;
+  margin:5px;
+  border:0;
+  border-radius:8px;
+  font-weight:bold;
+}
+#board{
+  position:relative;
+  width:94%;
+  max-width:700px;
+  aspect-ratio:2/3;
+  margin:15px auto;
+  background:#16833a;
+  border:5px solid white;
+  overflow:hidden;
+}
+.line{
+  position:absolute;
+  background:white;
+}
+.h{height:3px;width:100%;left:0}
+.v{width:3px;height:100%;top:0}
+.player{
+  position:absolute;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:white;
+  color:#111;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  cursor:grab;
+  transform:translate(-50%,-50%);
+  border:3px solid #111;
+}
+#controls{padding-bottom:20px}
+</style>
 </head>
+
 <body>
-  <h1>Wealdstone Tactics Board</h1>
-  <p>Welcome — tactics board coming soon.</p>
+
+<h1>⚽ Wealdstone Tactics Board</h1>
+
+<div id="controls">
+  <button onclick="resetBoard()">Reset</button>
+  <button onclick="addPlayer()">Add Player</button>
+</div>
+
+<div id="board">
+  <div class="line h" style="top:50%"></div>
+  <div class="line v" style="left:50%"></div>
+
+  <div class="player" style="left:50%;top:92%">GK</div>
+  <div class="player" style="left:20%;top:75%">2</div>
+  <div class="player" style="left:40%;top:78%">5</div>
+  <div class="player" style="left:60%;top:78%">6</div>
+  <div class="player" style="left:80%;top:75%">3</div>
+  <div class="player" style="left:30%;top:55%">7</div>
+  <div class="player" style="left:50%;top:60%">8</div>
+  <div class="player" style="left:70%;top:55%">11</div>
+  <div class="player" style="left:30%;top:32%">10</div>
+  <div class="player" style="left:70%;top:32%">9</div>
+  <div class="player" style="left:50%;top:20%">4</div>
+</div>
+
+<script>
+const board=document.getElementById("board");
+
+document.querySelectorAll(".player").forEach(makeDraggable);
+
+function makeDraggable(player){
+  let dragging=false;
+
+  player.addEventListener("pointerdown",e=>{
+    dragging=true;
+    player.setPointerCapture(e.pointerId);
+  });
+
+  player.addEventListener("pointermove",e=>{
+    if(!dragging)return;
+
+    const r=board.getBoundingClientRect();
+    let x=((e.clientX-r.left)/r.width)*100;
+    let y=((e.clientY-r.top)/r.height)*100;
+
+    x=Math.max(4,Math.min(96,x));
+    y=Math.max(4,Math.min(96,y));
+
+    player.style.left=x+"%";
+    player.style.top=y+"%";
+  });
+
+  player.addEventListener("pointerup",()=>dragging=false);
+}
+
+function addPlayer(){
+  const p=document.createElement("div");
+  p.className="player";
+  p.textContent="P";
+  p.style.left="50%";
+  p.style.top="50%";
+  board.appendChild(p);
+  makeDraggable(p);
+}
+
+function resetBoard(){
+  location.reload();
+}
+</script>
+
 </body>
 </html>
