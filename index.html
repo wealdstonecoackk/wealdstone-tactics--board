@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111111">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Wealdstone Tactics">
+<link rel="manifest" href="manifest.json">
 <title>Wealdstone FC Tactics Board</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#111;color:#fff;text-align:center}
@@ -25,4 +30,5 @@ for(let i=0;i<11;i++){let p=document.createElement("div");p.className="player"+(
 function setFormation(name,btn){document.querySelectorAll(".controls button").forEach(b=>b.classList.remove("active"));btn.classList.add("active");formations[name].forEach((pos,i)=>{players[i].style.left=pos[0]+"%";players[i].style.top=pos[1]+"%"})}
 function makeDraggable(el){let move=e=>{let r=pitch.getBoundingClientRect(),x=e.clientX-r.left-el.offsetWidth/2,y=e.clientY-r.top-el.offsetHeight/2;el.style.left=Math.max(0,Math.min(r.width-el.offsetWidth,x))+"px";el.style.top=Math.max(0,Math.min(r.height-el.offsetHeight,y))+"px"};el.addEventListener("pointerdown",e=>{el.classList.add("selected");el.setPointerCapture(e.pointerId);el.addEventListener("pointermove",move);el.addEventListener("pointerup",()=>{el.removeEventListener("pointermove",move);el.classList.remove("selected")},{once:true})})}
 function resetBoard(){setFormation("433",document.querySelector(".controls button"))}setFormation("433",document.querySelector(".controls button"));
+if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"));
 </script></body></html>
