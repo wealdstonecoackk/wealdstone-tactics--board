@@ -1,0 +1,10 @@
+{
+  "name": "Wealdstone FC Tactics Board",
+  "short_name": "Wealdstone Tactics",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "description": "Wealdstone FC football tactics board"
+}
