@@ -1,10 +1,7 @@
 # Wealdstone Tactics Board
 
-A football tactics board being developed for Wealdstone FC coaches.
+Wealdstone FC Coach Tactics Board.
 
-## Project
-- Team: Wealdstone FC
-- Purpose: Create and save football formations, tactics and coaching plans.
-- Status: Development
+Live app: https://wealdstonecoackk.github.io/wealdstone-tactics--board/
 
-More features coming soon.
+Status: Live deployment refresh.
