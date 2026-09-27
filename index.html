@@ -1343,10 +1343,11 @@ window.v31SyncStartingXI=function(){syncTeamToBoard()};
 window.addEventListener('load',function(){setTimeout(function(){var xi=read('wealdstone_starting11_players_v26',[]);if(Array.isArray(xi)&&xi.length===11)syncTeamToBoard()},1100)});
 })();
 </script>
-<!-- V34 BOARD CONTROL POLISH -->
+<!-- V35 BOARD CONTROL FIX -->
 <style>
 #v34Tools{width:94%;max-width:720px;margin:6px auto 8px;display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 #v34Tools button{min-height:44px;border:1px solid #343b45;border-radius:10px;background:#20262e;color:#fff;font-weight:900;font-size:10px;padding:6px 3px}
+@media(max-width:430px){#v34Tools{grid-template-columns:repeat(3,1fr)}}
 #v34Tools button.active{background:#174ea6;border-color:#174ea6}
 @media(max-width:430px){#v34Tools button{font-size:9px;min-height:42px}}
 </style>
@@ -1354,15 +1355,20 @@ window.addEventListener('load',function(){setTimeout(function(){var xi=read('wea
 (function(){
 function build(){
 var old=document.getElementById('v34Tools');if(old)old.remove();
+var old32=document.getElementById('v32Tools');if(old32)old32.remove();
+var old31=document.getElementById('v31PlayerRail');if(old31)old31.remove();
 var pitch=document.getElementById('pitch');if(!pitch)return;
 var r=document.createElement('div');r.id='v34Tools';
-r.innerHTML='<button id="v34Move" class="active" type="button" onclick="v34Mode(\'move\')">↔ MOVE</button><button id="v34Team" type="button" onclick="v34Team()">👥 TEAM</button><button id="v34Players" type="button" onclick="v34Players()">＋ PLAYERS</button><button id="v34Ball" type="button" onclick="v34Mode(\'ball\')">⚽ BALL</button><button id="v34Pass" type="button" onclick="v34Mode(\'pass\')">↗ PASS</button>';
+r.innerHTML='<button id="v34Move" class="active" type="button" onclick="v34Mode(\'move\')">↔ MOVE</button><button id="v34Team" type="button" onclick="v34Team()">👥 TEAM</button><button id="v34Players" type="button" onclick="v34Players()">＋ PLAYERS</button><button id="v34Ball" type="button" onclick="v34Mode(\'ball\')">⚽ BALL</button><button id="v34Pass" type="button" onclick="v34Mode(\'pass\')">↗ PASS</button><button id="v34More" type="button" onclick="v34More()">☰ MORE</button>';
 pitch.parentNode.insertBefore(r,pitch);
 }
 function active(id){['v34Move','v34Ball','v34Pass'].forEach(function(x){var e=document.getElementById(x);if(e)e.classList.toggle('active',x===id)})}
 window.v34Mode=function(mode){active(mode==='move'?'v34Move':mode==='ball'?'v34Ball':'v34Pass');if(typeof setCoachTool==='function')setCoachTool(mode==='move'?'run':mode);if(typeof status!=='undefined')status.textContent=mode==='move'?'MOVE MODE — drag players.':mode==='ball'?'BALL MODE — place or drag the ball.':'PASS MODE — tap passer, then receiver.';};
 window.v34Team=function(){if(typeof openTeamManager==='function')openTeamManager()};
 window.v34Players=function(){if(typeof v31OpenPlayers==='function')v31OpenPlayers();else if(typeof openTeamManager==='function')openTeamManager()};
-window.addEventListener('load',function(){setTimeout(build,250)});setTimeout(build,500);
+window.v34More=function(){if(typeof openMainMenu==='function')openMainMenu()};
+window.addEventListener('load',function(){setTimeout(build,250);setTimeout(function(){if(typeof v33SyncTeamToBoard==='function')v33SyncTeamToBoard()},450)});setTimeout(build,500);
+var oldXI=window.v26SaveXI;window.v26SaveXI=function(){var r=typeof oldXI==='function'?oldXI.apply(this,arguments):undefined;setTimeout(function(){if(typeof v33SyncTeamToBoard==='function')v33SyncTeamToBoard()},80);return r};
+var oldTeam=window.v28SaveTeam;window.v28SaveTeam=function(){var r=typeof oldTeam==='function'?oldTeam.apply(this,arguments):undefined;setTimeout(function(){if(typeof v33SyncTeamToBoard==='function')v33SyncTeamToBoard()},80);return r};
 })();
 </script>
