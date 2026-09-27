@@ -588,5 +588,36 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
   }
   window.addEventListener('load',build);
 })();
+
+<!-- v20 professional home polish -->
+(function(){
+  var css=document.createElement('style');
+  css.textContent=
+    '.pro-home-label{width:96%;max-width:720px;margin:8px auto 4px;text-align:left;color:#7f8996;font-size:10px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase}'+
+    '.home-coach-strip{margin-top:4px!important;margin-bottom:9px!important}'+
+    '.home-coach-card{box-shadow:0 5px 16px rgba(0,0,0,.18);transition:transform .12s ease,background .12s ease}'+
+    '.home-coach-card:active{transform:scale(.98)}'+
+    '.quick-actions{margin-top:5px!important}'+
+    '.quick-actions button{border-radius:10px!important;font-weight:800!important;font-size:12px!important;box-shadow:0 3px 10px rgba(0,0,0,.15)}'+
+    '.panel textarea{border-radius:10px!important;border:1px solid #303741!important;background:#151a20!important;color:#fff!important}';
+  document.head.appendChild(css);
+  function polish(){
+    var strip=document.getElementById('homeCoachStrip');
+    if(strip && !document.getElementById('homeCoachLabel')){
+      var l=document.createElement('div');l.id='homeCoachLabel';l.className='pro-home-label';l.textContent='COACH OS';strip.parentNode.insertBefore(l,strip);
+    }
+    var qa=document.querySelectorAll('.quick-actions');
+    if(qa.length>0){
+      var first=qa[0].querySelectorAll('button');
+      if(first[0])first[0].innerHTML='↔ Movement';
+      if(first[1])first[1].innerHTML='↗ Pass / Arrow';
+      if(first[2])first[2].innerHTML='⚽ Ball';
+      if(first[3])first[3].innerHTML='◉ Opposition';
+    }
+  }
+  window.addEventListener('load',polish);
+  setTimeout(polish,300);
+})();
+
 </script>
 </body></html>
