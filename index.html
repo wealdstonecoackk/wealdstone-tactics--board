@@ -489,12 +489,32 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
   };
   pitch.addEventListener("pointerdown",function(e){
     if(!ballMode)return;
+    if(e.target===ball)return;
     if(e.target!==pitch && e.target!==svg)return;
     var r=pitch.getBoundingClientRect();
     ballX=Math.max(2,Math.min(98,(e.clientX-r.left)/r.width*100));
     ballY=Math.max(3,Math.min(97,(e.clientY-r.top)/r.height*100));
     ball.style.left=ballX+"%";ball.style.top=ballY+"%";ball.style.display="block";
-    status.textContent="Ball placed.";
+    status.textContent=recording?"Ball start placed — drag the ball to its destination.":"Ball placed.";
+  });
+  ball.addEventListener("pointerdown",function(e){
+    if(!ballMode)return;
+    e.preventDefault();e.stopPropagation();
+    var r=pitch.getBoundingClientRect(),sx=(e.clientX-r.left)/r.width*100,sy=(e.clientY-r.top)/r.height*100;
+    var move=function(ev){
+      var rr=pitch.getBoundingClientRect(),x=Math.max(2,Math.min(98,(ev.clientX-rr.left)/rr.width*100)),y=Math.max(3,Math.min(97,(ev.clientY-rr.top)/rr.height*100));
+      ballX=x;ballY=y;ball.style.left=x+"%";ball.style.top=y+"%";
+    };
+    var up=function(ev){
+      ball.removeEventListener("pointermove",move);
+      ball.removeEventListener("pointerup",up);
+      var rr=pitch.getBoundingClientRect(),ex=Math.max(2,Math.min(98,(ev.clientX-rr.left)/rr.width*100)),ey=Math.max(3,Math.min(97,(ev.clientY-rr.top)/rr.height*100));
+      ballX=ex;ballY=ey;ball.style.left=ex+"%";ball.style.top=ey+"%";
+      if(recording){sequence.push({type:"ball",x1:sx,y1:sy,x2:ex,y2:ey});status.textContent="Ball movement added to play."}
+      else status.textContent="Ball moved.";
+    };
+    ball.addEventListener("pointermove",move);
+    ball.addEventListener("pointerup",up,{once:true});
   });
 })();
 <!-- v16 action inspector -->
