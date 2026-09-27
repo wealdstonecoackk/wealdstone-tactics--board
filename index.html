@@ -1165,6 +1165,51 @@ elitePlayUpdate();
   document.head.appendChild(s);
 })();
 </script>
+
+<!-- V36 BOARD RELIABILITY + PERSISTENCE -->
+<style>
+#pitch{touch-action:none}
+#v34Tools{position:relative;z-index:20}
+#v34Tools button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.ball{touch-action:none;cursor:grab}
+.ball:active{cursor:grabbing}
+</style>
+<script>
+(function(){
+  function placeBall(x,y){
+    x=Math.max(3,Math.min(97,Number(x)||50));y=Math.max(4,Math.min(96,Number(y)||50));
+    ballX=x;ballY=y;ball.style.left=x+'%';ball.style.top=y+'%';
+    try{localStorage.setItem('wealdstone_board_ball_v36',JSON.stringify({x:x,y:y}))}catch(e){}
+  }
+  function loadBall(){
+    try{var v=JSON.parse(localStorage.getItem('wealdstone_board_ball_v36')||'null');if(v&&isFinite(v.x)&&isFinite(v.y)){placeBall(v.x,v.y);return}}catch(e){}
+    placeBall(ballX,ballY);
+  }
+  window.v36PlaceBall=placeBall;
+  var oldSetCoachTool=window.setCoachTool;
+  window.setCoachTool=function(kind){
+    if(typeof oldSetCoachTool==='function')oldSetCoachTool.apply(this,arguments);
+    if(kind==='ball')placeBall(ballX,ballY);
+  };
+  var oldV34=window.v34Mode;
+  window.v34Mode=function(mode){
+    if(typeof oldV34==='function')oldV34.apply(this,arguments);
+    if(mode==='ball')placeBall(ballX,ballY);
+  };
+  function wireBall(){
+    if(!ball||ball.dataset.v36)return;
+    ball.dataset.v36='1';
+    placeBall(ballX,ballY);
+    ball.addEventListener('pointerup',function(){placeBall(ballX,ballY)},true);
+  }
+  window.addEventListener('load',function(){
+    setTimeout(loadBall,180);
+    setTimeout(wireBall,220);
+    setTimeout(function(){if(typeof v33SyncTeamToBoard==='function')v33SyncTeamToBoard()},500);
+  });
+  setTimeout(loadBall,400);setTimeout(wireBall,450);
+})();
+</script>
 </body></html>\n
 <!-- V30 PROFESSIONAL SINGLE NAV + MOBILE RELIABILITY -->
 <style>
