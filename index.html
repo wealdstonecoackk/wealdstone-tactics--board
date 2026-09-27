@@ -878,4 +878,47 @@ body{padding-bottom:76px}
 })();
 </script>
 
-</body></html>
+
+<style>
+/* v25 ELITE PLAY WORKFLOW */
+#elitePlayBar{position:fixed;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:200;width:min(96%,720px);display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:7px;background:rgba(13,15,18,.96);border:1px solid #343b45;border-radius:13px;box-shadow:0 8px 28px #0009;backdrop-filter:blur(8px)}
+#elitePlayBar button{min-height:42px;padding:7px 4px;font-size:11px;background:#222831;color:#fff;border:1px solid #3a424d;border-radius:8px}
+#elitePlayBar button.primary{background:#174ea6;border-color:#174ea6}
+#elitePlayBar button.warn{background:#7d202b;border-color:#7d202b}
+#elitePlayStatus{grid-column:1/-1;font-size:10px;letter-spacing:.7px;color:#aeb6c2;text-align:center;min-height:12px}
+body{padding-bottom:78px}
+@media(max-width:600px){#elitePlayBar{width:97%;gap:4px;padding:6px}#elitePlayBar button{min-height:40px;font-size:10px}}
+</style>
+<div id="elitePlayBar">
+  <div id="elitePlayStatus">READY · 0 ACTIONS</div>
+  <button class="primary" onclick="eliteRecordPlay()">● RECORD</button>
+  <button onclick="eliteFinishPlay()">■ FINISH</button>
+  <button onclick="elitePlaySequence()">▶ PLAY</button>
+  <button onclick="eliteShowActions()">☷ ACTIONS</button>
+  <button onclick="eliteSavePlay()">💾 SAVE</button>
+  <button class="warn" onclick="eliteNewPlay()">＋ NEW</button>
+</div>
+<script>
+/* v25 ELITE PLAY WORKFLOW */
+function elitePlayUpdate(){
+  var el=document.getElementById("elitePlayStatus");
+  if(!el)return;
+  el.textContent=(recording?"RECORDING":"READY")+" · "+(Array.isArray(sequence)?sequence.length:0)+" ACTIONS";
+}
+function eliteSavePlay(){
+  if(!Array.isArray(sequence)||!sequence.length){status.textContent="Record a play first.";return}
+  savePlay();
+  elitePlayUpdate();
+}
+function eliteNewPlay(){
+  if(recording)finishSequence();
+  sequence=[];arrows=[];playIndex=0;playing=false;
+  if(typeof playTimer!=="undefined"&&playTimer){clearInterval(playTimer);playTimer=null}
+  if(typeof drawArrows==="function")drawArrows();
+  if(typeof ballX!=="undefined"){ballX=50;ballY=50;ball.style.left="50%";ball.style.top="50%"}
+  status.textContent="New play ready — record the next sequence.";
+  elitePlayUpdate();
+}
+elitePlayUpdate();
+</script>
+\n</body></html>
