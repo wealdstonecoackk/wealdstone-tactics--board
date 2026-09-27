@@ -758,4 +758,60 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
   window.addEventListener('load',build);setTimeout(build,350);
 })();
 </script>
+
+<!-- v23 professional coaching polish -->
+<script>
+(function(){
+  var css=document.createElement('style');
+  css.textContent='\
+  .pro-status{width:96%;max-width:720px;margin:5px auto 7px;display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}\
+  .pro-pill{display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border:1px solid #303741;border-radius:999px;background:#151a20;color:#aeb6c2;font-size:10px;font-weight:900;letter-spacing:.5px}\
+  .pro-pill.live{color:#fff;border-color:#174ea6;background:#174ea6}\
+  .pro-pill.rec{border-color:#a51d2d;background:#a51d2d;color:#fff}\
+  .pro-live-controls{width:96%;max-width:720px;margin:0 auto 7px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}\
+  .pro-live-controls button{min-height:38px;border:1px solid #343b45;border-radius:9px;background:#1b2129;color:#fff;font-weight:900;font-size:10px}\
+  @media(max-width:430px){.pro-live-controls{grid-template-columns:repeat(2,1fr)}}';
+  document.head.appendChild(css);
+  function mode(label,kind){
+    movementMode=false;arrowMode=false;ballMode=false;
+    if(kind==='run')movementMode=true;
+    if(kind==='pass')arrowMode=true;
+    if(kind==='ball')ballMode=true;
+    var s=document.getElementById('proMode');
+    if(s){s.textContent=label;s.className='pro-pill '+(kind==='record'?'rec':'live')}
+    if(window.status) status.textContent=label;
+  }
+  window.setCoachTool=function(kind){
+    if(kind==='run')mode('RUN MODE — drag a player','run');
+    else if(kind==='pass')mode('PASS MODE — tap passer then receiver','pass');
+    else if(kind==='ball')mode('BALL MODE — drag/place the ball','ball');
+    else {movementMode=false;arrowMode=false;ballMode=false;var s=document.getElementById('proMode');if(s){s.textContent='READY';s.className='pro-pill'};status.textContent='Tools ready.';}
+  };
+  window.proStartPlay=function(){
+    if(typeof startSequence==='function') startSequence();
+    setCoachTool('run');
+    var s=document.getElementById('proMode');if(s){s.textContent='● RECORDING PLAY';s.className='pro-pill rec'}
+  };
+  window.proFinishPlay=function(){
+    if(typeof finishSequence==='function') finishSequence();
+    setCoachTool('none');
+    status.textContent='Play recording finished — review actions before saving.';
+  };
+  window.proPlayback=function(){
+    if(typeof startElitePlayback==='function') startElitePlayback();
+    else if(typeof animateSequence==='function') animateSequence();
+    status.textContent='Playing recorded sequence.';
+  };
+  function build(){
+    if(document.getElementById('proLiveControls'))return;
+    var nav=document.getElementById('simpleProNav');if(!nav)return;
+    var bar=document.createElement('div');bar.className='pro-status';bar.innerHTML='<span id="proMode" class="pro-pill">READY</span><span class="pro-pill">ACTIONS <b id="proActionCount">0</b></span>';
+    var controls=document.createElement('div');controls.id='proLiveControls';controls.className='pro-live-controls';
+    controls.innerHTML='<button onclick="proStartPlay()">⏺ RECORD</button><button onclick="proFinishPlay()">⏹ FINISH</button><button onclick="proPlayback()">▶ PLAY</button><button onclick="openActionList()">📝 ACTIONS</button>';
+    nav.parentNode.insertBefore(bar,nav.nextSibling);nav.parentNode.insertBefore(controls,bar.nextSibling);
+    setInterval(function(){var x=document.getElementById('proActionCount');if(x)x.textContent=Array.isArray(window.sequence)?window.sequence.length:0},250);
+  }
+  window.addEventListener('load',build);setTimeout(build,600);
+})();
+</script>
 </body></html>
