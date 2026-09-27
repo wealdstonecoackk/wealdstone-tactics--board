@@ -620,4 +620,51 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
 })();
 
 </script>
+
+<!-- v21 professional coach navigation -->
+<script>
+(function(){
+  var css=document.createElement('style');
+  css.textContent=
+    '#proCoachNav{width:96%;max-width:720px;margin:7px auto 9px;background:#151a21;border:1px solid #303741;border-radius:14px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,.22)}'+
+    '#proCoachNav .nav-title{display:flex;justify-content:space-between;align-items:center;color:#fff;font-weight:900;font-size:12px;letter-spacing:1px;padding:2px 3px 7px}'+
+    '#proCoachNav .nav-title span{color:#7f8996;font-size:9px;letter-spacing:1.2px}'+
+    '#proCoachNav .nav-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}'+
+    '#proCoachNav button{min-height:48px;border:1px solid #343b45;border-radius:10px;background:#20262e;color:#fff;font-weight:800;font-size:11px;padding:7px 4px}'+
+    '#proCoachNav button.primary{background:#174ea6;border-color:#174ea6}'+
+    '#proCoachNav button:active{transform:scale(.98)}'+
+    '#proCoachNav .tool-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:6px}'+
+    '#proCoachNav .tool-row button{min-height:40px;font-size:10px}'+
+    '@media(max-width:420px){#proCoachNav .nav-grid{grid-template-columns:repeat(2,1fr)}#proCoachNav .tool-row{grid-template-columns:repeat(2,1fr)}}';
+  document.head.appendChild(css);
+  function build(){
+    if(document.getElementById('proCoachNav'))return;
+    var anchor=document.getElementById('homeCoachStrip')||document.querySelector('.menu-shell');
+    if(!anchor)return;
+    var n=document.createElement('section'); n.id='proCoachNav';
+    n.innerHTML=
+      '<div class="nav-title">WEALDSTONE COACH OS <span>PRO COACHING BOARD</span></div>'+
+      '<div class="nav-grid">'+
+      '<button class="primary" onclick="openCoachHub()">🧠 Coach Hub</button>'+
+      '<button onclick="openMatchdayCommand()">🏟 Matchday</button>'+
+      '<button onclick="openActionInspector()">🎬 Play Designer</button>'+
+      '<button onclick="openPlayLibrary()">📖 Playbook</button>'+
+      '<button onclick="openSessionBuilder()">📋 Sessions</button>'+
+      '<button onclick="openPlayerDevelopment()">📈 Player Development</button>'+
+      '<button onclick="openTeamManager()">👥 Squad</button>'+
+      '<button onclick="openTeamManager()">⚽ Starting XI</button>'+
+      '<button onclick="openCoachHQ()">☰ All Coach Tools</button>'+
+      '</div>'+
+      '<div class="tool-row">'+
+      '<button onclick="movementMode=true;arrowMode=false;ballMode=false;closeMainMenu&&closeMainMenu();status.textContent=\'RUN / MOVEMENT MODE\'">↔ Run</button>'+
+      '<button onclick="arrowMode=true;movementMode=false;ballMode=false;closeMainMenu&&closeMainMenu();status.textContent=\'PASS / ARROW MODE\'">↗ Pass</button>'+
+      '<button onclick="ballMode=true;movementMode=false;arrowMode=false;closeMainMenu&&closeMainMenu();status.textContent=\'BALL MODE\'">⚽ Ball</button>'+
+      '<button onclick="openActionList()">📝 Actions</button>'+
+      '</div>';
+    anchor.parentNode.insertBefore(n,anchor.nextSibling);
+  }
+  window.addEventListener('load',build);
+  setTimeout(build,350);
+})();
+</script>
 </body></html>
