@@ -549,5 +549,32 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
     var b=document.createElement("button");b.textContent="🎬 Edit Action Sequence";b.onclick=function(){closeMainMenu();openActionList()};m.appendChild(b);
   };
 })();
+
+<!-- v18 clean coach menu -->
+(function(){
+  window.openMainMenu=function(){
+    var m=document.getElementById('mainMenu');
+    if(!m){m=document.createElement('div');m.id='mainMenu';document.body.appendChild(m)}
+    m.style='position:fixed;inset:0;z-index:120;background:rgba(5,7,10,.97);color:#fff;padding:14px;overflow:auto;text-align:left;font-family:Arial,sans-serif';
+    m.innerHTML='<div style="max-width:620px;margin:auto;padding-bottom:30px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div><div style="font-size:25px;font-weight:900">⚽ WEALDSTONE COACH OS</div><div style="font-size:12px;color:#aeb7c5">Coach menu • everything in one place</div></div><button type="button" onclick="closeMainMenu()" style="font-size:22px">✕</button></div>'+
+      '<div style="display:grid;gap:10px;margin-top:14px">'+
+      '<div style="padding:12px;border:1px solid #303744;border-radius:16px;background:#151a22"><b style="font-size:14px;color:#aeb7c5">MATCHDAY</b><div style="display:grid;gap:8px;margin-top:9px">'+
+      '<button type="button" onclick="openMatchdayCommand();closeMainMenu()">🏟 Matchday Command Centre</button><button type="button" onclick="openMatchdayHub();closeMainMenu()">📋 Matchday Hub</button><button type="button" onclick="matchdayMode(this);closeMainMenu()">🎯 Matchday Board</button></div></div>'+
+      '<div style="padding:12px;border:1px solid #303744;border-radius:16px;background:#151a22"><b style="font-size:14px;color:#aeb7c5">TACTICS & DESIGN</b><div style="display:grid;gap:8px;margin-top:9px">'+
+      '<button type="button" onclick="openActionInspector()">🎬 Play Designer</button><button type="button" onclick="openActionList();closeMainMenu()">🧩 Edit Action Sequence</button><button type="button" onclick="startSequence();closeMainMenu()">⏺ Record New Play</button><button type="button" onclick="finishSequence();closeMainMenu()">⏹ Finish Recording</button><button type="button" onclick="buildBackTemplate();closeMainMenu()">🏗 Build from Back</button><button type="button" onclick="toggleOneTouch();closeMainMenu()">1️⃣ One-Touch</button><button type="button" onclick="startElitePlayback();closeMainMenu()">▶ Playback Controls</button><button type="button" onclick="openPlayLibrary();closeMainMenu()">📚 Playbook</button></div></div>'+
+      '<div style="padding:12px;border:1px solid #303744;border-radius:16px;background:#151a22"><b style="font-size:14px;color:#aeb7c5">MOVEMENT TOOLS</b><div style="display:grid;gap:8px;margin-top:9px">'+
+      '<button type="button" onclick="movementMode=true;arrowMode=false;ballMode=false;status.textContent=\'Drag a player to draw a run.\';closeMainMenu()">➜ Draw Run</button><button type="button" onclick="arrowMode=true;movementMode=false;ballMode=false;status.textContent=\'Tap passer then receiver.\';closeMainMenu()">↗ Add Pass</button><button type="button" onclick="ballMode=true;movementMode=false;arrowMode=false;status.textContent=\'Tap pitch to place ball.\';closeMainMenu()">⚽ Place Ball</button><button type="button" onclick="movementMode=false;arrowMode=false;ballMode=false;status.textContent=\'Movement tools off.\';closeMainMenu()">✕ Exit Movement Tools</button></div></div>'+
+      '<div style="padding:12px;border:1px solid #303744;border-radius:16px;background:#151a22"><b style="font-size:14px;color:#aeb7c5">TEAM & SQUAD</b><div style="display:grid;gap:8px;margin-top:9px">'+
+      '<button type="button" onclick="openSquadHub();closeMainMenu()">👥 Squad Manager</button><button type="button" onclick="openTeamManager();closeMainMenu()">🧤 Starting XI</button><button type="button" onclick="openPlayerDevelopment();closeMainMenu()">📈 Player Development</button><button type="button" onclick="openCoachHub();closeMainMenu()">🧠 Coach Hub</button></div></div>'+
+      '<div style="padding:12px;border:1px solid #303744;border-radius:16px;background:#151a22"><b style="font-size:14px;color:#aeb7c5">TRAINING</b><div style="display:grid;gap:8px;margin-top:9px">'+
+      '<button type="button" onclick="openSessionBuilder();closeMainMenu()">📝 Session Builder</button><button type="button" onclick="openSessionHub();closeMainMenu()">📋 Session Planner</button></div></div>'+
+      '<div style="padding:12px;border:1px solid #303744;border-radius:16px;background:#151a22"><b style="font-size:14px;color:#aeb7c5">SHARE & FILES</b><div style="display:grid;gap:8px;margin-top:9px">'+
+      '<button type="button" onclick="sharePlayCardCurrent();closeMainMenu()">📲 Share Play Card</button><button type="button" onclick="shareTactic();closeMainMenu()">↗ Share Tactic</button><button type="button" onclick="saveTactic();closeMainMenu()">💾 Save Tactic</button><button type="button" onclick="loadTactic();closeMainMenu()">📂 Load Tactic</button><button type="button" onclick="exportTactic();closeMainMenu()">⬇ Export Tactic</button><button type="button" onclick="undo();closeMainMenu()">↶ Undo</button><button type="button" class="danger" onclick="resetBoard();closeMainMenu()">♻ Reset Board</button></div></div>'+
+      '</div></div>';
+    m.querySelectorAll('button').forEach(function(b){b.style.minHeight='46px';b.style.borderRadius='12px';b.style.fontWeight='800';b.style.fontSize='15px'});
+    m.style.display='block';
+  };
+})();
 </script>
 </body></html>
