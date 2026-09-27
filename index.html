@@ -1165,4 +1165,55 @@ elitePlayUpdate();
   document.head.appendChild(s);
 })();
 </script>
-</body></html>
+</body></html>\n
+<!-- V30 PROFESSIONAL SINGLE NAV + MOBILE RELIABILITY -->
+<style>
+/* One clean control rail above the pitch */
+#v30Nav{width:94%;max-width:720px;margin:6px auto 9px;padding:7px;background:#151a21;border:1px solid #303741;border-radius:14px;box-shadow:0 7px 22px rgba(0,0,0,.22)}
+#v30Nav .v30tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#v30Nav button{min-height:42px;border:1px solid #343b45;border-radius:10px;background:#20262e;color:#fff;font-weight:900;font-size:11px}
+#v30Nav button:active{transform:scale(.97)}
+#v30Nav .primary{background:#174ea6;border-color:#174ea6}
+#v30Nav small{display:block;text-align:center;color:#7f8996;font-size:8px;letter-spacing:1.4px;font-weight:900;margin:1px 0 6px}
+body.v30-board #elitePlayBar{display:none}
+body.v30-designer #elitePlayBar{display:flex}
+body.v30-board{padding-bottom:10px}
+@media(max-width:420px){#v30Nav{margin-top:4px}#v30Nav button{min-height:40px;font-size:10px}}
+</style>
+<script>
+(function(){
+  function hideOld(){
+    ['proCoachNav','simpleProNav','homeCoachStrip','homeCoachLabel'].forEach(function(id){
+      var e=document.getElementById(id); if(e)e.style.display='none';
+    });
+    document.body.classList.add('v30-board');
+  }
+  function nav(){
+    if(document.getElementById('v30Nav')){hideOld();return;}
+    var anchor=document.querySelector('.menu-shell');
+    if(!anchor)return;
+    var n=document.createElement('section');
+    n.id='v30Nav';
+    n.innerHTML='<small>WEALDSTONE COACH OS</small><div class="v30tabs">'+
+      '<button class="primary" type="button" onclick="v30Team()">👥 TEAM</button>'+
+      '<button type="button" onclick="v30Design()">🎬 DESIGN</button>'+
+      '<button type="button" onclick="v30Matchday()">🏟 MATCHDAY</button>'+
+      '<button type="button" onclick="v30More()">☰ MORE</button>'+
+      '</div>';
+    anchor.parentNode.insertBefore(n,anchor.nextSibling);
+    hideOld();
+  }
+  window.v30Team=function(){hideOld();if(typeof window.openTeamManager==='function')window.openTeamManager();};
+  window.v30Design=function(){document.body.classList.remove('v30-board');document.body.classList.add('v30-designer');if(typeof window.openActionInspector==='function')window.openActionInspector();else if(typeof window.openPlayLibrary==='function')window.openPlayLibrary();};
+  window.v30Matchday=function(){hideOld();if(typeof window.openMatchdayCommand==='function')window.openMatchdayCommand();else if(typeof window.openMatchdayHub==='function')window.openMatchdayHub();};
+  window.v30More=function(){hideOld();if(typeof window.openMainMenu==='function')window.openMainMenu();};
+  var oldOpen=window.openActionInspector;
+  if(typeof oldOpen==='function'){
+    window.openActionInspector=function(){document.body.classList.remove('v30-board');document.body.classList.add('v30-designer');return oldOpen.apply(this,arguments);};
+  }
+  var oldClose=window.closeMainMenu;
+  window.closeMainMenu=function(){if(typeof oldClose==='function')oldClose.apply(this,arguments);document.body.classList.add('v30-board');document.body.classList.remove('v30-designer');};
+  window.addEventListener('load',nav);
+  setTimeout(nav,250);
+})();
+</script>
