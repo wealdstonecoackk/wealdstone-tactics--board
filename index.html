@@ -167,5 +167,37 @@ function loadTactic(){let s=localStorage.getItem("wealdstoneTactic");if(!s){stat
 function resetBoard(){snapshot();names=Array.from({length:11},(_,i)=>"Player "+(i+1));notes.value="";arrows=[];oppositionMode=false;setFormation("433",document.querySelector(".bar button"));renderNames();drawArrows();renderOpposition();status.textContent="Board reset."}
 renderNames();currentFormation="433";formations["433"].forEach((pos,i)=>{players[i].style.left=pos[0]+"%";players[i].style.top=pos[1]+"%"});
 window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){const regs=await navigator.serviceWorker.getRegistrations();for(const reg of regs)await reg.unregister();if("caches"in window){const keys=await caches.keys();for(const key of keys)if(key.startsWith("wealdstone-tactics-"))await caches.delete(key)}}}catch(e){}});
+
+/* SAFE STARTING XI MANAGER v1 */
+(function(){
+  window.openTeamManager=function(){
+    let m=document.getElementById("teamManager");
+    if(!m){
+      m=document.createElement("div");
+      m.id="teamManager";
+      m.style="display:none;position:fixed;inset:3%;z-index:125;background:#111;color:#fff;border:1px solid #343b45;border-radius:14px;padding:16px;overflow:auto;text-align:left";
+      document.body.appendChild(m);
+    }
+    const saved=JSON.parse(localStorage.getItem("wealdstone_starting11")||"[]");
+    m.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">🧤 Starting XI</h2><button onclick="closeTeamManager()">✕</button></div><p style="opacity:.75">Tap the players you want in the starting XI.</p><div id="teamList" style="display:grid;gap:7px"></div><br><button onclick="applyStarting11()">💾 Save Starting XI</button> <button onclick="closeTeamManager()">Close</button>';
+    const box=document.getElementById("teamList");
+    players.forEach((p,i)=>{
+      const row=document.createElement("label");
+      row.style="display:flex;align-items:center;gap:10px;padding:10px;background:"+(saved.includes(i)?"#174ea6":"#222831")+";border:1px solid #343b45;border-radius:9px";
+      row.innerHTML='<input type="checkbox" data-player="'+i+'" '+(saved.includes(i)?"checked":"")+' style="width:20px;height:20px"><span><b>'+(i+1)+'. '+String(names[i]||("Player "+(i+1))).replace(/</g,"&lt;")+'</b></span>';
+      box.appendChild(row);
+    });
+    m.style.display="block";
+  };
+  window.closeTeamManager=function(){const m=document.getElementById("teamManager");if(m)m.style.display="none";};
+  window.applyStarting11=function(){
+    const picked=[].slice.call(document.querySelectorAll('#teamList input[type="checkbox"]:checked')).map(x=>+x.dataset.player);
+    if(picked.length!==11){status.textContent="Select exactly 11 players for the Starting XI.";return;}
+    localStorage.setItem("wealdstone_starting11",JSON.stringify(picked));
+    status.textContent="Starting XI saved on this phone.";
+    closeTeamManager();
+  };
+})();
+
 </script>
 </body></html>
