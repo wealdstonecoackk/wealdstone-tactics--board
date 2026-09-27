@@ -1107,4 +1107,62 @@ elitePlayUpdate();
   window.addEventListener('load',function(){setTimeout(v28LoadTeam,950)});
 })();
 </script>
+
+<!-- v29 CLEAN COACH MENU -->
+<script>
+(function(){
+  window.openMainMenu=function(){
+    var m=document.getElementById('mainMenu');
+    if(!m){
+      m=document.createElement('div');
+      m.id='mainMenu';
+      m.style='display:none;position:fixed;inset:0;z-index:120;background:rgba(8,10,14,.97);color:#fff;padding:14px;overflow:auto;text-align:left';
+      document.body.appendChild(m);
+    }
+    function go(fn){return "onclick=\""+fn+";closeMainMenu()\""}
+    m.innerHTML=
+      '<div class="v29-menu">'+
+        '<div class="v29-head"><div><div class="v29-kicker">WEALDSTONE FC</div><h1>Coach Menu</h1><p>Everything in matchday order.</p></div><button onclick="closeMainMenu()">✕</button></div>'+
+        '<div class="v29-section"><div class="v29-title">01 · MATCHDAY</div>'+
+          '<button '+go('openMatchdayCommand()')+'>🏟 Matchday Command Centre<span>Game plan, XI, captain & match notes</span></button>'+
+          '<button '+go('openMatchdayHub()')+'>📋 Matchday Hub<span>Matchday tools & saved pack</span></button>'+
+          '<button '+go('matchdayMode(this)')+'>🎯 Matchday Board<span>Use the pitch in match mode</span></button>'+
+        '</div>'+
+        '<div class="v29-section"><div class="v29-title">02 · TACTICS & PLAYS</div>'+
+          '<button '+go('openActionInspector()')+'>🎬 Play Designer<span>Build a play step by step</span></button>'+
+          '<button '+go('startSequence()')+'>⏺ Record New Play<span>Start recording player, pass & ball actions</span></button>'+
+          '<button '+go('openActionList()')+'>🧩 Edit Actions<span>Review, reorder and remove actions</span></button>'+
+          '<button '+go('startElitePlayback()')+'>▶ Playback<span>Watch the current sequence</span></button>'+
+          '<button '+go('openPlayLibrary()')+'>📖 Playbook<span>Load, save and manage saved plays</span></button>'+
+          '<button '+go('buildBackTemplate()')+'>🏗 Build from Back<span>Load the build-up template</span></button>'+
+          '<button '+go('toggleOneTouch()')+'>1️⃣ One-Touch<span>Enable one-touch coaching mode</span></button>'+
+        '</div>'+
+        '<div class="v29-section"><div class="v29-title">03 · TEAM & SQUAD</div>'+
+          '<button '+go('openTeamManager()')+'>👥 Squad & Starting XI<span>Players, shirt numbers, positions, XI & bench</span></button>'+
+          '<button '+go('openPlayerDevelopment()')+'>📈 Player Development<span>Individual development profiles</span></button>'+
+          '<button '+go('openCoachHub()')+'>🧠 Coach Hub<span>Coach tools and team information</span></button>'+
+        '</div>'+
+        '<div class="v29-section"><div class="v29-title">04 · TRAINING</div>'+
+          '<button '+go('openSessionBuilder()')+'>📝 Session Builder<span>Build and save full training sessions</span></button>'+
+          '<button '+go('openSessionHub()')+'>📋 Session Planner<span>Organise saved plays into a session</span></button>'+
+        '</div>'+
+        '<div class="v29-section"><div class="v29-title">05 · SHARE & FILES</div>'+
+          '<button '+go('saveTactic()')+'>💾 Save Tactic<span>Save the current board</span></button>'+
+          '<button '+go('loadTactic()')+'>📂 Load Tactic<span>Restore a saved board</span></button>'+
+          '<button '+go('exportTactic()')+'>⬇ Export Tactic<span>Export the current tactic</span></button>'+
+          '<button '+go('shareTactic()')+'>↗ Share Tactic<span>Share the current setup</span></button>'+
+          '<button '+go('sharePlayCardCurrent()')+'>📲 Share Play Card<span>Create a shareable play card</span></button>'+
+          '<button '+go('undo()')+'>↶ Undo<span>Undo the last board change</span></button>'+
+          '<button class="danger" '+go('resetBoard()')+'>♻ Reset Board<span>Clear the current board</span></button>'+
+        '</div>'+
+        '<div class="v29-footer"><button '+go('coachHealthCheck()')+'>🩺 System Check</button><button onclick="closeMainMenu()">Close</button></div>'+
+      '</div>';
+    m.style.display='block';
+  };
+  var s=document.createElement('style');
+  s.textContent=
+    '.v29-menu{max-width:620px;margin:0 auto;padding-bottom:30px}.v29-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:8px 2px 18px}.v29-head h1{font-size:28px;margin:2px 0}.v29-head p{margin:0;color:#aeb6c2}.v29-kicker{font-size:11px;letter-spacing:2px;font-weight:800;color:#aeb6c2}.v29-head>button{font-size:20px}.v29-section{margin:0 0 16px}.v29-title{font-size:11px;letter-spacing:1.5px;font-weight:900;color:#aeb6c2;margin:0 0 7px;padding-left:3px}.v29-section button{display:block;width:100%;text-align:left;margin:6px 0;padding:12px 13px;border:1px solid #303744;border-radius:12px;background:#171c24;color:#fff;font-size:15px;font-weight:750}.v29-section button span{display:block;margin-top:3px;color:#9da7b5;font-size:11px;font-weight:500}.v29-section button:active{transform:scale(.99)}.v29-section .danger{border-color:#713b3b}.v29-footer{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}.v29-footer button{padding:12px;border-radius:12px}.v29-footer button:first-child{background:#171c24;color:#fff;border:1px solid #303744}';
+  document.head.appendChild(s);
+})();
+</script>
 </body></html>
