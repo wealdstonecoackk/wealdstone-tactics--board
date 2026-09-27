@@ -1282,3 +1282,40 @@ body.v30-board{padding-bottom:10px}
 })();
 </script>
 
+
+
+<!-- V32 INTEGRATED BOARD CONTROLS -->
+<style>
+#v32Tools{width:94%;max-width:720px;margin:6px auto 8px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#v32Tools button{min-height:44px;border:1px solid #343b45;border-radius:10px;background:#20262e;color:#fff;font-weight:900;font-size:10px}
+#v32Tools button.active,#v32Tools button.primary{background:#174ea6;border-color:#174ea6}
+#v32Tools .danger{background:#7d202b;border-color:#7d202b}
+.v32-board-active .player{cursor:grab;touch-action:none}
+.v32-board-active .player:active{cursor:grabbing}
+</style>
+<script>
+(function(){
+  function addTools(){
+    if(document.getElementById('v32Tools'))return;
+    var pitch=document.getElementById('pitch');if(!pitch)return;
+    var rail=document.createElement('div');rail.id='v32Tools';
+    rail.innerHTML='<button id="v32Move" class="active" type="button" onclick="v32Mode(\'move\')">↔ PLAYERS</button>'+
+      '<button id="v32Ball" type="button" onclick="v32Mode(\'ball\')">⚽ BALL</button>'+
+      '<button id="v32Pass" type="button" onclick="v32Mode(\'pass\')">↗ PASS</button>'+
+      '<button type="button" onclick="v32More()">☰ MORE</button>';
+    pitch.parentNode.insertBefore(rail,pitch);
+    document.body.classList.add('v32-board-active');
+  }
+  function btn(id,on){var e=document.getElementById(id);if(e)e.classList.toggle('active',on)}
+  window.v32Mode=function(mode){
+    btn('v32Move',mode==='move');btn('v32Ball',mode==='ball');btn('v32Pass',mode==='pass');
+    if(mode==='move'){if(typeof setCoachTool==='function')setCoachTool('run');}
+    if(mode==='ball'){if(typeof setCoachTool==='function')setCoachTool('ball');else if(typeof ballMode!=='undefined')ballMode=true;}
+    if(mode==='pass'){if(typeof setCoachTool==='function')setCoachTool('pass');}
+    if(typeof status!=='undefined')status.textContent=mode.toUpperCase()+' mode ready — use the board.';
+  };
+  window.v32More=function(){if(typeof openMainMenu==='function')openMainMenu()};
+  window.addEventListener('load',function(){setTimeout(addTools,150)});
+  setTimeout(addTools,350);
+})();
+</script>
