@@ -576,5 +576,20 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
     m.style.display='block';
   };
 })();
+
+<!-- v19 clean home screen -->
+(function(){
+  var css=document.createElement('style');
+  css.textContent='.home-coach-strip{width:96%;max-width:720px;margin:7px auto;display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:7px}.home-coach-card{min-height:54px;border:1px solid #303741;border-radius:12px;background:#171c23;color:#fff;padding:9px;text-align:left;font-weight:800}.home-coach-card b{display:block;font-size:13px}.home-coach-card span{display:block;color:#9fa8b5;font-size:10px;margin-top:3px}.home-coach-card.primary{background:#174ea6;border-color:#174ea6}@media(max-width:600px){.home-coach-strip{grid-template-columns:1fr 1fr 1fr;gap:5px}.home-coach-card{min-height:58px;padding:8px 6px}.home-coach-card b{font-size:11px}.home-coach-card span{font-size:9px}}';
+  document.head.appendChild(css);
+  function build(){
+    var old=document.getElementById('homeCoachStrip');if(old)old.remove();
+    var menu=document.querySelector('.menu-shell');if(!menu)return;
+    var d=document.createElement('div');d.id='homeCoachStrip';d.className='home-coach-strip';
+    d.innerHTML='<button class="home-coach-card primary" onclick="openMainMenu()"><b>☰ COACH MENU</b><span>All coaching tools</span></button><button class="home-coach-card" onclick="openActionInspector()"><b>🎬 DESIGN</b><span>Build the play</span></button><button class="home-coach-card" onclick="openMatchdayCommand()"><b>🏟 MATCHDAY</b><span>Game plan</span></button>';
+    menu.parentNode.insertBefore(d,menu.nextSibling);
+  }
+  window.addEventListener('load',build);
+})();
 </script>
 </body></html>
