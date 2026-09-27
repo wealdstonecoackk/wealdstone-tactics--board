@@ -1217,3 +1217,68 @@ body.v30-board{padding-bottom:10px}
   setTimeout(nav,250);
 })();
 </script>
+
+
+<!-- V31 REAL PLAYERS ON BOARD -->
+<style>
+#v31PlayerRail{width:94%;max-width:720px;margin:7px auto 5px;display:flex;gap:7px;align-items:center}
+#v31PlayerRail button{flex:1;min-height:42px;border:1px solid #343b45;border-radius:10px;background:#20262e;color:#fff;font-weight:900;font-size:11px}
+#v31PlayerRail button.primary{background:#174ea6;border-color:#174ea6}
+#v31PlayerModal{position:fixed;inset:5%;z-index:1000;background:#11161c;color:#fff;border:1px solid #3b4652;border-radius:16px;padding:16px;overflow:auto;box-shadow:0 18px 60px #000b}
+#v31PlayerModal h2{margin:0 0 5px;font-size:20px}
+#v31PlayerModal p{margin:0 0 12px;color:#9ba6b2;font-size:12px}
+.v31row{display:flex;gap:8px;margin:8px 0}
+.v31row button{flex:1;min-height:44px;background:#20262e;color:#fff;border:1px solid #39434f;border-radius:10px;font-weight:800}
+.v31row button.primary{background:#174ea6;border-color:#174ea6}
+.v31close{width:100%;margin-top:10px}
+</style>
+<script>
+(function(){
+  function esc(s){return String(s||'').replace(/[&<>"]/g,function(x){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[x]})}
+  function squad(){try{var x=JSON.parse(localStorage.getItem('wealdstone_squad_players_v26')||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
+  function saveSquad(x){localStorage.setItem('wealdstone_squad_players_v26',JSON.stringify(x))}
+  function nextSlot(){for(var i=0;i<players.length;i++){var n=(names[i]||'').trim();if(!n||/^Player\s+\d+$/i.test(n))return i}return Math.max(0,players.length-1)}
+  function applyPlayer(slot,p){
+    if(!players[slot]||!p)return;
+    names[slot]=p.name||('Player '+(slot+1));
+    players[slot].querySelector('.name').textContent=names[slot];
+    players[slot].querySelector('.num').textContent=p.number||slot+1;
+    if(slot===0)players[slot].classList.add('gk');
+    try{localStorage.setItem('wealdstone_board_player_'+slot,JSON.stringify(p))}catch(e){}
+    if(typeof v27SaveXIPositions==='function')v27SaveXIPositions();
+  }
+  function modal(){
+    var old=document.getElementById('v31PlayerModal');if(old)old.remove();
+    var m=document.createElement('div');m.id='v31PlayerModal';
+    var s=squad();
+    m.innerHTML='<h2>Players on Board</h2><p>Choose a squad player to place on the next available board position.</p>'+
+      (s.length?s.map(function(p,i){return '<div class="v31row"><button type="button" onclick="v31PlacePlayer('+i+')">#'+esc(p.number||i+1)+' '+esc(p.name||('Player '+(i+1)))+(p.position?' · '+esc(p.position):'')+'</button></div>'}).join(''):
+      '<p>No squad players yet. Add your first player below.</p>')+
+      '<div class="v31row"><button class="primary" type="button" onclick="v31NewPlayer()">＋ NEW PLAYER</button></div>'+
+      '<button class="v31row v31close" type="button" onclick="v31ClosePlayers()">Close</button>';
+    document.body.appendChild(m);
+  }
+  window.v31OpenPlayers=modal;
+  window.v31ClosePlayers=function(){var m=document.getElementById('v31PlayerModal');if(m)m.remove()};
+  window.v31PlacePlayer=function(i){
+    var s=squad(),p=s[i],slot=nextSlot();if(!p)return;
+    applyPlayer(slot,p);status.textContent=p.name+' added to board.';v31ClosePlayers();
+  };
+  window.v31NewPlayer=function(){
+    var s=squad(),name=prompt('Player name');if(!name||!name.trim())return;
+    var num=prompt('Shirt number',String(s.length+1));var n=parseInt(num,10);if(!n)n=s.length+1;
+    var p={id:'p'+Date.now()+Math.random().toString(16).slice(2),name:name.trim(),number:n,position:''};
+    s.push(p);saveSquad(s);var slot=nextSlot();applyPlayer(slot,p);status.textContent=p.name+' added to board.';v31ClosePlayers();
+  };
+  function rail(){
+    if(document.getElementById('v31PlayerRail'))return;
+    var pitchEl=document.getElementById('pitch');if(!pitchEl)return;
+    var r=document.createElement('div');r.id='v31PlayerRail';
+    r.innerHTML='<button class="primary" type="button" onclick="v31OpenPlayers()">＋ ADD PLAYER</button><button type="button" onclick="v31OpenPlayers()">PLAYERS</button>';
+    pitchEl.parentNode.insertBefore(r,pitchEl);
+  }
+  window.addEventListener('load',function(){setTimeout(rail,100)});
+  setTimeout(rail,300);
+})();
+</script>
+
