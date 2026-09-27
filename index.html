@@ -963,4 +963,35 @@ elitePlayUpdate();
   window.addEventListener('load',function(){seed();applySavedStartingXI()});setTimeout(function(){seed();applySavedStartingXI()},700);
 })();
 </script>
+
+<!-- v27 SAVE STARTING XI POSITIONS -->
+<script>
+(function(){
+  var POSKEY='wealdstone_starting11_positions_v27', FORMKEY='wealdstone_starting11_formation_v27';
+  function savedXI(){try{var x=JSON.parse(localStorage.getItem('wealdstone_starting11_players_v26')||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
+  function savePositions(){
+    var x=savedXI(); if(x.length!==11)return;
+    var positions=players.map(function(p,i){return {left:p.style.left,top:p.style.top}});
+    localStorage.setItem(POSKEY,JSON.stringify(positions));
+    localStorage.setItem(FORMKEY,currentFormation);
+    status.textContent='Starting XI positions saved.';
+  }
+  function loadPositions(){
+    try{
+      var x=savedXI(),pos=JSON.parse(localStorage.getItem(POSKEY)||'[]');
+      if(x.length!==11||!Array.isArray(pos)||pos.length!==11)return;
+      x.sort(function(a,b){return a.slot-b.slot}).forEach(function(p,i){names[i]=p.name});
+      renderNames();
+      pos.forEach(function(v,i){if(players[i]&&v.left&&v.top){players[i].style.left=v.left;players[i].style.top=v.top}});
+      status.textContent='Saved Starting XI and positions loaded.';
+    }catch(e){}
+  }
+  window.v27SaveXIPositions=savePositions;
+  window.v27LoadXIPositions=loadPositions;
+  document.addEventListener('pointerup',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('.player'))setTimeout(savePositions,30);
+  });
+  window.addEventListener('load',function(){setTimeout(loadPositions,850)});
+})();
+</script>
 </body></html>
