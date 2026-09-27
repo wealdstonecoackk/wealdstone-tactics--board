@@ -435,5 +435,34 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
 
 
 
+<!-- v14-speed-engine -->
+(function(){
+  window.playbackSpeed=window.playbackSpeed||1;
+  var oldAnimateSequence=window.animateSequence;
+  var oldAnimateTactic=window.animateTactic;
+  if(typeof oldAnimateSequence==='function'){
+    window.animateSequence=function(){
+      if(!playing)return;
+      var s=sequence[playStep];
+      if(!s){playing=false;status.textContent="Play finished.";return}
+      var original=playDuration;
+      playDuration=original/(window.playbackSpeed||1);
+      try{return oldAnimateSequence()}finally{playDuration=original}
+    };
+  }
+  if(typeof oldAnimateTactic==='function'){
+    window.animateTactic=function(){
+      if(!playing)return;
+      var original=playDuration;
+      playDuration=original/(window.playbackSpeed||1);
+      try{return oldAnimateTactic()}finally{playDuration=original}
+    };
+  }
+  var oldSpeed=window.eliteSpeed;
+  window.eliteSpeed=function(v){
+    window.playbackSpeed=v;
+    status.textContent="Playback speed "+v+"×";
+  };
+})();
 </script>
 </body></html>
