@@ -329,5 +329,43 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
   };
 })();
 
+
+/* v12-share-play */
+(function(){
+  function playShareText(p){
+    var name=p&&p.name?p.name:'Current Play', phase=p&&p.phase?p.phase:'Tactical Play';
+    var steps=p&&Array.isArray(p.sequence)?p.sequence.length:(Array.isArray(sequence)?sequence.length:0);
+    return '⚽ WEALDSTONE FC\n\n📋 '+name+'\n🎯 Phase: '+phase+'\n▶️ Actions: '+steps+'\n\nOpen the Wealdstone Coach Tactics Board to view the play.';
+  }
+  window.sharePlay=function(p){
+    var data={title:'Wealdstone FC — '+(p&&p.name?p.name:'Tactical Play'),text:playShareText(p),url:location.href};
+    if(navigator.share){
+      navigator.share(data).then(function(){status.textContent='Play ready to share.'}).catch(function(e){if(e&&e.name==='AbortError')return;status.textContent='Share cancelled or unavailable.'});
+    }else if(navigator.clipboard){
+      navigator.clipboard.writeText(data.text+'\n'+data.url).then(function(){status.textContent='Play details copied. Paste into WhatsApp.'}).catch(function(){status.textContent='Sharing unavailable.'});
+    }else status.textContent='Sharing unavailable on this device.';
+  };
+  window.shareCurrentPlay=function(){sharePlay({name:'Current Play',phase:'Tactical Play',sequence:sequence||[]})};
+  window.shareSavedPlay=function(i){var p=safeSavedPlays()[i];if(p)sharePlay(p)};
+  var oldFilter=window.filterPlayLibrary;
+  window.filterPlayLibrary=function(){
+    oldFilter();
+    var box=document.getElementById('playLibraryList');if(!box)return;
+    var items=safeSavedPlays(), q=(document.getElementById('playSearch')?.value||'').toLowerCase(), ph=document.getElementById('playPhase')?.value||'All';
+    var visible=items.filter(function(p){var n=String(p.name||'').toLowerCase(),x=p.phase||'Uncategorised';return (!q||n.indexOf(q)>=0)&&(ph==='All'||x===ph)});
+    var cards=box.children;
+    visible.forEach(function(p,i){
+      var card=cards[i];if(!card)return;
+      var b=document.createElement('button');b.textContent='📲 SHARE';b.style='margin-top:7px;width:100%';b.onclick=function(){sharePlay(p)};
+      card.appendChild(b);
+    });
+  };
+  var oldMenu=window.openMainMenu;
+  window.openMainMenu=function(){oldMenu();var m=document.getElementById('mainMenu');if(!m)return;
+    var h=m.innerHTML;
+    h=h.replace('<button onclick="playSequence();closeMainMenu()">▶ Play Current Sequence</button>','<button onclick="playSequence();closeMainMenu()">▶ Play Current Sequence</button><button onclick="shareCurrentPlay();closeMainMenu()">📲 Share Play to Team</button>');
+    m.innerHTML=h;
+  };
+})();
 </script>
 </body></html>
