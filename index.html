@@ -232,5 +232,21 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
   window.closePlayLibrary=function(){const m=document.getElementById("playLibraryHub");if(m)m.style.display="none";};
 })();
 
+/* v9-safe-matchday-pack */
+(function(){
+  var base=window.openMatchdayHub;
+  window.openMatchdayHub=function(){
+    base();
+    var m=document.getElementById('matchdayHub');
+    if(!m)return;
+    var old=m.querySelector('#matchdayPackActions');
+    if(old)old.remove();
+    var box=document.createElement('div');
+    box.id='matchdayPackActions';
+    box.style='margin-top:16px;padding:12px;border:1px solid #555;border-radius:10px';
+    box.innerHTML='<b>Matchday Pack</b><br><small>Save or restore the complete matchday setup on this phone.</small><br><br><button onclick="saveMatchdayPack()">💾 Save Pack</button> <button onclick="loadMatchdayPack();openMatchdayHub()">↻ Load Pack</button>';
+    m.appendChild(box);
+  };
+})();
 </script>
 </body></html>
