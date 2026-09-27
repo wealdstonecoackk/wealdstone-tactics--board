@@ -22,22 +22,69 @@ h1{margin:12px 0 2px;font-size:24px}p{margin:0 0 8px;color:#ccc}.bar{display:fle
 .panel{width:94%;max-width:720px;margin:8px auto;text-align:left}.panel textarea{width:100%;min-height:75px;border-radius:8px;padding:10px;font:14px Arial}.status{font-size:12px;color:#aaa;margin:4px}
 .matchday .bar button:not(.active),.matchday textarea{display:none}.matchday #pitch{max-width:900px;height:78vh}.matchday h1{font-size:28px}
 @media(max-width:600px){#pitch{min-height:520px;height:67vh;width:96%;margin-top:6px}.player{width:45px;height:45px}.name{top:42px;font-size:10px}.bar{gap:5px;margin:5px 4px}.bar button,button{padding:10px 9px;font-size:12px;min-height:40px}.panel{width:96%}h1{font-size:21px}}
+
+/* PRO MENU CLEANUP */
+:root{--stone-blue:#174ea6;--stone-dark:#0d0f12;--stone-panel:#171a1f;--stone-line:#2b3139;--stone-text:#f7f8fa;--stone-muted:#aeb6c2}
+body{background:linear-gradient(180deg,#0b0d10 0%,#111 45%,#0b0d10 100%);color:var(--stone-text)}
+.app-header{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 16px 8px}
+.app-header img{width:54px!important;height:54px!important}
+.app-title{text-align:left}.app-title h1{margin:0;font-size:20px;letter-spacing:.4px}.app-title p{margin:2px 0 0;color:var(--stone-muted);font-size:12px}
+.menu-shell{width:94%;max-width:720px;margin:4px auto 8px;background:var(--stone-panel);border:1px solid var(--stone-line);border-radius:14px;padding:8px}
+.menu-row{display:grid;gap:6px}.menu-row.primary{grid-template-columns:1.2fr 1fr 1fr 1fr}.menu-row.secondary{grid-template-columns:repeat(4,1fr);margin-top:6px}
+.menu-btn{min-height:42px!important;border:1px solid #343b45!important;background:#222831!important;color:#fff!important;border-radius:9px!important;padding:9px 7px!important;font-size:12px!important}
+.menu-btn.primary-btn{background:var(--stone-blue)!important;border-color:var(--stone-blue)!important}
+.menu-btn.active{background:var(--stone-blue)!important;color:#fff!important}
+.menu-section{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#7f8996;text-align:left;padding:3px 4px 5px}
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:94%;max-width:720px;margin:0 auto 7px}
+.quick-actions button{background:#1b2026;color:#fff;border:1px solid #303741;min-height:38px}
+.status{background:#15181d;border:1px solid #242a31;border-radius:8px;padding:6px 9px}
+.panel{margin-top:7px}
+@media(max-width:600px){
+ .app-header{padding:10px 12px 5px}.app-header img{width:48px!important;height:48px!important}.app-title h1{font-size:18px}
+ .menu-shell{width:96%;padding:7px}.menu-row.primary{grid-template-columns:repeat(2,1fr)}.menu-row.secondary{grid-template-columns:repeat(2,1fr)}
+ .menu-btn{min-height:42px!important;font-size:12px!important}.quick-actions{width:96%;grid-template-columns:repeat(2,1fr)}
+}
 </style>
 </head>
-<body><div style="padding-top:10px"><img id="clubCrest" src="https://assets.footylogos.com/logos/wealdstone-logo-footylogos.svg" alt="Wealdstone FC crest" style="width:82px;height:82px;object-fit:contain"></div>
-<h1>WEALDSTONE FC</h1><p>Professional Coach Tactics Board</p>
-<div class="bar">
-<button class="active" onclick="setFormation('433',this)">4-3-3</button><button onclick="setFormation('442',this)">4-4-2</button><button onclick="setFormation('352',this)">3-5-2</button><button onclick="setFormation('4231',this)">4-2-3-1</button><button onclick="setFormation('4141',this)">4-1-4-1</button>
+<body>
+<div class="app-header">
+  <img id="clubCrest" src="https://assets.footylogos.com/logos/wealdstone-logo-footylogos.svg" alt="Wealdstone FC crest">
+  <div class="app-title"><h1>WEALDSTONE FC</h1><p>Professional Coach Tactics Board</p></div>
 </div>
-<div class="bar">
-<button onclick="addPlayer()">Add Player</button><button onclick="openTeamManager()">👥 Start 11</button><button onclick="saveTeam()">💾 Save Team</button><button onclick="loadTeam()">📋 Load Team</button><button onclick="openMainMenu()">☰ Menu</button><button onclick="openCoachHub()">🧠 Coach Hub</button><button onclick="openSquadHub()">👥 Squad</button><button onclick="openMatchdayHub()">🏟 Matchday</button><button onclick="openSessionHub()">📋 Session</button><button onclick="startSequence()">⏺ Record Play</button><button onclick="toggleBallMode()">⚽ Ball</button><button onclick="importPlay()">📥 Import Play</button><button onclick="buildBackTemplate()">🧠 Build from Back</button><input id="playFile" type="file" accept=".json,application/json" style="display:none" onchange="handlePlayFile(event)"><button onclick="toggleOneTouch()">👆 One-Touch</button><button onclick="finishSequence()">✓ Finish</button><button onclick="playSequence()">▶ Play</button><button onclick="pauseTactic()">⏸ Pause</button><button onclick="savePlay()">💾 Save Play</button><button onclick="openPlayMenu()">📂 Plays</button><button onclick="removeSelected()">Remove Player</button><button onclick="renamePlayers()">Player Names</button><button onclick="toggleMovementMode(this)">Movement</button><button onclick="toggleArrowMode(this)">Add Arrow</button><button onclick="clearArrows()">Clear Arrows</button><button onclick="undo()">Undo</button><button onclick="saveTactic()">Save Tactic</button><button onclick="loadTactic()">Load Tactic</button><button onclick="shareTactic()">Share</button><button onclick="exportTactic()">Export</button><button onclick="matchdayMode(this)">Matchday</button><button onclick="installApp()">Install App</button><button onclick="resetBoard()">Reset</button>
+
+<div class="menu-shell">
+  <div class="menu-section">Formation</div>
+  <div class="menu-row primary">
+    <button class="menu-btn primary-btn active" onclick="setFormation('433',this)">4-3-3</button>
+    <button class="menu-btn" onclick="setFormation('442',this)">4-4-2</button>
+    <button class="menu-btn" onclick="setFormation('352',this)">3-5-2</button>
+    <button class="menu-btn" onclick="setFormation('4231',this)">4-2-3-1</button>
+  </div>
+  <div class="menu-row secondary">
+    <button class="menu-btn" onclick="setFormation('4141',this)">4-1-4-1</button>
+    <button class="menu-btn" onclick="openMainMenu()">☰ Coach Menu</button>
+    <button class="menu-btn" onclick="openCoachHub()">🧠 Coach Hub</button>
+    <button class="menu-btn" onclick="openMatchdayHub()">🏟 Matchday</button>
+  </div>
 </div>
+
+<div class="quick-actions">
+  <button onclick="toggleMovementMode(this)">↔ Movement</button>
+  <button onclick="toggleArrowMode(this)">➜ Add Arrow</button>
+  <button onclick="toggleBallMode()">⚽ Ball</button>
+  <button onclick="toggleOpposition(this)">Opposition</button>
+</div>
+
 <div id="pitch">
 <div id="playMenu" style="display:none;position:fixed;inset:8%;z-index:50;background:#111;color:#fff;border:2px solid #fff;border-radius:14px;padding:16px;overflow:auto"><h3>Saved Plays</h3><div id="savedPlays"></div><button onclick="closePlayMenu()">Close</button></div><svg id="arrows" width="100%" height="100%" viewBox="0 0 1000 700" preserveAspectRatio="none"><defs><marker id="arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="white"/></marker></defs></svg>
 <div class="mark mid"></div><div class="mark circle"></div><div class="spot" style="top:50%"></div><div class="mark box top"></div><div class="mark box bottom"></div><div class="goal top"></div><div class="goal bottom"></div>
 </div>
-<div class="bar"><button onclick="saveSlot('Build-up')">Save Build-up</button><button onclick="saveSlot('Attack')">Save Attack</button><button onclick="saveSlot('Defend')">Save Defend</button><button onclick="loadSlot('Build-up')">Load Build-up</button><button onclick="loadSlot('Attack')">Load Attack</button><button onclick="loadSlot('Defend')">Load Defend</button><button onclick="toggleOpposition(this)">Opposition</button></div>
-<div id="coachHub" style="display:none;position:fixed;inset:4%;z-index:70;background:#111;color:#fff;border:2px solid #fff;border-radius:14px;padding:16px;overflow:auto;text-align:left"><h2 style="margin-top:0">Coach Hub</h2><p>Build your session in order: Squad → Start 11 → Formation → Plays → Matchday.</p><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px"><button onclick="openTeamManager()">👥 Squad / Start 11</button><button onclick="openPlayMenu();closeCoachHub()">▶ Saved Plays</button><button onclick="saveTactic();closeCoachHub()">💾 Save Current Tactic</button><button onclick="matchdayMode(document.querySelector('button[onclick^=\'matchdayMode\']'));closeCoachHub()">🏟 Matchday</button></div><hr><h3>Session checklist</h3><div id="coachChecklist"></div><button onclick="closeCoachHub()">Close</button></div><div id="teamManager" style="display:none;position:fixed;inset:5%;z-index:60;background:#111;color:#fff;border:2px solid #fff;border-radius:14px;padding:16px;overflow:auto;text-align:left"><h2 style="margin-top:0">Start 11 & Squad</h2><div id="teamList"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button onclick="applyStarting11()">Set Start 11</button><button onclick="closeTeamManager()">Close</button></div></div><div class="panel"><textarea id="notes" placeholder="Coach notes: set pieces, opposition, triggers, instructions..."></textarea><div class="status" id="status">Double-tap a player to rename. Use Movement to drag players and show curved runs. Add Arrow for passes.</div></div>
+<div class="quick-actions">
+  <button onclick="saveSlot('Build-up')">💾 Build-up</button>
+  <button onclick="saveSlot('Attack')">💾 Attack</button>
+  <button onclick="saveSlot('Defend')">💾 Defend</button>
+  <button onclick="openSessionHub()">📋 Session</button>
+</div>
 <script>
 const pitch=document.getElementById("pitch"),svg=document.getElementById("arrows"),notes=document.getElementById("notes"),status=document.getElementById("status");
 const formations={433:[[50,88],[18,72],[38,76],[62,76],[82,72],[30,57],[50,62],[70,57],[18,32],[50,25],[82,32]],442:[[50,88],[18,72],[38,76],[62,76],[82,72],[18,52],[38,57],[62,57],[82,52],[35,30],[65,30]],352:[[50,88],[25,72],[50,76],[75,72],[15,55],[35,58],[50,52],[65,58],[85,55],[35,30],[65,30]],4231:[[50,88],[18,72],[38,76],[62,76],[82,72],[35,58],[65,58],[18,36],[50,42],[82,36],[50,25]],4141:[[50,88],[18,72],[38,76],[62,76],[82,72],[50,63],[18,43],[38,48],[62,48],[82,43],[50,25]]};
@@ -70,7 +117,7 @@ function importPlay(){document.getElementById("playFile").click()}
 function handlePlayFile(e){const file=e.target.files&&e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const d=JSON.parse(reader.result);if(d.state&&d.sequence){applyState(d.state);sequence=d.sequence;status.textContent="Play imported — "+sequence.length+" steps."}else if(d.sequence){sequence=d.sequence;applyState(d)}else if(d.positions||d.formation){applyState(d);status.textContent="Tactic imported."}else throw new Error("bad format")}catch(err){status.textContent="Could not import that play file."}e.target.value=""};reader.readAsText(file)}
 function buildBackTemplate(){snapshot();currentFormation="433";formations["433"].forEach((pos,i)=>{if(players[i]){players[i].style.left=pos[0]+"%";players[i].style.top=pos[1]+"%"}});arrows=[];sequence=[];const add=(a,b)=>{arrows.push([a,b]);sequence.push({type:"pass",from:a,to:b})};const run=(p,x,y)=>{let el=players[p],r=pitch.getBoundingClientRect(),rr=el.getBoundingClientRect(),sx=(rr.left+rr.width/2-r.left)/r.width*100,sy=(rr.top+rr.height/2-r.top)/r.height*100;arrows.push({type:"move",playerIndex:p,x1:sx,y1:sy,x2:x,y2:y,curve:.18});sequence.push({type:"run",player:p})};add(0,2);add(2,5);add(5,1);run(7,82,48);add(5,6);run(8,18,48);add(6,8);add(8,10);renderNames();drawArrows();ballX=50;ballY=88;ball.style.left=ballX+"%";ball.style.top=ballY+"%";status.textContent="Build-from-back template loaded — edit the runs and passes, then Save Play."}
 function savePlay(){finishSequence();if(!sequence.length){status.textContent="Record a play first.";return}let name=prompt("Name this play");if(!name)return;let saved=safeSavedPlays();saved.push({id:Date.now(),name,state:getState(),sequence});localStorage.setItem("wealdstone_saved_plays",JSON.stringify(saved));status.textContent="Saved play: "+name}
-function filterPlayLibrary(){var q=(document.getElementById('playSearch')?.value||'').toLowerCase(),phase=document.getElementById('playPhase')?.value||'All',items=safeSavedPlays(),box=document.getElementById('playLibraryList');if(!box)return;box.innerHTML=items.map(function(p,i){var n=String(p.name||('Play '+(i+1))),ph=p.phase||'Uncategorised';if(q&&n.toLowerCase().indexOf(q)<0)return '';if(phase!='All'&&ph!=phase)return '';return '<div style="padding:10px;margin:6px 0;background:#222;border-radius:9px"><b>'+n.replace(/</g,'&lt;')+'</b><small style="display:block;opacity:.7">'+ph+'</small><button onclick="loadSavedPlay('+i+')">Load</button> <button onclick="deleteSavedPlay('+i+')">Delete</button></div>'}).join('')||'<p>No matching plays.</p>'}function openPlayMenu(){var m=document.getElementById('playLibraryHub');if(!m){m=document.createElement('div');m.id='playLibraryHub';m.style='display:none;position:fixed;inset:3%;z-index:110;background:#111;color:#fff;border:2px solid #fff;border-radius:14px;padding:16px;overflow:auto;text-align:left';document.body.appendChild(m)}m.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><h2>▶ Play Library</h2><button onclick="closePlayLibrary()">✕</button></div><input id="playSearch" oninput="filterPlayLibrary()" placeholder="Search plays..." style="width:100%;padding:11px;margin:6px 0"><select id="playPhase" onchange="filterPlayLibrary()" style="width:100%;padding:11px;margin:6px 0"><option>All</option><option>Build-up</option><option>Attack</option><option>Defend</option><option>Transition</option><option>Set Piece</option></select><div id="playLibraryList"></div>';m.style.display='block';filterPlayLibrary()}function closePlayLibrary(){var m=document.getElementById('playLibraryHub');if(m)m.style.display='none'}function openPlayMenu(){let box=document.getElementById("savedPlays"),saved=safeSavedPlays().filter(p=>p&&typeof p==="object");box.innerHTML=saved.length?saved.map((p,i)=>{let n=String(p.name||"Unnamed play").replace(/</g,"&lt;");return '<div style="display:flex;gap:8px;align-items:center;margin:8px 0"><b style="flex:1">'+n+'</b><button onclick="loadSavedPlay('+i+')">Load</button><button onclick="deleteSavedPlay('+i+')">Delete</button></div>'}).join(""):"No saved plays yet.";document.getElementById("playMenu").style.display="block"}
+function filterPlayLibrary(){var q=(document.getElementById('playSearch')?.value||'').toLowerCase(),phase=document.getElementById('playPhase')?.value||'All',items=safeSavedPlays(),box=document.getElementById('playLibraryList');if(!box)return;box.innerHTML=items.map(function(p,i){var n=String(p.name||('Play '+(i+1))),ph=p.phase||'Uncategorised';if(q&&n.toLowerCase().indexOf(q)<0)return '';if(phase!='All'&&ph!=phase)return '';return '<div style="padding:10px;margin:6px 0;background:#222;border-radius:9px"><b>'+n.replace(/</g,'&lt;')+'</b><small style="display:block;opacity:.7">'+ph+'</small><button onclick="loadSavedPlay('+i+')">Load</button> <button onclick="deleteSavedPlay('+i+')">Delete</button></div>'}).join('')||'<p>No matching plays.</p>'}function closePlayLibrary(){var m=document.getElementById('playLibraryHub');if(m)m.style.display='none'}function openPlayMenu(){let box=document.getElementById("savedPlays"),saved=safeSavedPlays().filter(p=>p&&typeof p==="object");box.innerHTML=saved.length?saved.map((p,i)=>{let n=String(p.name||"Unnamed play").replace(/</g,"&lt;");return '<div style="display:flex;gap:8px;align-items:center;margin:8px 0"><b style="flex:1">'+n+'</b><button onclick="loadSavedPlay('+i+')">Load</button><button onclick="deleteSavedPlay('+i+')">Delete</button></div>'}).join(""):"No saved plays yet.";document.getElementById("playMenu").style.display="block"}
 function closePlayMenu(){document.getElementById("playMenu").style.display="none"}
 function loadSavedPlay(i){let saved=safeSavedPlays(),p=saved[i];if(!p||!p.state){status.textContent="That saved play is invalid.";return}try{applyState(p.state);sequence=Array.isArray(p.sequence)?p.sequence:[];closePlayMenu();status.textContent="Loaded play: "+String(p.name||"Unnamed play")}catch(e){status.textContent="Could not load that play."}}
 function deleteSavedPlay(i){let saved=safeSavedPlays();if(i<0||i>=saved.length)return;saved.splice(i,1);localStorage.setItem("wealdstone_saved_plays",JSON.stringify(saved));openPlayMenu()}
