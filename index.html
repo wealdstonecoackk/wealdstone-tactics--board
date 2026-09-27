@@ -464,5 +464,41 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
     status.textContent="Playback speed "+v+"×";
   };
 })();
+<!-- v15 movement editor -->
+(function(){
+  window.setRunCurve=function(v){
+    var s=sequence[playStep]; 
+    var moves=arrows.filter(function(a){return a&&a.type==="move"});
+    if(!moves.length){status.textContent="Add a player run first.";return}
+    moves[moves.length-1].curve=parseFloat(v)||0.18;
+    drawArrows();status.textContent="Run curve updated.";
+  };
+  window.setBallPosition=function(){
+    if(!ballMode){status.textContent="Turn Ball mode on, then tap the pitch.";return}
+    status.textContent="Ball position mode active.";
+  };
+  var oldOpenMain=window.openMainMenu;
+  window.openMainMenu=function(){
+    oldOpenMain();
+    var m=document.getElementById("mainMenu");if(!m)return;
+    var h=document.createElement("div");
+    h.style="margin-top:10px;padding:10px;border:1px solid #303744;border-radius:12px;background:#151a22";
+    h.innerHTML='<b style="display:block;margin-bottom:7px">🎬 MOVEMENT EDITOR</b>'+
+      '<button onclick="movementMode=true;status.textContent=\'Drag a player to draw a run.\';closeMainMenu()">➜ Draw Run</button>'+
+      '<button onclick="arrowMode=true;status.textContent=\'Tap passer then receiver.\';closeMainMenu()">↗ Add Pass</button>'+
+      '<button onclick="ballMode=true;status.textContent=\'Tap pitch to place ball.\';closeMainMenu()">⚽ Place Ball</button>'+
+      '<button onclick="movementMode=false;arrowMode=false;ballMode=false;status.textContent=\'Movement tools off.\';closeMainMenu()">✕ Exit Movement Tools</button>';
+    m.appendChild(h);
+  };
+  pitch.addEventListener("pointerdown",function(e){
+    if(!ballMode)return;
+    if(e.target!==pitch && e.target!==svg)return;
+    var r=pitch.getBoundingClientRect();
+    ballX=Math.max(2,Math.min(98,(e.clientX-r.left)/r.width*100));
+    ballY=Math.max(3,Math.min(97,(e.clientY-r.top)/r.height*100));
+    ball.style.left=ballX+"%";ball.style.top=ballY+"%";ball.style.display="block";
+    status.textContent="Ball placed.";
+  });
+})();
 </script>
 </body></html>
