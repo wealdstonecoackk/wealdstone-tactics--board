@@ -1319,3 +1319,27 @@ body.v30-board{padding-bottom:10px}
   setTimeout(addTools,350);
 })();
 </script>
+
+<!-- V33 TEAM TO BOARD SYNC -->
+<script>
+(function(){
+function read(key,fallback){try{var v=JSON.parse(localStorage.getItem(key)||'null');return v==null?fallback:v}catch(e){return fallback}}
+function syncTeamToBoard(){
+var xi=read('wealdstone_starting11_players_v26',[]);
+if(!Array.isArray(xi)||xi.length!==11||typeof players==='undefined'||players.length!==11){if(typeof status!=='undefined')status.textContent='Save exactly 11 players as your Starting XI first.';return false}
+xi=xi.slice().sort(function(a,b){return (a.slot||0)-(b.slot||0)});
+xi.forEach(function(p,i){names[i]=p.name||('Player '+(i+1));if(players[i]){var num=players[i].querySelector('.num'),name=players[i].querySelector('.name');if(num)num.textContent=p.number||i+1;if(name)name.textContent=names[i];players[i].classList.toggle('gk',i===0||p.position==='GK');try{localStorage.setItem('wealdstone_board_player_'+i,JSON.stringify(p))}catch(e){}}});
+if(typeof renderNames==='function')renderNames();
+if(typeof v27LoadXIPositions==='function')v27LoadXIPositions();
+if(typeof v27SaveXIPositions==='function')v27SaveXIPositions();
+if(typeof status!=='undefined')status.textContent='Team saved — Starting XI loaded onto the board.';return true;
+}
+window.v33SyncTeamToBoard=syncTeamToBoard;
+var oldSave=window.v28SaveTeam;
+window.v28SaveTeam=function(){if(typeof oldSave==='function')oldSave();setTimeout(syncTeamToBoard,40)};
+var oldPlace=window.v31PlacePlayer;
+window.v31PlacePlayer=function(i){if(typeof oldPlace==='function')oldPlace(i);setTimeout(function(){if(typeof renderNames==='function')renderNames()},30)};
+window.v31SyncStartingXI=function(){syncTeamToBoard()};
+window.addEventListener('load',function(){setTimeout(function(){var xi=read('wealdstone_starting11_players_v26',[]);if(Array.isArray(xi)&&xi.length===11)syncTeamToBoard()},1100)});
+})();
+</script>
