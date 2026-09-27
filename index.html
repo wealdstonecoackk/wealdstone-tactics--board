@@ -70,6 +70,6 @@ async function installApp(){if(deferredInstallPrompt){deferredInstallPrompt.prom
 function loadTactic(){let s=localStorage.getItem("wealdstoneTactic");if(!s){status.textContent="No saved tactic yet.";return}snapshot();applyState(JSON.parse(s));status.textContent="Saved tactic loaded."}
 function resetBoard(){snapshot();names=Array.from({length:11},(_,i)=>"Player "+(i+1));notes.value="";arrows=[];oppositionMode=false;setFormation("433",document.querySelector(".bar button"));renderNames();drawArrows();renderOpposition();status.textContent="Board reset."}
 renderNames();currentFormation="433";formations["433"].forEach((pos,i)=>{players[i].style.left=pos[0]+"%";players[i].style.top=pos[1]+"%"});
-if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"));
+if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js?v=3"));
 </script>
 </body></html>
