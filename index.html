@@ -392,5 +392,47 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
   var om2=window.openMainMenu;window.openMainMenu=function(){om2();var m=document.getElementById('mainMenu');if(!m)return;var b=[].slice.call(m.querySelectorAll('button')).find(function(x){return x.textContent.indexOf('Play Current Sequence')>=0});if(b){var x=document.createElement('button');x.textContent='🎬 Elite Playback Controls';x.onclick=function(){startElitePlayback();closeMainMenu()};b.parentNode.appendChild(x)}};
 })();
 
+<!-- v14 coach hq polish -->
+<script>
+(function(){
+  if(window.openCoachHQ) return;
+  var css=document.createElement('style');
+  css.textContent='
+  .coach-hq-wrap{position:fixed;inset:0;background:linear-gradient(180deg,#0b0d10,#151922);z-index:99999;overflow:auto;padding:18px;color:#fff;font-family:Arial,sans-serif}
+  .coach-hq-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .coach-hq-title{font-size:25px;font-weight:900;letter-spacing:.4px}.coach-hq-sub{font-size:12px;color:#aeb7c5;margin-top:3px}
+  .coach-hq-close{border:0;border-radius:12px;background:#252b35;color:#fff;font-size:22px;width:44px;height:44px}
+  .coach-hq-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .coach-hq-card{min-height:132px;border:1px solid #303744;border-radius:18px;background:linear-gradient(145deg,#202631,#151a22);color:#fff;text-align:left;padding:18px;box-shadow:0 8px 22px rgba(0,0,0,.25)}
+  .coach-hq-card b{display:block;font-size:20px;margin-top:12px}.coach-hq-card span{display:block;color:#aeb7c5;font-size:12px;margin-top:5px;line-height:1.35}
+  .coach-hq-icon{font-size:28px}.coach-hq-footer{margin-top:16px;padding:14px;border:1px solid #303744;border-radius:16px;background:#11151b;color:#aeb7c5;font-size:12px;text-align:center}
+  @media(min-width:700px){.coach-hq-grid{grid-template-columns:repeat(5,1fr)}}
+  ';
+  document.head.appendChild(css);
+  function card(icon,title,sub,fn){return '<button class="coach-hq-card" onclick="'+fn+'"><div class="coach-hq-icon">'+icon+'</div><b>'+title+'</b><span>'+sub+'</span></button>'}
+  window.openCoachHQ=function(){
+    var old=document.getElementById('coachHQ');if(old)old.remove();
+    var d=document.createElement('div');d.id='coachHQ';d.className='coach-hq-wrap';
+    d.innerHTML='<div class="coach-hq-head"><div><div class="coach-hq-title">WEALDSTONE COACH OS</div><div class="coach-hq-sub">Professional coaching command centre</div></div><button class="coach-hq-close" onclick="closeCoachHQ()">×</button></div>'+
+      '<div class="coach-hq-grid">'+
+      card('🗓️','MATCHDAY','Team, opposition, XI, plan and substitutions','openMatchdayCommand();closeCoachHQ()')+
+      card('⚽️','TACTICS','Design, record and control your tactical board','closeCoachHQ();if(window.openMainMenu)openMainMenu()')+
+      card('📖','PLAYBOOK','Saved plays, phases and playback','openPlayLibrary();closeCoachHQ()')+
+      card('🏃','SESSIONS','Build structured training sessions','openSessionBuilder();closeCoachHQ()')+
+      card('👥','SQUAD','Players, starting XI and development','openPlayerDevelopment();closeCoachHQ()')+
+      '</div><div class="coach-hq-footer">WEALDSTONE FC • COACH OS</div>';
+    document.body.appendChild(d);
+  };
+  window.closeCoachHQ=function(){var d=document.getElementById('coachHQ');if(d)d.remove()};
+  window.addEventListener('keydown',function(e){if(e.key==='Escape')closeCoachHQ()});
+  window.addEventListener('load',function(){
+    var b=document.createElement('button');b.textContent='🏠 Coach HQ';
+    b.onclick=function(){if(window.openCoachHQ)openCoachHQ()};
+    b.style.cssText='position:fixed;right:12px;bottom:12px;z-index:9000;border:1px solid #39414d;border-radius:14px;background:#11161d;color:#fff;padding:11px 14px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.3)';
+    document.body.appendChild(b);
+  });
+})();
+</script>
+
 </script>
 </body></html>
