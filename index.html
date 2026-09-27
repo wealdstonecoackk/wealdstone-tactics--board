@@ -248,5 +248,61 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
     m.appendChild(box);
   };
 })();
+
+/* v10-playbook-accessibility */
+(function(){
+  window.savePlay=function(){
+    finishSequence();
+    if(!sequence.length){status.textContent="Record or build a play first.";return}
+    var m=document.getElementById('savePlayHub');
+    if(!m){m=document.createElement('div');m.id='savePlayHub';m.style='display:none;position:fixed;inset:0;z-index:160;background:rgba(0,0,0,.92);color:#fff;padding:24px;overflow:auto';
+      document.body.appendChild(m)}
+    m.innerHTML='<div style="max-width:520px;margin:10vh auto;background:#181818;border:1px solid #555;border-radius:16px;padding:20px">'+
+      '<h2 style="margin-top:0">💾 Save Play</h2>'+
+      '<p style="opacity:.75">Give this play a name and put it in your playbook.</p>'+
+      '<label>Play name</label><input id="savePlayName" placeholder="e.g. Right-side overload" style="width:100%;box-sizing:border-box;padding:14px;margin:7px 0 14px;border-radius:9px">'+
+      '<label>Phase</label><select id="savePlayPhase" style="width:100%;padding:14px;margin:7px 0 18px;border-radius:9px"><option>Build-up</option><option>Attack</option><option>Defend</option><option>Transition</option><option>Set Piece</option></select>'+
+      '<button id="confirmSavePlay" style="width:100%;padding:14px;margin-bottom:8px">💾 SAVE TO PLAYBOOK</button>'+
+      '<button onclick="document.getElementById(\'savePlayHub\').style.display=\'none\'" style="width:100%;padding:12px">Cancel</button></div>';
+    m.style.display='block';
+    document.getElementById('savePlayName').focus();
+    document.getElementById('confirmSavePlay').onclick=function(){
+      var name=(document.getElementById('savePlayName').value||'').trim();
+      var phase=document.getElementById('savePlayPhase').value;
+      if(!name){status.textContent='Enter a play name first.';return}
+      var saved=safeSavedPlays();
+      saved.push({id:Date.now(),name:name,phase:phase,state:getState(),sequence:sequence.slice()});
+      localStorage.setItem('wealdstone_saved_plays',JSON.stringify(saved));
+      m.style.display='none';status.textContent='Saved to Playbook: '+name;
+    };
+  };
+  window.openMainMenu=function(){
+    var m=document.getElementById('mainMenu');
+    if(!m){m=document.createElement('div');m.id='mainMenu';m.style='display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.96);color:#fff;padding:16px;overflow:auto;text-align:left';document.body.appendChild(m)}
+    m.innerHTML='<div style="max-width:560px;margin:auto;padding-bottom:30px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center"><div><h1 style="margin:0">⚽ Coach Menu</h1><small style="opacity:.7">Wealdstone FC • Coach Tools</small></div><button onclick="closeMainMenu()" style="font-size:22px">✕</button></div>'+
+      '<h3>📖 PLAYBOOK</h3><div style="display:grid;gap:9px">'+
+      '<button onclick="startSequence();closeMainMenu()">⏺ Record New Play</button>'+
+      '<button onclick="savePlay();closeMainMenu()">💾 Save Current Play</button>'+
+      '<button onclick="openPlayLibrary();closeMainMenu()">📚 Open Play Library</button>'+
+      '<button onclick="playSequence();closeMainMenu()">▶ Play Current Sequence</button></div>'+
+      '<h3>👥 TEAM</h3><div style="display:grid;gap:9px"><button onclick="openSquadHub();closeMainMenu()">👥 Squad Manager</button><button onclick="openTeamManager();closeMainMenu()">🧤 Starting XI</button><button onclick="openCoachHub();closeMainMenu()">🧠 Coach Hub</button></div>'+
+      '<h3>🎯 TACTICS</h3><div style="display:grid;gap:9px"><button onclick="finishSequence();closeMainMenu()">⏹ Finish Recording</button><button onclick="buildBackTemplate();closeMainMenu()">🏗 Build from Back</button><button onclick="toggleOneTouch();closeMainMenu()">1️⃣ One-Touch</button></div>'+
+      '<h3>🏟 MATCHDAY</h3><div style="display:grid;gap:9px"><button onclick="openSessionHub();closeMainMenu()">📋 Session Planner</button><button onclick="openMatchdayHub();closeMainMenu()">🏟 Matchday Hub</button><button onclick="matchdayMode(this);closeMainMenu()">🎯 Matchday Board</button></div>'+
+      '<h3>💾 FILE & BOARD</h3><div style="display:grid;gap:9px"><button onclick="saveTactic();closeMainMenu()">💾 Save Tactic</button><button onclick="loadTactic();closeMainMenu()">📂 Load Tactic</button><button onclick="exportTactic();closeMainMenu()">⬇ Export</button><button onclick="shareTactic();closeMainMenu()">↗ Share</button><button onclick="undo();closeMainMenu()">↶ Undo</button><button onclick="resetBoard();closeMainMenu()">♻ Reset Board</button></div>'+
+      '</div>';m.style.display='block';
+  };
+  window.openPlayLibrary=function(){
+    var m=document.getElementById('playLibraryHub');
+    if(!m){m=document.createElement('div');m.id='playLibraryHub';m.style='display:none;position:fixed;inset:0;z-index:150;background:#111;color:#fff;padding:16px;overflow:auto';document.body.appendChild(m)}
+    m.innerHTML='<div style="max-width:560px;margin:auto"><div style="display:flex;justify-content:space-between;align-items:center"><h2>📚 Play Library</h2><button onclick="closePlayLibrary()">✕</button></div>'+
+      '<input id="playSearch" oninput="filterPlayLibrary()" placeholder="🔎 Search plays..." style="width:100%;box-sizing:border-box;padding:13px;margin-bottom:8px;border-radius:9px">'+
+      '<select id="playPhase" onchange="filterPlayLibrary()" style="width:100%;padding:13px;margin-bottom:12px;border-radius:9px"><option>All</option><option>Build-up</option><option>Attack</option><option>Defend</option><option>Transition</option><option>Set Piece</option></select>'+
+      '<button onclick="savePlay()" style="width:100%;padding:13px;margin-bottom:12px">💾 Save Current Play</button>'+
+      '<div id="playLibraryList"></div><input id="playFile" type="file" accept=".json,application/json" style="display:none" onchange="handlePlayFile(event)"></div>';
+    m.style.display='block';filterPlayLibrary();
+  };
+})();
+
 </script>
 </body></html>
