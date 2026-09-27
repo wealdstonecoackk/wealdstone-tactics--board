@@ -199,5 +199,38 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
   };
 })();
 
+
+/* SAFE PLAY LIBRARY v1 */
+(function(){
+  window.openPlayLibrary=function(){
+    let m=document.getElementById("playLibraryHub");
+    if(!m){
+      m=document.createElement("div");
+      m.id="playLibraryHub";
+      m.style="display:none;position:fixed;inset:3%;z-index:126;background:#111;color:#fff;border:1px solid #343b45;border-radius:14px;padding:16px;overflow:auto;text-align:left";
+      document.body.appendChild(m);
+    }
+    m.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">▶ Play Library</h2><button onclick="closePlayLibrary()">✕</button></div><p style="opacity:.75">Search and load your saved tactical plays.</p><input id="playSearch" oninput="filterPlayLibrary()" placeholder="Search plays..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #343b45;background:#222831;color:#fff"><select id="playPhase" onchange="filterPlayLibrary()" style="width:100%;padding:10px;margin:8px 0;border-radius:8px;background:#222831;color:#fff"><option>All</option><option>Build-up</option><option>Attack</option><option>Defend</option><option>Transition</option><option>Set Piece</option></select><div id="playLibraryList"></div><input id="playFile" type="file" accept=".json,application/json" style="display:none" onchange="handlePlayFile(event)"><div style="margin-top:12px"><button onclick="importPlay()">📥 Import Play</button> <button onclick="closePlayLibrary()">Close</button></div>';
+    filterPlayLibrary();
+    m.style.display="block";
+  };
+  window.filterPlayLibrary=function(){
+    const q=(document.getElementById("playSearch")?.value||"").toLowerCase().trim();
+    const phase=document.getElementById("playPhase")?.value||"All";
+    const box=document.getElementById("playLibraryList");
+    if(!box)return;
+    const items=safeSavedPlays();
+    const out=items.map((p,i)=>{
+      const n=String(p?.name||("Play "+(i+1)));
+      const ph=p?.phase||"Uncategorised";
+      if(q && !n.toLowerCase().includes(q))return "";
+      if(phase!=="All" && ph!==phase)return "";
+      return '<div style="padding:10px;margin:7px 0;background:#222831;border:1px solid #343b45;border-radius:9px"><b>'+n.replace(/</g,"&lt;")+'</b><small style="display:block;opacity:.7;margin:3px 0 7px">'+ph+'</small><button onclick="loadSavedPlay('+i+');closePlayLibrary()">▶ Load</button> <button onclick="deleteSavedPlay('+i+');filterPlayLibrary()">Delete</button></div>';
+    }).join("");
+    box.innerHTML=out||"<p style=\"opacity:.7\">No matching saved plays.</p>";
+  };
+  window.closePlayLibrary=function(){const m=document.getElementById("playLibraryHub");if(m)m.style.display="none";};
+})();
+
 </script>
 </body></html>
