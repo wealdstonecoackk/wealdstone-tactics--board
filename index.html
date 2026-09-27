@@ -667,4 +667,71 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
   setTimeout(build,350);
 })();
 </script>
+
+<!-- v22 simple pro navigation -->
+<script>
+(function(){
+  var css=document.createElement('style');
+  css.textContent=
+  '#simpleProNav{width:96%;max-width:720px;margin:8px auto;background:#12171e;border:1px solid #303741;border-radius:16px;padding:8px;box-shadow:0 10px 28px rgba(0,0,0,.24)}'+
+  '#simpleProNav .sp-head{display:flex;align-items:center;justify-content:space-between;padding:3px 4px 8px;color:#fff;font-weight:900;font-size:13px}'+
+  '#simpleProNav .sp-head small{color:#7f8996;font-size:9px;letter-spacing:1px}'+
+  '#simpleProNav .sp-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}'+
+  '#simpleProNav .sp-tab{min-height:46px;border:1px solid #343b45;border-radius:11px;background:#20262e;color:#fff;font-weight:900;font-size:11px}'+
+  '#simpleProNav .sp-tab.active{background:#174ea6;border-color:#174ea6}'+
+  '#simpleProNav .sp-panel{display:none;margin-top:7px;grid-template-columns:repeat(2,1fr);gap:6px}'+
+  '#simpleProNav .sp-panel.show{display:grid}'+
+  '#simpleProNav .sp-action{min-height:43px;border:1px solid #343b45;border-radius:10px;background:#1b2129;color:#fff;font-weight:800;font-size:11px;padding:6px}'+
+  '#simpleProNav .sp-action.primary{background:#174ea6;border-color:#174ea6}'+
+  '#simpleProNav .sp-tools{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:7px}'+
+  '#simpleProNav .sp-tools button{min-height:38px;border:1px solid #343b45;border-radius:9px;background:#20262e;color:#fff;font-weight:800;font-size:10px}'+
+  '@media(max-width:430px){#simpleProNav .sp-tabs{grid-template-columns:repeat(2,1fr)}#simpleProNav .sp-tools{grid-template-columns:repeat(2,1fr)}}';
+  document.head.appendChild(css);
+  window.proNavTab=function(id,btn){
+    document.querySelectorAll('#simpleProNav .sp-panel').forEach(function(x){x.classList.remove('show')});
+    document.querySelectorAll('#simpleProNav .sp-tab').forEach(function(x){x.classList.remove('active')});
+    var p=document.getElementById(id);if(p)p.classList.add('show');if(btn)btn.classList.add('active');
+  };
+  function build(){
+    if(document.getElementById('simpleProNav'))return;
+    var old=document.getElementById('proCoachNav');if(old)old.remove();
+    var anchor=document.getElementById('homeCoachStrip')||document.querySelector('.menu-shell');if(!anchor)return;
+    var n=document.createElement('section');n.id='simpleProNav';
+    n.innerHTML=
+      '<div class="sp-head">WEALDSTONE COACH OS <small>PRO BOARD</small></div>'+
+      '<div class="sp-tabs">'+
+      '<button class="sp-tab active" onclick="proNavTab(\'spTeam\',this)">👥 TEAM</button>'+
+      '<button class="sp-tab" onclick="proNavTab(\'spTactics\',this)">🎬 TACTICS</button>'+
+      '<button class="sp-tab" onclick="proNavTab(\'spMatch\',this)">🏟 MATCHDAY</button>'+
+      '<button class="sp-tab" onclick="proNavTab(\'spCoach\',this)">🧠 COACH</button></div>'+
+      '<div id="spTeam" class="sp-panel show">'+
+      '<button class="sp-action primary" onclick="openTeamManager()">👥 Squad Manager</button>'+
+      '<button class="sp-action" onclick="openTeamManager()">⚽ Starting XI</button>'+
+      '<button class="sp-action" onclick="openPlayerDevelopment()">📈 Player Development</button>'+
+      '<button class="sp-action" onclick="openCoachHub()">🧠 Coach Hub</button></div>'+
+      '<div id="spTactics" class="sp-panel">'+
+      '<button class="sp-action primary" onclick="openActionInspector()">🎬 Play Designer</button>'+
+      '<button class="sp-action" onclick="openPlayLibrary()">📖 Playbook</button>'+
+      '<button class="sp-action" onclick="openActionList()">📝 Edit Actions</button>'+
+      '<button class="sp-action" onclick="startElitePlayback()">▶ Playback</button></div>'+
+      '<div id="spMatch" class="sp-panel">'+
+      '<button class="sp-action primary" onclick="openMatchdayCommand()">🏟 Matchday Command</button>'+
+      '<button class="sp-action" onclick="openMatchdayHub()">📋 Matchday Hub</button>'+
+      '<button class="sp-action" onclick="openSessionBuilder()">📋 Session Builder</button>'+
+      '<button class="sp-action" onclick="openCoachHQ()">☰ All Tools</button></div>'+
+      '<div id="spCoach" class="sp-panel">'+
+      '<button class="sp-action primary" onclick="openSessionBuilder()">📋 Sessions</button>'+
+      '<button class="sp-action" onclick="openPlayerDevelopment()">📈 Development</button>'+
+      '<button class="sp-action" onclick="sharePlayCardCurrent()">📲 Share Play Card</button>'+
+      '<button class="sp-action" onclick="openCoachHQ()">🧠 Coach HQ</button></div>'+
+      '<div class="sp-tools">'+
+      '<button onclick="movementMode=true;arrowMode=false;ballMode=false;status.textContent=\'RUN MODE\'">↔ Run</button>'+
+      '<button onclick="arrowMode=true;movementMode=false;ballMode=false;status.textContent=\'PASS MODE\'">↗ Pass</button>'+
+      '<button onclick="ballMode=true;movementMode=false;arrowMode=false;status.textContent=\'BALL MODE\'">⚽ Ball</button>'+
+      '<button onclick="openMainMenu()">☰ More</button></div>';
+    anchor.parentNode.insertBefore(n,anchor.nextSibling);
+  }
+  window.addEventListener('load',build);setTimeout(build,350);
+})();
+</script>
 </body></html>
