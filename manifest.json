@@ -1,11 +1,18 @@
 {
-  "name": "Wealdstone FC Tactics Board",
-  "short_name": "Wealdstone Tactics",
+  "name": "Wealdstone FC Coach OS",
+  "short_name": "Wealdstone Coach",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#111111",
   "theme_color": "#111111",
-  "description": "Wealdstone FC football tactics board",
-  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+  "description": "Professional Wealdstone FC coaching, tactics, playbook, sessions, squad and matchday board.",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
