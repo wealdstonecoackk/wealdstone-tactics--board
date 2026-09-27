@@ -711,9 +711,13 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
       '<button class="sp-action" onclick="openCoachHub()">🧠 Coach Hub</button></div>'+
       '<div id="spTactics" class="sp-panel">'+
       '<button class="sp-action primary" onclick="openActionInspector()">🎬 Play Designer</button>'+
+      '<button class="sp-action" onclick="startSequence()">⏺ Record Play</button>'+
+      '<button class="sp-action" onclick="finishSequence()">⏹ Finish Play</button>'+
       '<button class="sp-action" onclick="openPlayLibrary()">📖 Playbook</button>'+
       '<button class="sp-action" onclick="openActionList()">📝 Edit Actions</button>'+
-      '<button class="sp-action" onclick="startElitePlayback()">▶ Playback</button></div>'+
+      '<button class="sp-action" onclick="startElitePlayback()">▶ Playback</button>'+
+      '<button class="sp-action" onclick="buildBackTemplate()">🏗 Build from Back</button>'+
+      '<button class="sp-action" onclick="toggleOneTouch()">1️⃣ One-Touch</button></div>'+
       '<div id="spMatch" class="sp-panel">'+
       '<button class="sp-action primary" onclick="openMatchdayCommand()">🏟 Matchday Command</button>'+
       '<button class="sp-action" onclick="openMatchdayHub()">📋 Matchday Hub</button>'+
