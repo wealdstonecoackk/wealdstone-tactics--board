@@ -526,5 +526,28 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
     document.body.appendChild(b);
   });
 })();
+<!-- v17 action list -->
+(function(){
+  window.openActionList=function(){
+    var old=document.getElementById("actionList");if(old)old.remove();
+    var d=document.createElement("div");d.id="actionList";
+    d.style="position:fixed;inset:8% 10px 8%;z-index:99999;background:#11161d;color:#fff;border:1px solid #39414d;border-radius:18px;padding:16px;overflow:auto;box-shadow:0 15px 40px rgba(0,0,0,.55)";
+    var html='<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:19px">🎬 Action List</b><button onclick="closeActionList()">×</button></div><p style="font-size:12px;color:#aeb7c5">Tap an action to remove it.</p>';
+    if(!sequence.length) html+='<p>No recorded actions yet.</p>';
+    sequence.forEach(function(s,i){
+      var label=s.type==="pass"?'PASS • '+(names[s.from]||('Player '+(s.from+1)))+' → '+(names[s.to]||('Player '+(s.to+1))):s.type==="run"?'RUN • '+(names[s.player]||('Player '+(s.player+1))):s.type==="ball"?'BALL MOVEMENT':'ACTION';
+      html+='<button data-i="'+i+'" style="display:block;width:100%;text-align:left;margin:7px 0;padding:12px;border:1px solid #303744;border-radius:12px;background:#1b212a;color:#fff">'+(i+1)+'. '+label+' <span style="float:right">🗑️</span></button>';
+    });
+    d.innerHTML=html;document.body.appendChild(d);
+    d.querySelectorAll("button[data-i]").forEach(function(b){b.onclick=function(){var i=Number(b.dataset.i);sequence.splice(i,1);status.textContent="Action removed.";openActionList()}});
+  };
+  window.closeActionList=function(){var d=document.getElementById("actionList");if(d)d.remove()};
+  var oldOpenMain=window.openMainMenu;
+  window.openMainMenu=function(){
+    oldOpenMain();
+    var m=document.getElementById("mainMenu");if(!m)return;
+    var b=document.createElement("button");b.textContent="🎬 Edit Action Sequence";b.onclick=function(){closeMainMenu();openActionList()};m.appendChild(b);
+  };
+})();
 </script>
 </body></html>
