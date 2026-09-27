@@ -30,7 +30,7 @@ body{background:linear-gradient(180deg,#0b0d10 0%,#111 45%,#0b0d10 100%);color:v
 .app-header img{width:54px!important;height:54px!important}
 .app-title{text-align:left}.app-title h1{margin:0;font-size:20px;letter-spacing:.4px}.app-title p{margin:2px 0 0;color:var(--stone-muted);font-size:12px}
 .menu-shell{width:94%;max-width:720px;margin:4px auto 8px;background:var(--stone-panel);border:1px solid var(--stone-line);border-radius:14px;padding:8px}
-.menu-row{display:grid;gap:6px}.menu-row.primary{grid-template-columns:1.2fr 1fr 1fr 1fr}.menu-row.secondary{grid-template-columns:repeat(4,1fr);margin-top:6px}
+.menu-row{display:grid;gap:6px}.menu-row.primary{grid-template-columns:repeat(5,1fr).menu-row.secondary{grid-template-columns:repeat(4,1fr);margin-top:6px}
 .menu-btn{min-height:42px!important;border:1px solid #343b45!important;background:#222831!important;color:#fff!important;border-radius:9px!important;padding:9px 7px!important;font-size:12px!important}
 .menu-btn.primary-btn{background:var(--stone-blue)!important;border-color:var(--stone-blue)!important}
 .menu-btn.active{background:var(--stone-blue)!important;color:#fff!important}
@@ -62,9 +62,6 @@ body{background:linear-gradient(180deg,#0b0d10 0%,#111 45%,#0b0d10 100%);color:v
   </div>
   <div class="menu-row secondary">
     <button class="menu-btn" onclick="setFormation('4141',this)">4-1-4-1</button>
-    <button class="menu-btn" onclick="openMainMenu()">☰ Coach Menu</button>
-    <button class="menu-btn" onclick="openCoachHub()">🧠 Coach Hub</button>
-    <button class="menu-btn" onclick="openMatchdayHub()">🏟 Matchday</button>
   </div>
 </div>
 
@@ -577,7 +574,7 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
   };
 })();
 
-<!-- v19 clean home screen -->
+<!-- v20 clean home navigation -->
 (function(){
   var css=document.createElement('style');
   css.textContent='.home-coach-strip{width:96%;max-width:720px;margin:7px auto;display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:7px}.home-coach-card{min-height:54px;border:1px solid #303741;border-radius:12px;background:#171c23;color:#fff;padding:9px;text-align:left;font-weight:800}.home-coach-card b{display:block;font-size:13px}.home-coach-card span{display:block;color:#9fa8b5;font-size:10px;margin-top:3px}.home-coach-card.primary{background:#174ea6;border-color:#174ea6}@media(max-width:600px){.home-coach-strip{grid-template-columns:1fr 1fr 1fr;gap:5px}.home-coach-card{min-height:58px;padding:8px 6px}.home-coach-card b{font-size:11px}.home-coach-card span{font-size:9px}}';
@@ -586,7 +583,7 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
     var old=document.getElementById('homeCoachStrip');if(old)old.remove();
     var menu=document.querySelector('.menu-shell');if(!menu)return;
     var d=document.createElement('div');d.id='homeCoachStrip';d.className='home-coach-strip';
-    d.innerHTML='<button class="home-coach-card primary" onclick="openMainMenu()"><b>☰ COACH MENU</b><span>All coaching tools</span></button><button class="home-coach-card" onclick="openActionInspector()"><b>🎬 DESIGN</b><span>Build the play</span></button><button class="home-coach-card" onclick="openMatchdayCommand()"><b>🏟 MATCHDAY</b><span>Game plan</span></button>';
+    d.innerHTML='<button class="home-coach-card primary" onclick="openMainMenu()"><b>☰ COACH MENU</b><span>All coaching tools</span></button><button class="home-coach-card" onclick="openActionInspector()"><b>🎬 DESIGN</b><span>Build & edit plays</span></button><button class="home-coach-card" onclick="openMatchdayCommand()"><b>🏟 MATCHDAY</b><span>Game plan & squad</span></button>';
     menu.parentNode.insertBefore(d,menu.nextSibling);
   }
   window.addEventListener('load',build);
