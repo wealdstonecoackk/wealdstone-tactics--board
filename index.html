@@ -814,4 +814,68 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
   window.addEventListener('load',build);setTimeout(build,600);
 })();
 </script>
+
+<!-- v24 elite play designer reliability -->
+<style>
+#elitePlayBar{position:fixed;left:10px;right:10px;bottom:10px;z-index:9990;display:flex;gap:7px;align-items:center;padding:8px;border:1px solid rgba(255,255,255,.14);border-radius:16px;background:rgba(12,15,20,.94);backdrop-filter:blur(12px);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#elitePlayBar button{flex:1;min-height:42px;border:1px solid rgba(255,255,255,.13);border-radius:11px;background:#1b2028;color:#fff;font-weight:800;font-size:11px}
+#elitePlayBar button:active{transform:scale(.97)}
+#elitePlayBar .primary{background:#0d6efd}
+#elitePlayState{position:absolute;left:14px;top:-28px;font-size:10px;font-weight:900;letter-spacing:.08em;color:#dbe4ee}
+body{padding-bottom:76px}
+</style>
+<div id="elitePlayBar" aria-label="Elite Play Designer controls">
+  <span id="elitePlayState">READY · 0 ACTIONS</span>
+  <button type="button" onclick="eliteRecordPlay()">RECORD</button>
+  <button type="button" onclick="eliteFinishPlay()">FINISH</button>
+  <button type="button" class="primary" onclick="elitePlaySequence()">PLAY</button>
+  <button type="button" onclick="eliteShowActions()">ACTIONS</button>
+</div>
+<script>
+(function(){
+  function state(){
+    var n=Array.isArray(window.sequence)?window.sequence.length:0;
+    var recording=!!window.recording;
+    var el=document.getElementById('elitePlayState');
+    if(el) el.textContent=(recording?'RECORDING':'READY')+' · '+n+' ACTIONS';
+  }
+  window.eliteRecordPlay=function(){
+    try{
+      if(typeof window.startSequence==='function') window.startSequence();
+      window.recording=true;
+      window.movementMode=true;
+      if(typeof window.setCoachTool==='function') window.setCoachTool('run');
+      state();
+    }catch(e){console.error(e);alert('Could not start recording.');}
+  };
+  window.eliteFinishPlay=function(){
+    try{
+      if(typeof window.finishSequence==='function') window.finishSequence();
+      else window.recording=false;
+      window.movementMode=false; window.ballMode=false; window.arrowMode=false;
+      state();
+    }catch(e){console.error(e);alert('Could not finish the play.');}
+  };
+  window.elitePlaySequence=function(){
+    try{
+      if(!Array.isArray(window.sequence)||!window.sequence.length){alert('Record at least one action first.');return;}
+      if(typeof window.startElitePlayback==='function') window.startElitePlayback();
+      else if(typeof window.animateSequence==='function') window.animateSequence();
+      state();
+    }catch(e){console.error(e);alert('Could not play this sequence.');}
+  };
+  window.eliteShowActions=function(){
+    try{
+      if(typeof window.openActionList==='function') window.openActionList();
+      else if(typeof window.openActionInspector==='function') window.openActionInspector();
+    }catch(e){console.error(e);}
+  };
+  var oldStart=window.startSequence,oldFinish=window.finishSequence;
+  window.startSequence=function(){var r=oldStart&&oldStart.apply(this,arguments);state();return r;};
+  window.finishSequence=function(){var r=oldFinish&&oldFinish.apply(this,arguments);state();return r;};
+  document.addEventListener('DOMContentLoaded',state);
+  setTimeout(state,500);
+})();
+</script>
+
 </body></html>
