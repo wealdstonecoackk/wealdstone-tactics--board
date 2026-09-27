@@ -89,6 +89,32 @@ body{background:linear-gradient(180deg,#0b0d10 0%,#111 45%,#0b0d10 100%);color:v
   <textarea id="notes" placeholder="Coach notes — objectives, triggers, details..."></textarea>
   <div id="status" class="status">Ready — select a formation or open Coach Menu.</div>
 </div>
+<div id="teamManager" style="display:none;position:fixed;inset:5%;z-index:110;background:#111;color:#fff;border:1px solid #343b45;border-radius:14px;padding:16px;overflow:auto;text-align:left">
+  <div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">👥 Starting XI</h2><button onclick="closeTeamManager()">✕</button></div>
+  <p style="opacity:.75">Select exactly 11 players and edit names.</p>
+  <div id="teamList"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+    <button onclick="applyStarting11()">Save Starting XI</button>
+    <button onclick="saveTeam()">Save Team</button>
+    <button onclick="loadTeam()">Load Team</button>
+    <button onclick="closeTeamManager()">Close</button>
+  </div>
+</div>
+<div id="playLibraryHub" style="display:none;position:fixed;inset:5%;z-index:110;background:#111;color:#fff;border:1px solid #343b45;border-radius:14px;padding:16px;overflow:auto;text-align:left">
+  <div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">📚 Play Library</h2><button onclick="closePlayLibrary()">✕</button></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
+    <input id="playSearch" placeholder="Search plays..." oninput="filterPlayLibrary()" style="flex:1;min-width:160px;padding:10px;border-radius:8px">
+    <select id="playPhase" onchange="filterPlayLibrary()" style="padding:10px;border-radius:8px"><option>All</option><option>Build-up</option><option>Attack</option><option>Defend</option><option>Set Piece</option></select>
+  </div>
+  <div id="playLibraryList"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+    <button onclick="savePlay()">💾 Save Current Play</button>
+    <button onclick="importPlay()">📥 Import</button>
+    <button onclick="exportTactic()">📤 Export Tactic</button>
+    <button onclick="closePlayLibrary()">Close</button>
+  </div>
+</div>
+<input id="playFile" type="file" accept=".json,application/json" style="display:none" onchange="handlePlayFile(event)">
 <div id="coachHub" style="display:none;position:fixed;inset:3%;z-index:100;background:#111;color:#fff;border:1px solid #343b45;border-radius:14px;padding:16px;overflow:auto;text-align:left">
   <div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">🧠 Coach Hub</h2><button onclick="closeCoachHub()">✕</button></div>
   <p style="opacity:.75">Quick overview of the current coaching setup.</p>
@@ -134,7 +160,7 @@ function importPlay(){document.getElementById("playFile").click()}
 function handlePlayFile(e){const file=e.target.files&&e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const d=JSON.parse(reader.result);if(d.state&&d.sequence){applyState(d.state);sequence=d.sequence;status.textContent="Play imported — "+sequence.length+" steps."}else if(d.sequence){sequence=d.sequence;applyState(d)}else if(d.positions||d.formation){applyState(d);status.textContent="Tactic imported."}else throw new Error("bad format")}catch(err){status.textContent="Could not import that play file."}e.target.value=""};reader.readAsText(file)}
 function buildBackTemplate(){snapshot();currentFormation="433";formations["433"].forEach((pos,i)=>{if(players[i]){players[i].style.left=pos[0]+"%";players[i].style.top=pos[1]+"%"}});arrows=[];sequence=[];const add=(a,b)=>{arrows.push([a,b]);sequence.push({type:"pass",from:a,to:b})};const run=(p,x,y)=>{let el=players[p],r=pitch.getBoundingClientRect(),rr=el.getBoundingClientRect(),sx=(rr.left+rr.width/2-r.left)/r.width*100,sy=(rr.top+rr.height/2-r.top)/r.height*100;arrows.push({type:"move",playerIndex:p,x1:sx,y1:sy,x2:x,y2:y,curve:.18});sequence.push({type:"run",player:p})};add(0,2);add(2,5);add(5,1);run(7,82,48);add(5,6);run(8,18,48);add(6,8);add(8,10);renderNames();drawArrows();ballX=50;ballY=88;ball.style.left=ballX+"%";ball.style.top=ballY+"%";status.textContent="Build-from-back template loaded — edit the runs and passes, then Save Play."}
 function savePlay(){finishSequence();if(!sequence.length){status.textContent="Record a play first.";return}let name=prompt("Name this play");if(!name)return;let saved=safeSavedPlays();saved.push({id:Date.now(),name,state:getState(),sequence});localStorage.setItem("wealdstone_saved_plays",JSON.stringify(saved));status.textContent="Saved play: "+name}
-function filterPlayLibrary(){var q=(document.getElementById('playSearch')?.value||'').toLowerCase(),phase=document.getElementById('playPhase')?.value||'All',items=safeSavedPlays(),box=document.getElementById('playLibraryList');if(!box)return;box.innerHTML=items.map(function(p,i){var n=String(p.name||('Play '+(i+1))),ph=p.phase||'Uncategorised';if(q&&n.toLowerCase().indexOf(q)<0)return '';if(phase!='All'&&ph!=phase)return '';return '<div style="padding:10px;margin:6px 0;background:#222;border-radius:9px"><b>'+n.replace(/</g,'&lt;')+'</b><small style="display:block;opacity:.7">'+ph+'</small><button onclick="loadSavedPlay('+i+')">Load</button> <button onclick="deleteSavedPlay('+i+')">Delete</button></div>'}).join('')||'<p>No matching plays.</p>'}function closePlayLibrary(){var m=document.getElementById('playLibraryHub');if(m)m.style.display='none'}function openPlayMenu(){let box=document.getElementById("savedPlays"),saved=safeSavedPlays().filter(p=>p&&typeof p==="object");box.innerHTML=saved.length?saved.map((p,i)=>{let n=String(p.name||"Unnamed play").replace(/</g,"&lt;");return '<div style="display:flex;gap:8px;align-items:center;margin:8px 0"><b style="flex:1">'+n+'</b><button onclick="loadSavedPlay('+i+')">Load</button><button onclick="deleteSavedPlay('+i+')">Delete</button></div>'}).join(""):"No saved plays yet.";document.getElementById("playMenu").style.display="block"}
+function filterPlayLibrary(){var q=(document.getElementById('playSearch')?.value||'').toLowerCase(),phase=document.getElementById('playPhase')?.value||'All',items=safeSavedPlays(),box=document.getElementById('playLibraryList');if(!box)return;box.innerHTML=items.map(function(p,i){var n=String(p.name||('Play '+(i+1))),ph=p.phase||'Uncategorised';if(q&&n.toLowerCase().indexOf(q)<0)return '';if(phase!='All'&&ph!=phase)return '';return '<div style="padding:10px;margin:6px 0;background:#222;border-radius:9px"><b>'+n.replace(/</g,'&lt;')+'</b><small style="display:block;opacity:.7">'+ph+'</small><button onclick="loadSavedPlay('+i+')">Load</button> <button onclick="deleteSavedPlay('+i+')">Delete</button></div>'}).join('')||'<p>No matching plays.</p>'}function closePlayLibrary(){var m=document.getElementById('playLibraryHub');if(m)m.style.display='none'}function openPlayLibrary(){var m=document.getElementById('playLibraryHub');if(!m)return;m.style.display='block';filterPlayLibrary()}function openPlayMenu(){let box=document.getElementById("savedPlays"),saved=safeSavedPlays().filter(p=>p&&typeof p==="object");box.innerHTML=saved.length?saved.map((p,i)=>{let n=String(p.name||"Unnamed play").replace(/</g,"&lt;");return '<div style="display:flex;gap:8px;align-items:center;margin:8px 0"><b style="flex:1">'+n+'</b><button onclick="loadSavedPlay('+i+')">Load</button><button onclick="deleteSavedPlay('+i+')">Delete</button></div>'}).join(""):"No saved plays yet.";document.getElementById("playMenu").style.display="block"}
 function closePlayMenu(){document.getElementById("playMenu").style.display="none"}
 function loadSavedPlay(i){let saved=safeSavedPlays(),p=saved[i];if(!p||!p.state){status.textContent="That saved play is invalid.";return}try{applyState(p.state);sequence=Array.isArray(p.sequence)?p.sequence:[];closePlayMenu();status.textContent="Loaded play: "+String(p.name||"Unnamed play")}catch(e){status.textContent="Could not load that play."}}
 function deleteSavedPlay(i){let saved=safeSavedPlays();if(i<0||i>=saved.length)return;saved.splice(i,1);localStorage.setItem("wealdstone_saved_plays",JSON.stringify(saved));openPlayMenu()}
