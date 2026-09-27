@@ -500,5 +500,31 @@ window.addEventListener("load",async()=>{try{if("serviceWorker"in navigator){con
     status.textContent="Ball placed.";
   });
 })();
+<!-- v16 action inspector -->
+(function(){
+  function inspector(){
+    var old=document.getElementById("actionInspector");if(old)old.remove();
+    var d=document.createElement("div");d.id="actionInspector";
+    d.style="position:fixed;left:12px;right:12px;bottom:70px;z-index:9998;background:#11161d;color:#fff;border:1px solid #39414d;border-radius:16px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.45)";
+    var moves=arrows.filter(function(a){return a&&a.type==="move"}).length;
+    var passes=arrows.filter(function(a){return Array.isArray(a)}).length;
+    d.innerHTML='<b style="font-size:17px">🎬 Play Designer</b><div style="font-size:12px;color:#aeb7c5;margin:5px 0 12px">'+passes+' passes • '+moves+' runs • '+sequence.length+' recorded actions</div>'+
+      '<div style="display:flex;gap:7px;flex-wrap:wrap">'+
+      '<button onclick="startSequence();closeInspector()">⏺ Record</button>'+
+      '<button onclick="finishSequence();closeInspector()">⏹ Finish</button>'+
+      '<button onclick="playSequence();closeInspector()">▶ Preview</button>'+
+      '<button onclick="undo();closeInspector()">↶ Undo</button>'+
+      '<button onclick="closeInspector()">Done</button></div>';
+    document.body.appendChild(d);
+  }
+  window.closeInspector=function(){var d=document.getElementById("actionInspector");if(d)d.remove()};
+  window.openActionInspector=inspector;
+  window.addEventListener("load",function(){
+    var b=document.createElement("button");b.textContent="🎬 Designer";
+    b.onclick=inspector;
+    b.style="position:fixed;left:12px;bottom:12px;z-index:9000;border:1px solid #39414d;border-radius:14px;background:#11161d;color:#fff;padding:11px 14px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.3)";
+    document.body.appendChild(b);
+  });
+})();
 </script>
 </body></html>
