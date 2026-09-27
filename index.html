@@ -921,4 +921,46 @@ function eliteNewPlay(){
 }
 elitePlayUpdate();
 </script>
-\n</body></html>
+
+<!-- v26 SQUAD + SAVED STARTING XI -->
+<style>
+#squadManagerV26{position:fixed;inset:3%;z-index:500;background:#111;color:#fff;border:1px solid #343b45;border-radius:16px;padding:15px;overflow:auto;text-align:left;box-shadow:0 18px 50px #000b}
+#squadManagerV26 .v26-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#squadManagerV26 .v26-card{background:#181d24;border:1px solid #303741;border-radius:11px;padding:10px;margin:7px 0}
+#squadManagerV26 .v26-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+#squadManagerV26 input,#squadManagerV26 select{width:100%;padding:9px;border-radius:8px;border:1px solid #3a424d;background:#0f1318;color:#fff}
+#squadManagerV26 button{background:#222831;color:#fff;border:1px solid #3a424d}
+#squadManagerV26 button.primary{background:#174ea6;border-color:#174ea6}
+#squadManagerV26 button.danger{background:#7d202b;border-color:#7d202b}
+#squadManagerV26 .xi{outline:2px solid #174ea6;background:#15233d}
+</style>
+<script>
+(function(){
+  var KEY='wealdstone_squad_players_v26', XIKEY='wealdstone_starting11_players_v26';
+  function squad(){try{var x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
+  function saveSquad(x){localStorage.setItem(KEY,JSON.stringify(x))}
+  function xi(){try{var x=JSON.parse(localStorage.getItem(XIKEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
+  function saveXI(x){localStorage.setItem(XIKEY,JSON.stringify(x));localStorage.setItem('wealdstone_starting11',JSON.stringify(x.map(function(p){return p.slot})))}
+  function seed(){var s=squad();if(!s.length){s=names.map(function(n,i){return{id:'p'+(i+1),name:n||('Player '+(i+1)),number:i+1,position:i===0?'GK':''}});saveSquad(s)}return s}
+  function render(){
+    var m=document.getElementById('squadManagerV26');if(!m)return;var s=seed(),chosen=xi().map(function(x){return x.id});
+    m.querySelector('#v26List').innerHTML=s.map(function(p,i){return '<div class="v26-card '+(chosen.includes(p.id)?'xi':'')+'"><div class="v26-grid"><input data-i="'+i+'" data-k="number" value="'+(p.number||i+1)+'" inputmode="numeric"><input data-i="'+i+'" data-k="name" value="'+String(p.name||'').replace(/"/g,'&quot;')+'" placeholder="Player name"></div><div class="v26-grid" style="margin-top:7px"><select data-i="'+i+'" data-k="position">'+['GK','DEF','MID','WING','FWD'].map(function(v){return '<option '+(p.position===v?'selected':'')+'>'+v+'</option>'}).join('')+'</select><button class="danger" onclick="v26DeletePlayer('+i+')">Remove</button></div></div>'}).join('');
+    m.querySelector('#v26Count').textContent=s.length+' players · '+chosen.length+'/11 starting';
+  }
+  window.v26Open=function(){
+    var m=document.getElementById('squadManagerV26');
+    if(!m){m=document.createElement('div');m.id='squadManagerV26';m.innerHTML='<div class="v26-head"><div><h2 style="margin:0">👥 Squad & Starting XI</h2><div id="v26Count" style="color:#aeb6c2;font-size:12px"></div></div><button onclick="v26Close()">✕</button></div><p style="color:#aeb6c2">Add your full squad, then choose exactly 11 for the pitch.</p><div id="v26List"></div><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px"><button class="primary" onclick="v26AddPlayer()">＋ Add Player</button><button class="primary" onclick="v26SaveSquad()">💾 Save Squad</button><button class="primary" onclick="v26OpenXI()">⚽ Starting XI</button><button onclick="v26Close()">Close</button></div>';document.body.appendChild(m)}
+    render();m.style.display='block';
+  };
+  window.v26Close=function(){var m=document.getElementById('squadManagerV26');if(m)m.style.display='none'};
+  window.v26AddPlayer=function(){var s=squad(),n=s.length+1;s.push({id:'p'+Date.now()+Math.random().toString(16).slice(2),name:'Player '+n,number:n,position:''});saveSquad(s);render()};
+  window.v26DeletePlayer=function(i){var s=squad(),x=xi();if(x.some(function(p){return p.id===s[i].id})){status.textContent='Remove the player from Starting XI first.';return}s.splice(i,1);saveSquad(s);render()};
+  window.v26SaveSquad=function(){var s=squad(),m=document.getElementById('squadManagerV26');m.querySelectorAll('[data-i]').forEach(function(el){var p=s[+el.dataset.i];if(!p)return;if(el.dataset.k==='number')p.number=+el.value||p.number;if(el.dataset.k==='name')p.name=el.value.trim()||('Player '+(+el.dataset.i+1));if(el.dataset.k==='position')p.position=el.value});saveSquad(s);s.forEach(function(p,i){if(i<11)names[i]=p.name});renderNames();status.textContent='Squad saved — '+s.length+' players available.';render()};
+  window.v26OpenXI=function(){var s=squad(),chosen=xi().map(function(x){return x.id}),m=document.getElementById('squadManagerV26');m.querySelector('#v26List').innerHTML='<h3>Choose your Starting XI</h3>'+s.map(function(p){var on=chosen.includes(p.id);return '<label class="v26-card '+(on?'xi':'')+'" style="display:block"><input type="checkbox" data-xi="'+p.id+'" '+(on?'checked':'')+' style="width:auto;margin-right:8px"> #'+p.number+' '+String(p.name).replace(/</g,'&lt;')+' <span style="color:#aeb6c2">'+(p.position||'POS')+'</span></label>'}).join('')+'<div style="display:flex;gap:7px;margin-top:10px"><button class="primary" onclick="v26SaveXI()">💾 Save Starting XI</button><button onclick="v26Open()">← Squad</button></div>';m.querySelector('#v26Count').textContent='Select exactly 11 players'};
+  window.v26SaveXI=function(){var m=document.getElementById('squadManagerV26'),s=squad(),ids=[].slice.call(m.querySelectorAll('[data-xi]:checked')).map(function(x){return x.getAttribute('data-xi')});if(ids.length!==11){status.textContent='Starting XI must contain exactly 11 players.';return}var selected=ids.map(function(id,slot){var p=s.find(function(x){return x.id===id});return{id:p.id,name:p.name,number:p.number,position:p.position,slot:slot}});saveXI(selected);selected.forEach(function(p,i){names[i]=p.name});renderNames();status.textContent='Starting XI saved — 11 players loaded.';v26Close()};
+  window.openTeamManager=function(){v26Open()};
+  window.applySavedStartingXI=function(){var x=xi();if(x.length!==11){return false}x.sort(function(a,b){return a.slot-b.slot}).forEach(function(p,i){names[i]=p.name});renderNames();return true};
+  window.addEventListener('load',function(){seed();applySavedStartingXI()});setTimeout(function(){seed();applySavedStartingXI()},700);
+})();
+</script>
+</body></html>
