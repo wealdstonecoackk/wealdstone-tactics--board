@@ -1210,6 +1210,53 @@ elitePlayUpdate();
   setTimeout(loadBall,400);setTimeout(wireBall,450);
 })();
 </script>
+
+<!-- V37 ELITE BOARD AUTOSAVE + CLEAN MOVE MODE -->
+<style>
+#v37SaveState{width:94%;max-width:720px;margin:0 auto 6px;display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:20px;font-size:10px;font-weight:800;letter-spacing:.3px;opacity:.82}
+#v37SaveState .saved{color:#8fd3a8}
+#v37SaveState button{border:1px solid #343b45;background:#171c24;color:#fff;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:900}
+</style>
+<script>
+(function(){
+  var KEY='wealdstone_board_autosave_v37',timer=null,loading=false;
+  function setSaved(msg){var el=document.getElementById('v37SaveLabel');if(el){el.textContent=msg||'BOARD SAVED';el.className='saved'}}
+  function save(){if(loading||typeof getState!=='function')return;try{localStorage.setItem(KEY,JSON.stringify({version:37,savedAt:Date.now(),state:getState()}));setSaved('✓ BOARD SAVED')}catch(e){}}
+  function queue(){clearTimeout(timer);timer=setTimeout(save,180)}
+  window.v37SaveBoard=save;
+  window.v37LoadBoard=function(){try{var raw=localStorage.getItem(KEY);if(!raw)return false;var d=JSON.parse(raw);if(d&&d.state&&typeof applyState==='function'){loading=true;applyState(d.state);loading=false;setSaved('✓ BOARD RESTORED');return true}}catch(e){loading=false}return false};
+  function build(){
+    if(document.getElementById('v37SaveState'))return;
+    var rail=document.getElementById('v34Tools');if(!rail)return;
+    var el=document.createElement('div');el.id='v37SaveState';el.innerHTML='<span id="v37SaveLabel">AUTO-SAVE ON</span><button type="button" onclick="v37SaveBoard()">SAVE NOW</button>';
+    rail.parentNode.insertBefore(el,rail);
+  }
+  var oldSetFormation=window.setFormation;
+  window.setFormation=function(){var r=typeof oldSetFormation==='function'?oldSetFormation.apply(this,arguments):undefined;queue();return r};
+  var oldUndo=window.undo;
+  window.undo=function(){var r=typeof oldUndo==='function'?oldUndo.apply(this,arguments):undefined;queue();return r};
+  var oldSaveTactic=window.saveTactic;
+  window.saveTactic=function(){var r=typeof oldSaveTactic==='function'?oldSaveTactic.apply(this,arguments):undefined;save();return r};
+  var oldApply=window.applyState;
+  window.applyState=function(d){var r=typeof oldApply==='function'?oldApply.apply(this,arguments):undefined;queue();return r};
+  window.v34Mode=function(mode){
+    var id=mode==='move'?'v34Move':mode==='ball'?'v34Ball':'v34Pass';
+    ['v34Move','v34Ball','v34Pass'].forEach(function(x){var e=document.getElementById(x);if(e)e.classList.toggle('active',x===id)});
+    if(mode==='move'){
+      if(typeof setCoachTool==='function')setCoachTool('none');
+      if(typeof status!=='undefined')status.textContent='MOVE MODE — drag players. No run recorded.';
+    }else if(typeof setCoachTool==='function')setCoachTool(mode);
+  };
+  document.addEventListener('pointerup',function(e){if(e.target&&((e.target.classList&&e.target.classList.contains('player'))||(e.target.id==='pitch')||(e.target.classList&&e.target.classList.contains('ball'))))queue()},true);
+  document.addEventListener('input',function(e){if(e.target&&e.target.id==='notes')queue()},true);
+  window.addEventListener('load',function(){
+    setTimeout(build,650);
+    setTimeout(function(){if(typeof v33SyncTeamToBoard==='function')v33SyncTeamToBoard()},900);
+    setTimeout(function(){v37LoadBoard();if(typeof v33SyncTeamToBoard==='function')v33SyncTeamToBoard();setTimeout(function(){v37LoadBoard();save()},80)},1500);
+  });
+  setTimeout(build,900);
+})();
+</script>
 </body></html>\n
 <!-- V30 PROFESSIONAL SINGLE NAV + MOBILE RELIABILITY -->
 <style>
