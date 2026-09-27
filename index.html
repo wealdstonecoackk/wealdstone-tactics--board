@@ -1,3 +1,4 @@
+<!-- Pages refresh: 2026-09-27 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,24 +39,18 @@ h1{margin:12px 0 2px;font-size:24px}p{margin:0 0 8px;color:#ccc}.bar{display:fle
 <div class="panel"><textarea id="notes" placeholder="Coach notes: set pieces, opposition, triggers, instructions..."></textarea><div class="status" id="status">Double-tap a player to rename. Use Add Arrow to show runs/passing.</div></div>
 <script>
 const pitch=document.getElementById("pitch"),svg=document.getElementById("arrows"),notes=document.getElementById("notes"),status=document.getElementById("status");
-const formations={
-433:[[50,88],[18,72],[38,76],[62,76],[82,72],[30,57],[50,62],[70,57],[18,32],[50,25],[82,32]],
-442:[[50,88],[18,72],[38,76],[62,76],[82,72],[18,52],[38,57],[62,57],[82,52],[35,30],[65,30]],
-352:[[50,88],[25,72],[50,76],[75,72],[15,55],[35,58],[50,52],[65,58],[85,55],[35,30],[65,30]],
-4231:[[50,88],[18,72],[38,76],[62,76],[82,72],[35,58],[65,58],[18,36],[50,42],[82,36],[50,25]],
-4141:[[50,88],[18,72],[38,76],[62,76],[82,72],[50,63],[18,43],[38,48],[62,48],[82,43],[50,25]]
-};
-let players=[], names=Array.from({length:11},(_,i)=>"Player "+(i+1)), arrowMode=false, arrowStart=null, currentFormation="433", arrows=[], history=[], oppositionMode=false;
-for(let i=0;i<11;i++){let p=document.createElement("div");p.className="player"+(i===0?" gk":"");p.innerHTML='<span class="num">'+(i+1)+'</span><span class="name"></span>';pitch.appendChild(p);players.push(p);makeDraggable(p);p.ondblclick=()=>renameOne(i)}
+const formations={433:[[50,88],[18,72],[38,76],[62,76],[82,72],[30,57],[50,62],[70,57],[18,32],[50,25],[82,32]],442:[[50,88],[18,72],[38,76],[62,76],[82,72],[18,52],[38,57],[62,57],[82,52],[35,30],[65,30]],352:[[50,88],[25,72],[50,76],[75,72],[15,55],[35,58],[50,52],[65,58],[85,55],[35,30],[65,30]],4231:[[50,88],[18,72],[38,76],[62,76],[82,72],[35,58],[65,58],[18,36],[50,42],[82,36],[50,25]],4141:[[50,88],[18,72],[38,76],[62,76],[82,72],[50,63],[18,43],[38,48],[62,48],[82,43],[50,25]]};
+let players=[],names=Array.from({length:11},(_,i)=>"Player "+(i+1)),arrowMode=false,arrowStart=null,currentFormation="433",arrows=[],history=[],oppositionMode=false;
+for(let i=0;i<11;i++){let p=document.createElement("div");p.className="player"+(i===0?" gk":"");p.innerHTML='<span class="num">'+(i+1)+'</span><span class="name"></span>';pitch.appendChild(p);makeDraggable(p);p.ondblclick=()=>renameOne(i)}
 function renderNames(){players.forEach((p,i)=>p.querySelector(".name").textContent=names[i])}
 function setFormation(name,btn){if(!formations[name])return;snapshot();currentFormation=name;document.querySelectorAll(".bar button").forEach(b=>b.classList.remove("active"));if(btn)btn.classList.add("active");formations[name].forEach((pos,i)=>{players[i].style.left=pos[0]+"%";players[i].style.top=pos[1]+"%"});status.textContent=name+" formation loaded."}
 function snapshot(){history.push(JSON.stringify(getState()));if(history.length>30)history.shift()}
 function undo(){let s=history.pop();if(!s){status.textContent="Nothing to undo.";return}let d;try{d=JSON.parse(s)}catch(e){status.textContent="Saved tactic is damaged.";return}currentFormation=d.formation||"433";names=d.names||names;notes.value=d.notes||"";d.positions?.forEach((x,i)=>{if(players[i]){players[i].style.left=x.left;players[i].style.top=x.top}});arrows=d.arrows||[];renderNames();drawArrows();status.textContent="Undone."}
 function makeDraggable(el){let move=e=>{let r=pitch.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*100,y=(e.clientY-r.top)/r.height*100;el.style.left=Math.max(3,Math.min(97,x))+"%";el.style.top=Math.max(4,Math.min(96,y))+"%";drawArrows()};el.addEventListener("pointerdown",e=>{if(arrowMode){chooseArrow(el);e.preventDefault();return}snapshot();el.classList.add("selected");el.setPointerCapture(e.pointerId);el.addEventListener("pointermove",move);el.addEventListener("pointerup",()=>{el.removeEventListener("pointermove",move);el.classList.remove("selected")},{once:true})})}
-function renameOne(i){let n=prompt("Player "+(i+1)+" name:",names[i]);if(n!==null&&n.trim()){names[i]=n.trim();renderNames();}}
+function renameOne(i){let n=prompt("Player "+(i+1)+" name:",names[i]);if(n!==null&&n.trim()){names[i]=n.trim();renderNames()}}
 function renamePlayers(){for(let i=0;i<11;i++){let n=prompt("Player "+(i+1)+" name:",names[i]);if(n===null)break;if(n.trim())names[i]=n.trim()}renderNames();status.textContent="Player names updated."}
 function toggleArrowMode(btn){arrowMode=!arrowMode;arrowStart=null;btn.classList.toggle("active",arrowMode);status.textContent=arrowMode?"Arrow mode: tap the start player, then the destination player.":"Arrow mode off."}
-function chooseArrow(p){if(!arrowStart){arrowStart=p;players.forEach(x=>x.classList.remove("selected"));p.classList.add("selected");status.textContent="Now tap the destination player."}else if(arrowStart!==p){arrows.push([players.indexOf(arrowStart),players.indexOf(p)]);arrowStart.classList.remove("selected");arrowStart=null;drawArrows();status.textContent="Arrow added.";}}
+function chooseArrow(p){if(!arrowStart){arrowStart=p;players.forEach(x=>x.classList.remove("selected"));p.classList.add("selected");status.textContent="Now tap the destination player."}else if(arrowStart!==p){arrows.push([players.indexOf(arrowStart),players.indexOf(p)]);arrowStart.classList.remove("selected");arrowStart=null;drawArrows();status.textContent="Arrow added."}}
 function clearArrows(){arrows=[];drawArrows();status.textContent="Arrows cleared."}
 function drawArrows(){svg.querySelectorAll(".arrow").forEach(x=>x.remove());let r=pitch.getBoundingClientRect();arrows.forEach(a=>{let A=players[a[0]],B=players[a[1]],ra=A.getBoundingClientRect(),rb=B.getBoundingClientRect();let x1=(ra.left+ra.width/2-r.left)/r.width*1000,y1=(ra.top+ra.height/2-r.top)/r.height*700,x2=(rb.left+rb.width/2-r.left)/r.width*1000,y2=(rb.top+rb.height/2-r.top)/r.height*700;let l=document.createElementNS("http://www.w3.org/2000/svg","line");l.setAttribute("x1",x1);l.setAttribute("y1",y1);l.setAttribute("x2",x2);l.setAttribute("y2",y2);l.setAttribute("class","arrow");svg.appendChild(l)})}
 function getState(){return{formation:currentFormation,names:[...names],notes:notes.value,positions:players.map(p=>({left:p.style.left,top:p.style.top})),arrows:arrows.map(a=>[...a]),oppositionMode}}
