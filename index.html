@@ -2252,3 +2252,47 @@ window.addEventListener('load',function(){setTimeout(restore,1250);setTimeout(fu
   status.textContent="PLAY ENGINE READY";
 })();
 </script>
+
+
+<!-- V50 MOBILE COACHING FLOW + SAFE TOOL STATES -->
+<script>
+(function(){
+  if(window.__v50)return; window.__v50=true;
+  function q(s){return document.querySelector(s)}
+  function sync(){
+    var b=q("#realPlayBuilder"); if(!b)return;
+    var map={};
+    map.pass=!!window.arrowMode;
+    map.run=!!window.movementMode;
+    map.ball=!!window.ballMode;
+    map.opp=!!window.oppositionMode;
+    map.record=!!window.recording;
+    map.play=!!window.playing;
+    b.querySelectorAll("[data-t]").forEach(function(x){
+      var t=x.getAttribute("data-t");
+      if(map[t]!==undefined)x.classList.toggle("active",map[t]);
+    });
+    var h=q("#rpbHelp");
+    if(h&&window.recording)h.textContent="Recording • build the sequence on the pitch";
+    else if(h&&window.playing)h.textContent="Playing • tap Play to pause";
+  }
+  /* Prevent accidental page scrolling while manipulating the pitch. */
+  var p=q("#pitch");
+  if(p){
+    p.style.touchAction="none";
+    ["touchstart","touchmove"].forEach(function(ev){
+      p.addEventListener(ev,function(e){
+        if(e.target.closest&&e.target.closest(".player,.ball"))e.preventDefault();
+      },{passive:false});
+    });
+  }
+  /* Make the ball reliably draggable through the existing ball handler when available. */
+  var ball=window.ball;
+  if(ball && !ball.dataset.v50){
+    ball.dataset.v50="1";
+    ball.style.touchAction="none";
+  }
+  /* Keep toolbar state synchronized with the real engine. */
+  setInterval(sync,200);
+})();
+</script>
