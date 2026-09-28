@@ -67,22 +67,22 @@ function createPlayer(i){
  const p={i,x:formations[formation][i][0],y:formations[formation][i][1],name:names[i],el};players.push(p);renderPlayer(p);dragPlayer(p)
 }
 function dragPlayer(p){
- let active=false;
+ let active=false,dragStart=null;
  elDown(p.el,e=>{
   if(frozen)return;
   if(tool==="pass"){selectPassStart(p);return}
   if(tool==="opp"&&p.i<0)return;
   if(tool!=="select"&&tool!=="run")return;
-  e.preventDefault();active=true;pushHistory();try{p.el.setPointerCapture(e.pointerId)}catch(_){}
+  e.preventDefault();active=true;dragStart={x:p.x,y:p.y};pushHistory();try{p.el.setPointerCapture(e.pointerId)}catch(_){}
   const move=ev=>{if(!active)return;const q=posFromEvent(ev);p.x=q.x;p.y=q.y;renderPlayer(p);if(tool==="run"&&recording)drawLiveRun(p,q)};
-  const up=()=>{if(!active)return;active=false;p.el.removeEventListener("pointermove",move);p.el.removeEventListener("pointerup",up);if(tool==="run"&&recording)recordRun(p);persist();msg("PLAYER "+(p.i+1)+" POSITIONED")};
+  const up=()=>{if(!active)return;active=false;p.el.removeEventListener("pointermove",move);p.el.removeEventListener("pointerup",up);if(tool==="run"&&recording)recordRun(p,dragStart);dragStart=null;persist();msg("PLAYER "+(p.i+1)+" POSITIONED")};
   p.el.addEventListener("pointermove",move);p.el.addEventListener("pointerup",up)
  })
 }
 function elDown(el,fn){el.addEventListener("pointerdown",fn,{passive:false})}
 function selectPassStart(p){if(!window.passStart){window.passStart=p;msg("PASS • now tap the receiving player")}else{const a=window.passStart;const b=p;if(a!==b){arrows.push({type:"pass",x1:a.x,y1:a.y,x2:b.x,y2:b.y});if(recording)sequence.push({...arrows[arrows.length-1]});draw();persist();msg("PASS ADDED • "+(a.i+1)+" → "+(b.i+1))}window.passStart=null}}
 function drawLiveRun(p,q){draw()}
-function recordRun(p){const start=history.length?JSON.parse(history[history.length-1]).players[p.i]:null;if(start)sequence.push({type:"run",i:p.i,x1:start.x,y1:start.y,x2:p.x,y2:p.y})}
+function recordRun(p,start){if(start&&((Math.abs(start.x-p.x)+Math.abs(start.y-p.y))>0.5))sequence.push({type:"run",i:p.i,x1:start.x,y1:start.y,x2:p.x,y2:p.y})}
 function draw(){
  svg.querySelectorAll(".dyn").forEach(x=>x.remove());
  arrows.forEach(a=>{const l=document.createElementNS("http://www.w3.org/2000/svg","line");l.classList.add("dyn",a.type==="run"?"run":"pass","arrow");l.setAttribute("x1",a.x1*10);l.setAttribute("y1",a.y1*7);l.setAttribute("x2",a.x2*10);l.setAttribute("y2",a.y2*7);l.style.color=a.type==="run"?"#fff":"#ffd84d";svg.appendChild(l)})
@@ -96,7 +96,7 @@ elDown(ball,e=>{
 });
 function setFormation(f){pushHistory();formation=f;players.forEach((p,i)=>{p.x=formations[f][i][0];p.y=formations[f][i][1];renderPlayer(p)});document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===f));draw();persist();msg("FORMATION • "+f)}
 function setTool(t){tool=t;window.passStart=null;document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===t));msg(t==="pass"?"PASS MODE • tap passer then receiver":t==="run"?"RUN MODE • drag players while recording":t==="ball"?"BALL MODE • drag the ball":"SELECT MODE • drag players")}
-function addOpp(){if(frozen)return;const n=opps.length;const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x:72-(n%4)*8,y:25+Math.floor(n/4)*18,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up)};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
+function addOpp(){if(frozen)return;const n=opps.length;const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x:72-(n%4)*8,y:25+Math.floor(n/4)*18,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);persist();msg("OPPONENT POSITIONED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
 function renderOpp(o){o.el.style.left=o.x+"%";o.el.style.top=o.y+"%"}
 function clearOpp(){opps.forEach(o=>o.el.remove());opps=[];persist();msg("OPPOSITION CLEARED")}
 function reset(){pushHistory();players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1];renderPlayer(p)});arrows=[];sequence=[];setBall(50,50);draw();persist();msg("XI RESET • "+formation)}
@@ -147,6 +147,7 @@ document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{if(b.dataset.
 document.getElementById("record").onclick=startRec;document.getElementById("stop").onclick=stopRec;document.getElementById("play").onclick=play;document.getElementById("clear").onclick=clear;document.getElementById("undo").onclick=undo;document.getElementById("save").onclick=save;document.getElementById("library").onclick=library;document.getElementById("more").onclick=hub;
 document.getElementById("reset").onclick=reset;document.getElementById("oppClear").onclick=clearOpp;document.getElementById("grid").onclick=function(){pitch.classList.toggle("grid");this.classList.toggle("active",pitch.classList.contains("grid"));if(pitch.classList.contains("grid"))pitch.style.backgroundImage="linear-gradient(#ffffff18 1px,transparent 1px),linear-gradient(90deg,#ffffff18 1px,transparent 1px)";else pitch.style.backgroundImage="none"};
 document.getElementById("freeze").onclick=function(){frozen=!frozen;this.classList.toggle("active",frozen);msg(frozen?"BOARD FROZEN":"BOARD UNLOCKED")};
+notes.addEventListener("input",()=>{clearTimeout(window.__noteTimer);window.__noteTimer=setTimeout(persist,250)});
 pitch.addEventListener("dblclick",e=>{if(tool==="opp")addOpp()});
 for(let i=0;i<11;i++)createPlayer(i);
 const saved=localStorage.getItem(key);if(saved)try{restore(JSON.parse(saved))}catch(_){}
