@@ -29,7 +29,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 <button data-tool="select" class="active">👆 Select</button><button data-tool="pass">➜ Pass</button><button data-tool="run">↗ Run</button><button data-tool="ball">⚽ Ball</button><button data-tool="opp">🔴 Opp</button>
 </div>
 <div class="actions">
-<button id="record">⏺ Record</button><button id="newSession">🆕 New Session</button><button id="stop">⏹ Stop</button><button id="play">▶ Play</button><button id="clear">🧹 Clear</button><button id="undo">↶ Undo</button><button id="save">💾 Save</button><button id="library">📚 Library</button><button id="more">🧠 Coach Hub</button>
+<button id="record">⏺ Record</button><button id="newSession">🆕 New Session</button><button id="stop">⏹ Stop</button><button id="play">▶ Play</button><button id="clear">🧹 Clear</button><button id="undo">↶ Undo</button><button id="redo">↷ Redo</button><button id="save">💾 Save</button><button id="library">📚 Library</button><button id="more">🧠 Coach Hub</button>
 </div>
 <div id="status" class="status">READY • Select a player or choose a coaching tool</div>
 <section id="pitch">
@@ -52,7 +52,7 @@ const formations={
 "4231":[[50,88],[18,72],[38,76],[62,76],[82,72],[35,58],[65,58],[18,36],[50,42],[82,36],[50,25]],
 "4141":[[50,88],[18,72],[38,76],[62,76],[82,72],[50,63],[18,43],[38,48],[62,48],[82,43],[50,25]]
 };
-let formation="433",tool="select",players=[],opps=[],arrows=[],history=[],sequence=[],recording=false,playing=false,playIndex=0,raf=0,ballPos={x:50,y:50},frozen=false;
+let formation="433",tool="select",players=[],opps=[],arrows=[],history=[],redoStack=[],sequence=[],recording=false,playing=false,playIndex=0,raf=0,ballPos={x:50,y:50},frozen=false;
 let names=Array.from({length:11},(_,i)=>"Player "+(i+1));
 const key="wealdstone_pro_coach_v1";
 function msg(t){status.textContent=t;status.setAttribute("aria-live","polite")}
@@ -73,12 +73,12 @@ function ensureBoardIntegrity(){
   ball.style.display="flex";
   draw();
 }
-function newSession(){stopPlayback();clearSelection();pushHistory();formation="433";players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1]});arrows=[];sequence=[];opps.forEach(o=>o.el.remove());opps=[];setBall(50,50);notes.value="";draw();persist();document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation==="433"));msg("NEW SESSION • 4-3-3 READY")}
+function newSession(){stopPlayback();clearSelection();pushHistory();redoStack=[];formation="433";players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1]});arrows=[];sequence=[];opps.forEach(o=>o.el.remove());opps=[];setBall(50,50);notes.value="";draw();persist();document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation==="433"));msg("NEW SESSION • 4-3-3 READY")}
 
 function persist(){try{localStorage.setItem(key,JSON.stringify(snapshot()))}catch(_){}}
 function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
 function posFromEvent(e){const r=pitch.getBoundingClientRect();return{x:clamp((e.clientX-r.left)/r.width*100,1,99),y:clamp((e.clientY-r.top)/r.height*100,1,99)}}
-function pushHistory(){history.push(JSON.stringify(snapshot()));if(history.length>30)history.shift()}
+function pushHistory(){history.push(JSON.stringify(snapshot()));redoStack=[];if(history.length>30)history.shift()}
 function snapshot(){return{formation,names:names.slice(),players:players.map(p=>({x:p.x,y:p.y})),opps:opps.map(o=>({x:o.x,y:o.y})),arrows:arrows.map(a=>({...a})),ball:{...ballPos},sequence:sequence.map(a=>({...a})),notes:notes.value}}
 function renderPlayer(p){p.el.style.left=p.x+"%";p.el.style.top=p.y+"%";p.el.querySelector(".nm").textContent=p.name}
 function createPlayer(i){
@@ -94,8 +94,8 @@ function dragPlayer(p){
   if(tool!=="select"&&tool!=="run")return;
   e.preventDefault();active=true;dragStart={x:p.x,y:p.y};p.__runStart=dragStart;pushHistory();try{p.el.setPointerCapture(e.pointerId)}catch(_){}
   const move=ev=>{if(!active)return;const q=posFromEvent(ev);p.x=q.x;p.y=q.y;renderPlayer(p);if(tool==="run"&&recording)drawLiveRun(p,q)};
-  const up=()=>{if(!active)return;active=false;p.el.removeEventListener("pointermove",move);p.el.removeEventListener("pointerup",up);if(tool==="run"&&recording)recordRun(p,dragStart);dragStart=null;persist();msg(tool==="run"&&recording?"RUN RECORDED • "+(p.i+1):"PLAYER "+(p.i+1)+" POSITIONED")};
-  p.el.addEventListener("pointermove",move);p.el.addEventListener("pointerup",up)
+  const finish=(cancelled=false)=>{if(!active)return;active=false;p.el.removeEventListener("pointermove",move);p.el.removeEventListener("pointerup",up);p.el.removeEventListener("pointercancel",cancel);if(cancelled&&dragStart){p.x=dragStart.x;p.y=dragStart.y;renderPlayer(p)}else if(tool==="run"&&recording)recordRun(p,dragStart);dragStart=null;persist();msg(cancelled?"MOVE CANCELLED":(tool==="run"&&recording?"RUN RECORDED • "+(p.i+1):"PLAYER "+(p.i+1)+" POSITIONED"))}; const up=()=>finish(false); const cancel=()=>finish(true);
+  p.el.addEventListener("pointermove",move);p.el.addEventListener("pointerup",up);p.el.addEventListener("pointercancel",cancel)
  })
 }
 function elDown(el,fn){el.addEventListener("pointerdown",fn,{passive:false})}
@@ -145,7 +145,7 @@ function renderOpp(o){o.el.style.left=o.x+"%";o.el.style.top=o.y+"%"}
 function clearOpp(silent=false){opps.forEach(o=>o.el.remove());opps=[];if(!silent){persist();msg("OPPOSITION CLEARED")}}
 function reset(){pushHistory();players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1];renderPlayer(p)});arrows=[];sequence=[];setBall(50,50);draw();persist();msg("XI RESET • "+formation)}
 function clear(){pushHistory();arrows=[];sequence=[];draw();persist();msg("TACTICAL DRAWING CLEARED")}
-function undo(){if(!history.length){msg("NOTHING TO UNDO");return}const s=JSON.parse(history.pop());restore(s);persist();msg("UNDO COMPLETE")}
+function undo(){if(!history.length){msg("NOTHING TO UNDO");return}redoStack.push(JSON.stringify(snapshot()));const s=JSON.parse(history.pop());restore(s);persist();msg("UNDO COMPLETE")}\nfunction redo(){if(!redoStack.length){msg("NOTHING TO REDO");return}history.push(JSON.stringify(snapshot()));const s=JSON.parse(redoStack.pop());restore(s);persist();msg("REDO COMPLETE")}
 function restore(s){
   if(!s||typeof s!=="object")throw new Error("Invalid session");
   formation=formations[s.formation]?s.formation:"433";
@@ -266,7 +266,7 @@ document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{setTool(b.dat
 document.getElementById("record").onclick=()=>{stopPlayback();clearSelection();startRec()};
 document.getElementById("newSession").onclick=newSession;
 document.getElementById("stop").onclick=stopRec;document.getElementById("play").onclick=play;document.getElementById("clear").onclick=()=>{stopPlayback();clearSelection();clear()};
-document.getElementById("undo").onclick=undo;document.getElementById("save").onclick=save;document.getElementById("library").onclick=library;document.getElementById("more").onclick=hub;
+document.getElementById("undo").onclick=()=>{stopPlayback();clearSelection();undo()};document.getElementById("redo").onclick=()=>{stopPlayback();clearSelection();redo()};document.getElementById("save").onclick=save;document.getElementById("library").onclick=library;document.getElementById("more").onclick=hub;
 document.getElementById("notes").setAttribute("aria-label","Coach notes");
 
 document.getElementById("reset").onclick=()=>{stopPlayback();clearSelection();reset()};
