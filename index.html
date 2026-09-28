@@ -73,7 +73,7 @@ function dragPlayer(p){
   if(tool==="pass"){selectPassStart(p);return}
   if(tool==="opp"&&p.i<0)return;
   if(tool!=="select"&&tool!=="run")return;
-  e.preventDefault();active=true;dragStart={x:p.x,y:p.y};pushHistory();try{p.el.setPointerCapture(e.pointerId)}catch(_){}
+  e.preventDefault();active=true;dragStart={x:p.x,y:p.y};p.__runStart=dragStart;pushHistory();try{p.el.setPointerCapture(e.pointerId)}catch(_){}
   const move=ev=>{if(!active)return;const q=posFromEvent(ev);p.x=q.x;p.y=q.y;renderPlayer(p);if(tool==="run"&&recording)drawLiveRun(p,q)};
   const up=()=>{if(!active)return;active=false;p.el.removeEventListener("pointermove",move);p.el.removeEventListener("pointerup",up);if(tool==="run"&&recording)recordRun(p,dragStart);dragStart=null;persist();msg(tool==="run"&&recording?"RUN RECORDED • "+(p.i+1):"PLAYER "+(p.i+1)+" POSITIONED")};
   p.el.addEventListener("pointermove",move);p.el.addEventListener("pointerup",up)
@@ -81,8 +81,8 @@ function dragPlayer(p){
 }
 function elDown(el,fn){el.addEventListener("pointerdown",fn,{passive:false})}
 function selectPassStart(p){if(!window.passStart){window.passStart=p;msg("PASS • now tap the receiving player")}else{const a=window.passStart;const b=p;if(a!==b){arrows.push({type:"pass",x1:a.x,y1:a.y,x2:b.x,y2:b.y});if(recording)sequence.push({...arrows[arrows.length-1]});draw();persist();msg("PASS ADDED • "+(a.i+1)+" → "+(b.i+1))}window.passStart=null}}
-function drawLiveRun(p,q){draw()}
-function recordRun(p,start){if(start&&((Math.abs(start.x-p.x)+Math.abs(start.y-p.y))>0.5)){const a={type:"run",i:p.i,x1:start.x,y1:start.y,x2:p.x,y2:p.y};sequence.push({...a});arrows.push(a);draw()}}
+function drawLiveRun(p,q){\n draw(); if(!recording||tool!=="run"||!p.__runStart)return;\n const a=p.__runStart; const l=document.createElementNS("http://www.w3.org/2000/svg","line");\n l.classList.add("dyn","run","arrow","liveRun"); l.setAttribute("x1",a.x*10);l.setAttribute("y1",a.y*7);l.setAttribute("x2",q.x*10);l.setAttribute("y2",q.y*7);l.style.color="#fff";svg.appendChild(l);\n}
+function recordRun(p,start){svg.querySelectorAll(".liveRun").forEach(x=>x.remove());if(start&&((Math.abs(start.x-p.x)+Math.abs(start.y-p.y))>0.5)){const a={type:"run",i:p.i,x1:start.x,y1:start.y,x2:p.x,y2:p.y};sequence.push({...a});arrows.push(a);draw()}}
 function draw(){
  svg.querySelectorAll(".dyn").forEach(x=>x.remove());
  arrows.forEach(a=>{const l=document.createElementNS("http://www.w3.org/2000/svg","line");l.classList.add("dyn",a.type==="run"?"run":"pass","arrow");l.setAttribute("x1",a.x1*10);l.setAttribute("y1",a.y1*7);l.setAttribute("x2",a.x2*10);l.setAttribute("y2",a.y2*7);l.style.color=a.type==="run"?"#fff":"#ffd84d";svg.appendChild(l)})
