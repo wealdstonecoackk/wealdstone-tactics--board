@@ -1791,3 +1791,190 @@ window.addEventListener('load',function(){setTimeout(restore,1250);setTimeout(fu
   }
 })();
 </script>
+
+
+<!-- V46 PRO COACHING PLAY ENGINE -->
+<script>
+(function(){
+  /* Capture each run with its exact geometry. This makes repeated runs by the same
+     player deterministic during playback and keeps saved plays portable. */
+  window.recordRun=function(player){
+    if(!recording) return;
+    var el=players[player];
+    if(!el) return;
+    var move=null;
+    for(var i=arrows.length-1;i>=0;i--){
+      var a=arrows[i];
+      if(a && a.type==="move" && a.playerIndex===player){move=a;break;}
+    }
+    if(move){
+      sequence.push({
+        type:"run",player:player,
+        x1:+move.x1,y1:+move.y1,x2:+move.x2,y2:+move.y2
+      });
+    }else{
+      var r=pitch.getBoundingClientRect(),pr=el.getBoundingClientRect();
+      sequence.push({
+        type:"run",player:player,
+        x1:(pr.left+pr.width/2-r.left)/r.width*100,
+        y1:(pr.top+pr.height/2-r.top)/r.height*100,
+        x2:(pr.left+pr.width/2-r.left)/r.width*100,
+        y2:(pr.top+pr.height/2-r.top)/r.height*100
+      });
+    }
+  };
+
+  window.recordPass=function(a,b){
+    if(recording && players[a] && players[b]){
+      sequence.push({type:"pass",from:a,to:b});
+    }
+  };
+
+  window.startSequence=function(){
+    if(playing){playing=false;if(playTimer)cancelAnimationFrame(playTimer);playTimer=null;}
+    sequence=[];
+    recording=true;
+    playStep=0;
+    document.body.classList.add("recording");
+    document.querySelectorAll(".quick-actions button").forEach(function(b){
+      if(b.textContent.indexOf("Record")>=0)b.classList.add("active");
+      if(b.textContent.indexOf("Play")>=0)b.classList.remove("active");
+    });
+    status.textContent="RECORDING • Pass: tap 2 players • Run: drag player • Ball: drag ball";
+  };
+
+  window.finishSequence=function(){
+    recording=false;
+    document.body.classList.remove("recording");
+    document.querySelectorAll(".quick-actions button").forEach(function(b){
+      if(b.textContent.indexOf("Record")>=0)b.classList.remove("active");
+    });
+    status.textContent=sequence.length
+      ?"PLAY READY • "+sequence.length+" actions captured"
+      :"No actions recorded.";
+  };
+
+  function setBall(x,y){
+    ballX=Math.max(1,Math.min(99,+x||0));
+    ballY=Math.max(1,Math.min(99,+y||0));
+    ball.style.display="block";
+    ball.style.left=ballX+"%";
+    ball.style.top=ballY+"%";
+  }
+
+  function playerPoint(i){
+    var r=pitch.getBoundingClientRect(),p=players[i];
+    if(!p)return null;
+    var pr=p.getBoundingClientRect();
+    return {
+      x:(pr.left+pr.width/2-r.left)/r.width*100,
+      y:(pr.top+pr.height/2-r.top)/r.height*100
+    };
+  }
+
+  function movePlayer(i,x,y){
+    if(players[i]){
+      players[i].style.left=Math.max(3,Math.min(97,x))+"%";
+      players[i].style.top=Math.max(4,Math.min(96,y))+"%";
+    }
+  }
+
+  window.playSequence=function(){
+    if(recording){status.textContent="Stop recording before playing the sequence.";return;}
+    if(!sequence.length){status.textContent="Record or load a play first.";return;}
+
+    /* Tap PLAY again to pause; PLAY resumes from the current action. */
+    if(playing){
+      playing=false;
+      if(playTimer)cancelAnimationFrame(playTimer);
+      playTimer=null;
+      document.querySelectorAll(".quick-actions button").forEach(function(b){
+        if(b.textContent.indexOf("Play")>=0)b.classList.remove("active");
+      });
+      status.textContent="PLAY PAUSED • tap Play to resume";
+      return;
+    }
+
+    /* On a fresh play, put every recorded run back at its true starting point. */
+    if(playStep>=sequence.length || playStep<0){
+      playStep=0;
+      sequence.forEach(function(s){
+        if(s.type==="run" && typeof s.x1==="number")movePlayer(s.player,s.x1,s.y1);
+      });
+      if(sequence[0] && sequence[0].type==="ball")setBall(sequence[0].x1,sequence[0].y1);
+      else if(sequence[0] && sequence[0].type==="pass"){
+        var pp=playerPoint(sequence[0].from);if(pp)setBall(pp.x,pp.y);
+      }
+    }
+
+    playing=true;
+    playStart=performance.now();
+    ball.style.display="block";
+    document.querySelectorAll(".quick-actions button").forEach(function(b){
+      if(b.textContent.indexOf("Play")>=0)b.classList.add("active");
+    });
+    status.textContent="PLAYING • "+(playStep+1)+"/"+sequence.length+" actions";
+    animateSequence();
+  };
+
+  window.animateSequence=function(){
+    if(!playing)return;
+
+    var s=sequence[playStep];
+    if(!s){
+      playing=false;
+      playTimer=null;
+      players.forEach(function(p){p.classList.remove("run-active");});
+      document.querySelectorAll(".quick-actions button").forEach(function(b){
+        if(b.textContent.indexOf("Play")>=0)b.classList.remove("active");
+      });
+      status.textContent="PLAY COMPLETE • "+sequence.length+" actions";
+      return;
+    }
+
+    var duration=window.playbackSpeed?1200/Math.max(.25,window.playbackSpeed):1200;
+    var t=Math.min(1,(performance.now()-playStart)/duration);
+
+    if(s.type==="run"){
+      var x1=+s.x1,x2=+s.x2,y1=+s.y1,y2=+s.y2;
+      movePlayer(s.player,x1+(x2-x1)*t,y1+(y2-y1)*t);
+      players.forEach(function(p){p.classList.remove("run-active");});
+      if(players[s.player])players[s.player].classList.add("run-active");
+    }else if(s.type==="pass"){
+      var a=playerPoint(s.from),b=playerPoint(s.to);
+      if(a&&b)setBall(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t);
+    }else if(s.type==="ball"){
+      setBall(s.x1+(s.x2-s.x1)*t,s.y1+(s.y2-s.y1)*t);
+    }
+
+    status.textContent="PLAYING • "+(playStep+1)+"/"+sequence.length+" • "+(s.type==="run"?"RUN":s.type==="pass"?"PASS":"BALL");
+
+    if(t>=1){
+      if(s.type==="run")movePlayer(s.player,+s.x2,+s.y2);
+      if(s.type==="pass"){
+        var end=playerPoint(s.to);if(end)setBall(end.x,end.y);
+      }
+      playStep++;
+      playStart=performance.now();
+    }
+    playTimer=requestAnimationFrame(window.animateSequence);
+  };
+
+  /* A clear action now resets the tactical action layer without deleting players. */
+  var oldClear=window.clearArrows;
+  window.clearArrows=function(){
+    if(playing){playing=false;if(playTimer)cancelAnimationFrame(playTimer);playTimer=null;}
+    sequence=[];
+    if(typeof arrows!=="undefined")arrows=[];
+    arrowStart=null;
+    players.forEach(function(p){p.classList.remove("selected","run-active");});
+    if(typeof drawArrows==="function")drawArrows();
+    status.textContent="TACTICAL ACTIONS CLEARED • board and squad retained";
+  };
+
+  /* Make accidental browser scrolling less likely while dragging on the pitch. */
+  var style=document.createElement("style");
+  style.textContent=".player,.ball{touch-action:none;-webkit-user-select:none;user-select:none}.run-active{box-shadow:0 0 0 4px rgba(255,255,255,.35),0 0 18px rgba(255,255,255,.55)}";
+  document.head.appendChild(style);
+})();
+</script>
