@@ -2023,3 +2023,64 @@ window.addEventListener('load',function(){setTimeout(restore,1250);setTimeout(fu
   setInterval(sync,250);
 })();
 </script>
+
+
+<!-- V48 REAL PLAY BUILDER -->
+<script>
+(function(){
+  function boot(){
+    if(window.__v48) return; window.__v48=true;
+    var pitch=document.getElementById("pitch"); if(!pitch) return;
+    var old=document.getElementById("proPlayToolbar"); if(old) old.remove();
+    var bar=document.createElement("section"); bar.id="realPlayBuilder";
+    bar.innerHTML='<div class="rpb-head"><b>PLAY BUILDER</b><span id="rpbHelp">Select a tool, then use the pitch</span></div>'+
+      '<div class="rpb-tools">'+
+      '<button data-t="select"><i>👆</i><small>Select</small></button>'+
+      '<button data-t="pass"><i>➜</i><small>Pass</small></button>'+
+      '<button data-t="run"><i>↗</i><small>Run</small></button>'+
+      '<button data-t="ball"><i>⚽</i><small>Ball</small></button>'+
+      '<button data-t="opp"><i>🔴</i><small>Opposition</small></button>'+
+      '<button data-t="record"><i>⏺</i><small>Record</small></button>'+
+      '<button data-t="stop"><i>⏹</i><small>Stop</small></button>'+
+      '<button data-t="play"><i>▶</i><small>Play</small></button>'+
+      '<button data-t="save"><i>💾</i><small>Save Play</small></button>'+
+      '<button data-t="library"><i>📚</i><small>Library</small></button>'+
+      '<button data-t="undo"><i>↶</i><small>Undo</small></button>'+
+      '<button data-t="clear"><i>🧹</i><small>Clear</small></button>'+
+      '</div>';
+    pitch.parentNode.insertBefore(bar,pitch);
+    var s=document.createElement("style"); s.textContent=
+      '#realPlayBuilder{width:94%;max-width:720px;margin:7px auto;background:#11161c;border:1px solid #39424d;border-radius:14px;padding:9px;box-shadow:0 4px 18px #0007}'+
+      '.rpb-head{display:flex;justify-content:space-between;align-items:center;padding:0 3px 8px;color:#fff;font-size:11px;letter-spacing:.7px}.rpb-head span{color:#8994a3;font-size:9px;font-weight:500;letter-spacing:0}'+
+      '.rpb-tools{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}.rpb-tools button{min-height:58px!important;border:1px solid #303943!important;background:#20262d!important;color:#fff!important;border-radius:10px!important;padding:5px 2px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important}.rpb-tools button i{font-style:normal;font-size:20px;line-height:20px}.rpb-tools button small{font-size:8px;font-weight:800;color:#dce1e7}.rpb-tools button.active{background:#1857a8!important;border-color:#78a8ee!important}.rpb-tools button[data-t=record].active{background:#a51f2d!important;border-color:#e87580!important}'+
+      '@media(max-width:600px){#realPlayBuilder{width:96%;padding:7px}.rpb-tools{grid-template-columns:repeat(4,1fr)}.rpb-tools button{min-height:55px!important}.rpb-tools button i{font-size:19px}.rpb-head{font-size:10px}.rpb-head span{font-size:8px}}';
+    document.head.appendChild(s);
+
+    var mode="select", selected=null;
+    function help(x){var h=document.getElementById("rpbHelp");if(h)h.textContent=x}
+    function active(t){bar.querySelectorAll("button").forEach(function(b){b.classList.toggle("active",b.dataset.t===t)})}
+    function click(id){var e=document.getElementById(id);if(e)e.click()}
+    bar.querySelectorAll("button").forEach(function(b){
+      b.addEventListener("click",function(){
+        var t=b.dataset.t;
+        if(t==="select"){mode="select";active(t);help("Drag players on the pitch")}
+        else if(t==="pass"){mode="pass";click("passBtn");active(t);help("Tap a player, then tap the receiving player")}
+        else if(t==="run"){mode="run";click("movementBtn");active(t);help("Drag a player to show the run")}
+        else if(t==="ball"){click("ballModeBtn");active(t);help("Tap or drag the ball")}
+        else if(t==="opp"){var q=document.querySelector(".quick-actions button:nth-child(4)");if(q)q.click();active(t);help("Add/show opposition")}
+        else if(t==="record"){startSequence();active(t);help("Now build the play on the pitch")}
+        else if(t==="stop"){finishSequence();active("");help("Recording stopped — save the play")}
+        else if(t==="play"){playSequence();active(t);help("Playing the recorded sequence")}
+        else if(t==="save"){savePlay();help("Play saved")}
+        else if(t==="library"){openPlayMenu();help("Choose a saved play")}
+        else if(t==="undo"){undo();help("Last action undone")}
+        else if(t==="clear"){clearArrows();help("Action arrows cleared")}
+      });
+    });
+    // Add a reliable ball mode hook if the original page does not expose a button id.
+    var ballBtn=document.querySelector('[onclick*="toggleBallMode"]'); if(ballBtn) ballBtn.id="ballModeBtn";
+    active("select");
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot); else boot();
+})();
+</script>
