@@ -1978,3 +1978,48 @@ window.addEventListener('load',function(){setTimeout(restore,1250);setTimeout(fu
   document.head.appendChild(style);
 })();
 </script>
+
+
+<!-- V47 PROFESSIONAL PLAY SETUP TOOLBAR -->
+<script>
+(function(){
+  var shell=document.createElement("div");
+  shell.id="proPlayToolbar";
+  shell.innerHTML=
+    '<div class="pro-tools-title">PLAY SETUP</div>'+
+    '<div class="pro-tools-grid">'+
+      '<button data-tool="movement" onclick="document.getElementById(\'movementBtn\').click()">↔<span>Run</span></button>'+
+      '<button data-tool="pass" onclick="document.getElementById(\'passBtn\').click()">➜<span>Pass</span></button>'+
+      '<button data-tool="ball" onclick="toggleBallMode()">⚽<span>Ball</span></button>'+
+      '<button data-tool="opposition" onclick="document.querySelector(\'.quick-actions button:nth-child(4)\').click()">🔴<span>Opposition</span></button>'+
+      '<button data-tool="record" onclick="startSequence()">⏺<span>Record</span></button>'+
+      '<button data-tool="stop" onclick="finishSequence()">⏹<span>Stop</span></button>'+
+      '<button data-tool="play" onclick="playSequence()">▶<span>Play</span></button>'+
+      '<button data-tool="clear" onclick="clearArrows()">🧹<span>Clear</span></button>'+
+      '<button data-tool="undo" onclick="undo()">↶<span>Undo</span></button>'+
+      '<button data-tool="one" onclick="toggleOneTouch()">1️⃣<span>1-Touch</span></button>'+
+    '</div>';
+  var pitch=document.getElementById("pitch");
+  if(pitch) pitch.parentNode.insertBefore(shell,pitch);
+
+  var css=document.createElement("style");
+  css.textContent=
+    '#proPlayToolbar{width:94%;max-width:720px;margin:7px auto 5px;background:#15191f;border:1px solid #343b45;border-radius:12px;padding:8px;box-shadow:0 3px 12px #0006;text-align:left}'+
+    '.pro-tools-title{font-size:10px;font-weight:800;letter-spacing:1.4px;color:#9aa4b2;padding:1px 3px 7px}'+
+    '.pro-tools-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}'+
+    '.pro-tools-grid button{min-height:54px;background:#222831!important;border:1px solid #39414c!important;color:#fff!important;border-radius:9px!important;padding:5px 2px!important;font-size:19px!important;line-height:1.05;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}'+
+    '.pro-tools-grid button span{font-size:9px;font-weight:800;letter-spacing:.2px;color:#d9dee5}'+
+    '.pro-tools-grid button.active,.pro-tools-grid button.tool-active{background:#174ea6!important;border-color:#5f91e8!important}'+
+    '@media(max-width:600px){#proPlayToolbar{width:96%;padding:7px}.pro-tools-grid{grid-template-columns:repeat(5,1fr);gap:5px}.pro-tools-grid button{min-height:50px;font-size:18px}.pro-tools-grid button span{font-size:8px}}';
+  document.head.appendChild(css);
+
+  function sync(){
+    var m=document.getElementById("movementBtn"),p=document.getElementById("passBtn");
+    var map={movement:m&&m.classList.contains("active"),pass:p&&p.classList.contains("active")};
+    shell.querySelectorAll("[data-tool]").forEach(function(b){
+      b.classList.toggle("tool-active",!!map[b.getAttribute("data-tool")]);
+    });
+  }
+  setInterval(sync,250);
+})();
+</script>
