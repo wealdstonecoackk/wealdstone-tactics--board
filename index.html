@@ -1674,3 +1674,53 @@ window.addEventListener('load',function(){setTimeout(restore,1250);setTimeout(fu
   }
 })();
 </script>
+<!-- V42 MATCHDAY CONTROL + STATE INTEGRITY -->
+<style>
+#v42Matchday{display:none;position:fixed;inset:2%;z-index:170;background:#111;color:#fff;border:1px solid #343b45;border-radius:16px;padding:14px;overflow:auto;text-align:left}
+#v42Matchday .v42grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#v42Matchday .v42card{background:#1b2026;border:1px solid #343b45;border-radius:11px;padding:11px}
+#v42Matchday button{min-height:44px;border-radius:9px;font-weight:800}
+@media(max-width:430px){#v42Matchday .v42grid{grid-template-columns:1fr}}
+</style>
+<script>
+(function(){
+ function arr(k){try{var x=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}}
+ function xi(){var a=arr('wealdstone_starting11_players_v26');if(a.length===11)return a;return arr('wealdstone_starting11')}
+ function session(){try{return JSON.parse(localStorage.getItem('wealdstone_session_plan')||'null')}catch(e){return null}}
+ function syncXI(){
+   var a=xi();
+   if(a.length===11)localStorage.setItem('wealdstone_starting11',JSON.stringify(a));
+ }
+ function packData(){return{version:42,savedAt:new Date().toISOString(),team:(function(){try{return JSON.parse(localStorage.getItem('wealdstone_team')||'{}')}catch(e){return{}}})(),squad:(function(){try{return JSON.parse(localStorage.getItem('wealdstone_squad_profile')||'[]')}catch(e){return[]}})(),starting11:xi(),captain:localStorage.getItem('wealdstone_captain')||'',tactic:typeof getState==='function'?getState():null,session:session()||{}}}
+ window.v42SavePack=function(){syncXI();localStorage.setItem('wealdstone_matchday_pack',JSON.stringify(packData()));status.textContent='Matchday pack saved — squad, XI, tactic and session locked in.';if(typeof v41Refresh==='function')v41Refresh()}
+ window.v42LoadPack=function(){var raw=localStorage.getItem('wealdstone_matchday_pack');if(!raw){status.textContent='No matchday pack saved yet.';return}try{var p=JSON.parse(raw);if(p.tactic&&typeof applyState==='function')applyState(p.tactic);if(Array.isArray(p.starting11)&&p.starting11.length===11)localStorage.setItem('wealdstone_starting11',JSON.stringify(p.starting11));if(p.captain!==undefined)localStorage.setItem('wealdstone_captain',p.captain);if(p.squad)localStorage.setItem('wealdstone_squad_profile',JSON.stringify(p.squad));if(p.session)localStorage.setItem('wealdstone_session_plan',JSON.stringify(p.session));status.textContent='Matchday pack loaded.'}catch(e){status.textContent='Could not load matchday pack.'}}
+ window.v42Open=function(){
+   syncXI();var m=document.getElementById('v42Matchday');
+   if(!m){m=document.createElement('div');m.id='v42Matchday';document.body.appendChild(m)}
+   var a=xi(),plays=typeof safeSavedPlays==='function'?safeSavedPlays():[],s=session(),cap=localStorage.getItem('wealdstone_captain')||'';
+   m.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><div><h2 style="margin:0">🏟 Matchday Control</h2><small style="opacity:.7">Final matchday setup</small></div><button onclick="v42Close()">✕</button></div>'+
+   '<div class="v42grid" style="margin-top:10px">'+
+   '<div class="v42card"><b>🧤 Starting XI</b><br>'+(a.length===11?'✅ 11 selected':'⚠ '+a.length+' selected')+'</div>'+
+   '<div class="v42card"><b>⚽ Formation</b><br>'+String(typeof currentFormation!=='undefined'?currentFormation:'Unknown')+'</div>'+
+   '<div class="v42card"><b>▶ Saved Plays</b><br>'+plays.length+' available</div>'+
+   '<div class="v42card"><b>📋 Session</b><br>'+(s?'✅ '+String(s.name||'Session saved').replace(/</g,'&lt;'):'⚠ Not saved')+'</div>'+
+   '</div><h3>Starting XI</h3><div class="v42grid">'+
+   players.map(function(p,i){return '<div class="v42card">'+(a.includes(i)?'🟦 XI':'⬜ Bench')+' · '+String(names[i]||('Player '+(i+1))).replace(/</g,'&lt;')+'</div>'}).join('')+
+   '</div><h3>Captain</h3><select id="v42Captain" style="width:100%;padding:11px;border-radius:9px">'+players.map(function(p,i){return '<option value="'+i+'" '+(cap==i?'selected':'')+'>'+String(names[i]||('Player '+(i+1))).replace(/</g,'&lt;')+'</option>'}).join('')+'</select>'+
+   '<div class="v42grid" style="margin-top:12px"><button onclick="openTeamManager();v42Close()">🧤 Edit XI</button><button onclick="openPlayMenu();v42Close()">▶ Plays</button><button onclick="openSessionHub();v42Close()">📋 Session</button><button onclick="v42SaveCaptain()">💾 Save Captain</button><button class="v41-primary" onclick="v42SavePack()">🔒 Save Matchday Pack</button><button onclick="v42LoadPack()">📂 Load Pack</button></div>';
+   m.style.display='block';
+ }
+ window.v42Close=function(){var m=document.getElementById('v42Matchday');if(m)m.style.display='none'}
+ window.v42SaveCaptain=function(){var x=document.getElementById('v42Captain');if(x){localStorage.setItem('wealdstone_captain',x.value);status.textContent='Captain saved.';v42Open()}}
+ var oldOpen=window.openMatchdayHub;
+ window.openMatchdayHub=function(){v42Open()};
+ var oldSave=window.saveMatchdayPack;
+ window.saveMatchdayPack=function(){v42SavePack()};
+ var oldLoad=window.loadMatchdayPack;
+ window.loadMatchdayPack=function(){v42LoadPack()};
+ var oldApply=window.applyStarting11;
+ if(typeof oldApply==='function')window.applyStarting11=function(){var r=oldApply.apply(this,arguments);setTimeout(syncXI,50);setTimeout(function(){if(typeof v41Refresh==='function')v41Refresh()},80);return r};
+ var oldSaveSlot=window.saveSlot;
+ if(typeof oldSaveSlot==='function')window.saveSlot=function(slot){var r=oldSaveSlot.apply(this,arguments);try{localStorage.setItem('wealdstone_live_tactic',JSON.stringify(getState()))}catch(e){}return r};
+})();
+</script>
