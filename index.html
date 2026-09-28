@@ -1655,3 +1655,22 @@ window.addEventListener('load',function(){setTimeout(restore,1250);setTimeout(fu
   };
 })();
 </script>
+
+<!-- V41 COMMAND CENTRE WIRING -->
+<script>
+(function(){
+  var oldOpen=window.openCoachHub;
+  window.openCoachHub=function(){
+    if(typeof openCoachCommandCentre==='function')return openCoachCommandCentre();
+    if(typeof oldOpen==='function')return oldOpen();
+  };
+  var oldApply=window.applyStarting11;
+  if(typeof oldApply==='function'){
+    window.applyStarting11=function(){
+      var r=oldApply.apply(this,arguments);
+      setTimeout(function(){if(typeof v41Refresh==='function')v41Refresh()},80);
+      return r;
+    };
+  }
+})();
+</script>
