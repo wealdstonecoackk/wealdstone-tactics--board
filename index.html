@@ -59,7 +59,7 @@ function msg(t){status.textContent=t}
 function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
 function posFromEvent(e){const r=pitch.getBoundingClientRect();return{x:clamp((e.clientX-r.left)/r.width*100,1,99),y:clamp((e.clientY-r.top)/r.height*100,1,99)}}
 function pushHistory(){history.push(JSON.stringify(snapshot()));if(history.length>30)history.shift()}
-function snapshot(){return{formation,names:names.slice(),players:players.map(p=>({x:p.x,y:p.y})),opps:opps.map(o=>({x:o.x,y:o.y})),arrows:arrows.map(a=>({...a})),ball:{...ballPos},notes:notes.value}}
+function snapshot(){return{formation,names:names.slice(),players:players.map(p=>({x:p.x,y:p.y})),opps:opps.map(o=>({x:o.x,y:o.y})),arrows:arrows.map(a=>({...a})),ball:{...ballPos},sequence:sequence.map(a=>({...a})),notes:notes.value}}
 function renderPlayer(p){p.el.style.left=p.x+"%";p.el.style.top=p.y+"%";p.el.querySelector(".nm").textContent=p.name}
 function createPlayer(i){
  const el=document.createElement("div");el.className="player"+(i===0?" gk":"");el.innerHTML='<span class="num">'+(i+1)+'</span><span class="nm"></span>';pitch.appendChild(el);
@@ -101,7 +101,7 @@ function clearOpp(){opps.forEach(o=>o.el.remove());opps=[];msg("OPPOSITION CLEAR
 function reset(){pushHistory();players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1];renderPlayer(p)});arrows=[];sequence=[];setBall(50,50);draw();msg("XI RESET • "+formation)}
 function clear(){pushHistory();arrows=[];sequence=[];draw();msg("TACTICAL DRAWING CLEARED")}
 function undo(){if(!history.length){msg("NOTHING TO UNDO");return}const s=JSON.parse(history.pop());restore(s);msg("UNDO COMPLETE")}
-function restore(s){formation=s.formation||"433";names=s.names||names;while(players.length<11)createPlayer(players.length);players.forEach((p,i)=>{const q=s.players[i]||formations[formation][i];p.x=q.x;p.y=q.y;p.name=names[i]||("Player "+(i+1));renderPlayer(p)});clearOpp();(s.opps||[]).forEach(o=>{addOpp();const x=opps[opps.length-1];x.x=o.x;x.y=o.y;renderOpp(x)});arrows=s.arrows||[];setBall((s.ball||{}).x??50,(s.ball||{}).y??50);notes.value=s.notes||"";draw();document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===formation))}
+function restore(s){formation=s.formation||"433";names=s.names||names;while(players.length<11)createPlayer(players.length);players.forEach((p,i)=>{const q=s.players[i]||formations[formation][i];p.x=q.x;p.y=q.y;p.name=names[i]||("Player "+(i+1));renderPlayer(p)});clearOpp();(s.opps||[]).forEach(o=>{addOpp();const x=opps[opps.length-1];x.x=o.x;x.y=o.y;renderOpp(x)});arrows=s.arrows||[];sequence=s.sequence||[];setBall((s.ball||{}).x??50,(s.ball||{}).y??50);notes.value=s.notes||"";draw();document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===formation))}
 function startRec(){recording=true;sequence=[];msg("RECORDING • build your play")}
 function stopRec(){recording=false;msg("RECORDING STOPPED • "+sequence.length+" actions")}
 function play(){
