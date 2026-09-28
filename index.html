@@ -1710,3 +1710,78 @@ window.addEventListener('load',function(){setTimeout(restore,1250);setTimeout(fu
   });
 })();
 </script>
+
+<!-- V44 BOARD READY + MOVEMENT VISUAL RELIABILITY -->
+<script>
+(function(){
+  function placeInitialBoard(){
+    try{
+      if(typeof players!=="undefined" && typeof formations!=="undefined"){
+        var pos=formations[currentFormation||"433"]||formations["433"];
+        players.slice(0,11).forEach(function(p,i){
+          if(p && pos && pos[i]){
+            if(!p.style.left || !p.style.top || p.style.left==="0px" || p.style.top==="0px"){
+              p.style.left=pos[i][0]+"%";
+              p.style.top=pos[i][1]+"%";
+            }
+          }
+        });
+      }
+      if(typeof ball!=="undefined" && ball){
+        ball.style.display="block";
+        ball.style.left=(typeof ballX==="number"?ballX:50)+"%";
+        ball.style.top=(typeof ballY==="number"?ballY:50)+"%";
+      }
+      if(typeof renderNames==="function")renderNames();
+      if(typeof drawArrows==="function")drawArrows();
+    }catch(e){}
+  }
+
+  function saveBoard(){
+    try{
+      if(typeof getState==="function"){
+        var state=getState();
+        localStorage.setItem("wealdstone_live_tactic",JSON.stringify(state));
+      }
+    }catch(e){}
+  }
+
+  window.v44BoardReady=placeInitialBoard;
+
+  window.addEventListener("DOMContentLoaded",function(){
+    setTimeout(placeInitialBoard,50);
+    setTimeout(placeInitialBoard,400);
+  });
+  window.addEventListener("load",function(){
+    setTimeout(placeInitialBoard,100);
+    setTimeout(placeInitialBoard,900);
+    setTimeout(function(){
+      if(typeof v34Mode==="function")v34Mode("move");
+    },1000);
+  });
+
+  /* Make Movement mode unambiguous: every completed player drag draws a visible run. */
+  document.addEventListener("pointerup",function(e){
+    if(!e.target || !e.target.closest)return;
+    var p=e.target.closest(".player");
+    if(p && typeof movementMode!=="undefined" && movementMode){
+      setTimeout(function(){
+        try{
+          if(typeof drawArrows==="function")drawArrows();
+          saveBoard();
+        }catch(_){}
+      },60);
+    }
+  });
+
+  /* Keep the ball visible after any board update. */
+  var oldApply=window.applyState;
+  if(typeof oldApply==="function"){
+    window.applyState=function(d){
+      var r=oldApply.apply(this,arguments);
+      setTimeout(placeInitialBoard,30);
+      return r;
+    };
+  }
+})();
+</script>
