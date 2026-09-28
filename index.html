@@ -80,7 +80,16 @@ function dragPlayer(p){
  })
 }
 function elDown(el,fn){el.addEventListener("pointerdown",fn,{passive:false})}
-function selectPassStart(p){if(!window.passStart){window.passStart=p;msg("PASS • now tap the receiving player")}else{const a=window.passStart;const b=p;if(a!==b){arrows.push({type:"pass",x1:a.x,y1:a.y,x2:b.x,y2:b.y});if(recording)sequence.push({...arrows[arrows.length-1]});draw();persist();msg("PASS ADDED • "+(a.i+1)+" → "+(b.i+1))}window.passStart=null}}
+function selectPassStart(p){
+ if(!window.passStart){window.passStart=p;msg("PASS • now tap the receiving player");return}
+ const a=window.passStart,b=p;window.passStart=null;
+ if(a===b){msg("PASS CANCELLED • choose another player");return}
+ const pass={type:"pass",x1:a.x,y1:a.y,x2:b.x,y2:b.y};
+ arrows.push(pass);sequence.push({...pass});draw();persist();
+ setBall(a.x,a.y);playing=true;playIndex=0;const sx=a.x,sy=a.y;
+ animate(500,t=>setBall(sx+(b.x-sx)*t,sy+(b.y-sy)*t));
+ msg("PASS • "+(a.i+1)+" → "+(b.i+1)+" • ball travelling");
+}
 function drawLiveRun(p,q){\n draw(); if(!recording||tool!=="run"||!p.__runStart)return;\n const a=p.__runStart; const l=document.createElementNS("http://www.w3.org/2000/svg","line");\n l.classList.add("dyn","run","arrow","liveRun"); l.setAttribute("x1",a.x*10);l.setAttribute("y1",a.y*7);l.setAttribute("x2",q.x*10);l.setAttribute("y2",q.y*7);l.style.color="#fff";svg.appendChild(l);\n}
 function recordRun(p,start){svg.querySelectorAll(".liveRun").forEach(x=>x.remove());if(start&&((Math.abs(start.x-p.x)+Math.abs(start.y-p.y))>0.5)){const a={type:"run",i:p.i,x1:start.x,y1:start.y,x2:p.x,y2:p.y};sequence.push({...a});arrows.push(a);draw()}}
 function draw(){
@@ -136,8 +145,43 @@ function save(){
 }
 function load(){
  const raw=localStorage.getItem(key);if(!raw){msg("NO SAVED TACTIC");return}try{restore(JSON.parse(raw));msg("TACTIC LOADED")}catch(_){msg("SAVE LOAD FAILED")}}
+const presetLibrary={
+ "playing-back":{title:"Pro Template • Playing From The Back",formation:"433",notes:"Build with the goalkeeper + centre-backs. Create a short outlet, move the ball through midfield, then progress into the front three.",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[32,57],[50,62],[68,57],[18,32],[50,25],[82,32]],ball:[50,88],arrows:[
+  {type:"pass",x1:50,y1:88,x2:38,y2:76},{type:"pass",x1:38,y1:76,x2:32,y2:57},{type:"pass",x1:32,y1:57,x2:50,y2:62},{type:"pass",x1:50,y1:62,x2:68,y2:57},{type:"pass",x1:68,y1:57,x2:82,y2:32}
+ ]},
+ "set-piece":{title:"Pro Template • Attacking Corner",formation:"433",notes:"Corner routine: create a screen/cluster, attack the near-central zone and prepare a second-phase recycle.",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[30,57],[50,63],[70,57],[24,22],[54,16],[80,28]],ball:[8,10],arrows:[
+  {type:"run",i:9,x1:54,y1:16,x2:50,y2:32},{type:"run",i:8,x1:24,y1:22,x2:42,y2:35},{type:"run",i:10,x1:80,y1:28,x2:68,y2:38},{type:"pass",x1:8,y1:10,x2:50,y2:32}
+ ]},
+ "goal-kick":{title:"Pro Template • Goal-Kick Build-Up",formation:"4231",notes:"Goal-kick structure: give the goalkeeper multiple short options, use the double pivot to create a safe third-man route and progress wide.",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[35,58],[65,58],[18,36],[50,42],[82,36],[50,25]],ball:[50,88],arrows:[
+  {type:"pass",x1:50,y1:88,x2:38,y2:76},{type:"pass",x1:38,y1:76,x2:35,y2:58},{type:"pass",x1:35,y1:58,x2:50,y2:42},{type:"pass",x1:50,y1:42,x2:82,y2:36},{type:"run",i:10,x1:50,y1:25,x2:62,y2:20}
+ ]},
+ "press":{title:"Pro Template • High Press",formation:"433",notes:"Pressing template: front three curve their runs to screen central access, midfield squeezes behind and the back line holds a compact high position.",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[30,57],[50,63],[70,57],[18,32],[50,25],[82,32]],ball:[50,50],arrows:[
+  {type:"run",i:8,x1:18,y1:32,x2:35,y2:24},{type:"run",i:9,x1:50,y1:25,x2:50,y2:18},{type:"run",i:10,x1:82,y1:32,x2:65,y2:24},{type:"run",i:5,x1:30,y1:57,x2:38,y2:48},{type:"run",i:7,x1:70,y1:57,x2:62,y2:48}
+ ]},
+ "def-corner":{title:"Pro Template • Defending Corner",formation:"442",notes:"Defensive corner template: protect the six-yard area, assign markers, leave an outlet and prepare for the second phase.",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[18,52],[38,57],[62,57],[82,52],[35,30],[65,30]],ball:[8,10],arrows:[
+  {type:"run",i:4,x1:82,y1:72,x2:78,y2:42},{type:"run",i:5,x1:18,y1:52,x2:24,y2:40},{type:"run",i:6,x1:38,y1:57,x2:38,y2:40},{type:"run",i:7,x1:62,y1:57,x2:62,y2:40}
+ ]}
+};
+function loadPreset(id){
+ const s=presetLibrary[id];if(!s)return;
+ pushHistory();formation=s.formation;while(players.length<11)createPlayer(players.length);
+ players.forEach((p,i)=>{const q=s.players[i];p.x=q[0];p.y=q[1];p.name=names[i];renderPlayer(p)});
+ arrows=(s.arrows||[]).map(a=>({...a}));sequence=(s.arrows||[]).map(a=>({...a}));opps.forEach(o=>o.el.remove());opps=[];
+ setBall(s.ball[0],s.ball[1]);notes.value=s.notes||"";draw();persist();
+ document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===formation));
+ document.getElementById("modal").classList.add("hidden");msg(s.title+" • LOADED");
+}
 function library(){
- const m=document.getElementById("modal");m.classList.remove("hidden");m.innerHTML='<h2>📚 Play & Tactic Library</h2><p>Save the current board or load the last saved tactic.</p><button id="mSave">💾 Save Current</button> <button id="mLoad">📂 Load Saved</button> <button id="mClose">Close</button>';m.querySelector("#mSave").onclick=save;m.querySelector("#mLoad").onclick=load;m.querySelector("#mClose").onclick=()=>m.classList.add("hidden")
+ const m=document.getElementById("modal");m.classList.remove("hidden");
+ m.innerHTML='<h2>📚 Professional Tactic Library</h2><p>Ready-made coaching templates based on widely documented elite tactical principles. These are training templates, not official club playbooks.</p>'+
+ '<button data-preset="playing-back">⚽ Playing From The Back</button> '+
+ '<button data-preset="goal-kick">🧤 Goal-Kick Build-Up</button> '+
+ '<button data-preset="set-piece">🚩 Attacking Corner</button> '+
+ '<button data-preset="def-corner">🛡️ Defending Corner</button> '+
+ '<button data-preset="press">🔥 High Press</button> '+
+ '<hr><button id="mSave">💾 Save Current</button> <button id="mLoad">📂 Load Saved</button> <button id="mClose">Close</button>';
+ m.querySelectorAll("[data-preset]").forEach(b=>b.onclick=()=>loadPreset(b.dataset.preset));
+ m.querySelector("#mSave").onclick=save;m.querySelector("#mLoad").onclick=load;m.querySelector("#mClose").onclick=()=>m.classList.add("hidden")
 }
 function hub(){
  const m=document.getElementById("modal");m.classList.remove("hidden");m.innerHTML='<h2>🧠 Coach Hub</h2><p>Core coaching controls</p><div class="row"><b>Formation</b><span>'+formation+'</span></div><div class="row"><b>Players</b><span>'+players.length+'</span></div><div class="row"><b>Opposition</b><span>'+opps.length+'</span></div><div class="row"><button id="saveHub">💾 Save Tactic</button><button id="loadHub">📂 Load</button></div><div class="row"><button id="closeHub">Close</button></div>';m.querySelector("#saveHub").onclick=save;m.querySelector("#loadHub").onclick=load;m.querySelector("#closeHub").onclick=()=>m.classList.add("hidden")
