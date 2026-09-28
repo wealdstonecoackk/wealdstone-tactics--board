@@ -27,6 +27,23 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
+      - name: Validate site before deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s index.html
+          grep -q 'id="pitch"' index.html
+          grep -q 'id="ball"' index.html
+          test "$(grep -o 'data-player="' index.html | wc -l)" -eq 11
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path("index.html").read_text(encoding="utf-8")
+          scripts = re.findall(r"<script(?:\s[^>]*)?>(.*?)</script>", html, re.S | re.I)
+          assert len(scripts) == 1, f"expected 1 inline script, found {len(scripts)}"
+          Path("/tmp/app.js").write_text(scripts[0], encoding="utf-8")
+          PY
+          node --check /tmp/app.js
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
