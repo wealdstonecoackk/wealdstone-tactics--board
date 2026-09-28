@@ -56,6 +56,7 @@ let formation="433",tool="select",players=[],opps=[],arrows=[],history=[],sequen
 let names=Array.from({length:11},(_,i)=>"Player "+(i+1));
 const key="wealdstone_pro_coach_v1";
 function msg(t){status.textContent=t}
+function persist(){try{localStorage.setItem(key,JSON.stringify(snapshot()))}catch(_){}}
 function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
 function posFromEvent(e){const r=pitch.getBoundingClientRect();return{x:clamp((e.clientX-r.left)/r.width*100,1,99),y:clamp((e.clientY-r.top)/r.height*100,1,99)}}
 function pushHistory(){history.push(JSON.stringify(snapshot()));if(history.length>30)history.shift()}
@@ -74,12 +75,12 @@ function dragPlayer(p){
   if(tool!=="select"&&tool!=="run")return;
   e.preventDefault();active=true;pushHistory();try{p.el.setPointerCapture(e.pointerId)}catch(_){}
   const move=ev=>{if(!active)return;const q=posFromEvent(ev);p.x=q.x;p.y=q.y;renderPlayer(p);if(tool==="run"&&recording)drawLiveRun(p,q)};
-  const up=()=>{if(!active)return;active=false;p.el.removeEventListener("pointermove",move);p.el.removeEventListener("pointerup",up);if(tool==="run"&&recording)recordRun(p);msg("PLAYER "+(p.i+1)+" POSITIONED")};
+  const up=()=>{if(!active)return;active=false;p.el.removeEventListener("pointermove",move);p.el.removeEventListener("pointerup",up);if(tool==="run"&&recording)recordRun(p);persist();msg("PLAYER "+(p.i+1)+" POSITIONED")};
   p.el.addEventListener("pointermove",move);p.el.addEventListener("pointerup",up)
  })
 }
 function elDown(el,fn){el.addEventListener("pointerdown",fn,{passive:false})}
-function selectPassStart(p){if(!window.passStart){window.passStart=p;msg("PASS • now tap the receiving player")}else{const a=window.passStart;const b=p;if(a!==b){arrows.push({type:"pass",x1:a.x,y1:a.y,x2:b.x,y2:b.y});if(recording)sequence.push({...arrows[arrows.length-1]});draw();msg("PASS ADDED • "+(a.i+1)+" → "+(b.i+1))}window.passStart=null}}
+function selectPassStart(p){if(!window.passStart){window.passStart=p;msg("PASS • now tap the receiving player")}else{const a=window.passStart;const b=p;if(a!==b){arrows.push({type:"pass",x1:a.x,y1:a.y,x2:b.x,y2:b.y});if(recording)sequence.push({...arrows[arrows.length-1]});draw();persist();msg("PASS ADDED • "+(a.i+1)+" → "+(b.i+1))}window.passStart=null}}
 function drawLiveRun(p,q){draw()}
 function recordRun(p){const start=history.length?JSON.parse(history[history.length-1]).players[p.i]:null;if(start)sequence.push({type:"run",i:p.i,x1:start.x,y1:start.y,x2:p.x,y2:p.y})}
 function draw(){
@@ -90,31 +91,46 @@ function setBall(x,y){ballPos={x,y};ball.style.left=x+"%";ball.style.top=y+"%"}
 elDown(ball,e=>{
  if(frozen||tool!=="ball")return;e.preventDefault();try{ball.setPointerCapture(e.pointerId)}catch(_){}
  const move=ev=>{const q=posFromEvent(ev);setBall(q.x,q.y)};
- const up=()=>{ball.removeEventListener("pointermove",move);ball.removeEventListener("pointerup",up);if(recording)sequence.push({type:"ball",x:ballPos.x,y:ballPos.y});msg("BALL POSITIONED")};
+ const up=()=>{ball.removeEventListener("pointermove",move);ball.removeEventListener("pointerup",up);if(recording)sequence.push({type:"ball",x:ballPos.x,y:ballPos.y});persist();msg("BALL POSITIONED")};
  ball.addEventListener("pointermove",move);ball.addEventListener("pointerup",up)
 });
-function setFormation(f){pushHistory();formation=f;players.forEach((p,i)=>{p.x=formations[f][i][0];p.y=formations[f][i][1];renderPlayer(p)});document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===f));draw();msg("FORMATION • "+f)}
+function setFormation(f){pushHistory();formation=f;players.forEach((p,i)=>{p.x=formations[f][i][0];p.y=formations[f][i][1];renderPlayer(p)});document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===f));draw();persist();msg("FORMATION • "+f)}
 function setTool(t){tool=t;window.passStart=null;document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===t));msg(t==="pass"?"PASS MODE • tap passer then receiver":t==="run"?"RUN MODE • drag players while recording":t==="ball"?"BALL MODE • drag the ball":"SELECT MODE • drag players")}
-function addOpp(){const n=opps.length;const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x:72-(n%4)*8,y:25+Math.floor(n/4)*18,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up)};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});msg("OPPONENT ADDED • drag to position")}
+function addOpp(){if(frozen)return;const n=opps.length;const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x:72-(n%4)*8,y:25+Math.floor(n/4)*18,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up)};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
 function renderOpp(o){o.el.style.left=o.x+"%";o.el.style.top=o.y+"%"}
-function clearOpp(){opps.forEach(o=>o.el.remove());opps=[];msg("OPPOSITION CLEARED")}
-function reset(){pushHistory();players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1];renderPlayer(p)});arrows=[];sequence=[];setBall(50,50);draw();msg("XI RESET • "+formation)}
-function clear(){pushHistory();arrows=[];sequence=[];draw();msg("TACTICAL DRAWING CLEARED")}
-function undo(){if(!history.length){msg("NOTHING TO UNDO");return}const s=JSON.parse(history.pop());restore(s);msg("UNDO COMPLETE")}
+function clearOpp(){opps.forEach(o=>o.el.remove());opps=[];persist();msg("OPPOSITION CLEARED")}
+function reset(){pushHistory();players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1];renderPlayer(p)});arrows=[];sequence=[];setBall(50,50);draw();persist();msg("XI RESET • "+formation)}
+function clear(){pushHistory();arrows=[];sequence=[];draw();persist();msg("TACTICAL DRAWING CLEARED")}
+function undo(){if(!history.length){msg("NOTHING TO UNDO");return}const s=JSON.parse(history.pop());restore(s);persist();msg("UNDO COMPLETE")}
 function restore(s){formation=s.formation||"433";names=s.names||names;while(players.length<11)createPlayer(players.length);players.forEach((p,i)=>{const q=s.players[i]||formations[formation][i];p.x=q.x;p.y=q.y;p.name=names[i]||("Player "+(i+1));renderPlayer(p)});clearOpp();(s.opps||[]).forEach(o=>{addOpp();const x=opps[opps.length-1];x.x=o.x;x.y=o.y;renderOpp(x)});arrows=s.arrows||[];sequence=s.sequence||[];setBall((s.ball||{}).x??50,(s.ball||{}).y??50);notes.value=s.notes||"";draw();document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===formation))}
-function startRec(){recording=true;sequence=[];msg("RECORDING • build your play")}
-function stopRec(){recording=false;msg("RECORDING STOPPED • "+sequence.length+" actions")}
+function startRec(){if(playing){playing=false;cancelAnimationFrame(raf)};recording=true;sequence=[];msg("RECORDING • build your play")}
+function stopRec(){recording=false;persist();msg("RECORDING STOPPED • "+sequence.length+" actions")}
 function play(){
  if(!sequence.length){msg("NO RECORDED PLAY");return}
- if(playing){playing=false;cancelAnimationFrame(raf);msg("PLAY PAUSED");return}
- playing=true;playIndex=0;msg("PLAYING • 1/"+sequence.length);runStep()
+ if(playing){playing=false;cancelAnimationFrame(raf);msg("PLAY PAUSED • tap Play to restart");return}
+ playing=true;playIndex=0;setBall(50,50);msg("PLAYING • 1/"+sequence.length);runStep()
 }
 function runStep(){
- if(!playing)return;if(playIndex>=sequence.length){playing=false;msg("PLAY COMPLETE • "+sequence.length+" actions");return}
- const a=sequence[playIndex];if(a.type==="run"){const p=players[a.i];if(p){p.x=a.x1;p.y=a.y1;renderPlayer(p);animate(350,t=>{p.x=a.x1+(a.x2-a.x1)*t;p.y=a.y1+(a.y2-a.y1)*t;renderPlayer(p)})}else next()}else if(a.type==="ball"){animate(300,t=>setBall(ballPos.x+(a.x-ballPos.x)*t,ballPos.y+(a.y-ballPos.y)*t))}else{next()}
+ if(!playing)return;
+ if(playIndex>=sequence.length){playing=false;persist();msg("PLAY COMPLETE • "+sequence.length+" actions");return}
+ const a=sequence[playIndex];
+ if(a.type==="run"){
+  const p=players[a.i];
+  if(p){p.x=a.x1;p.y=a.y1;renderPlayer(p);animate(650,t=>{p.x=a.x1+(a.x2-a.x1)*t;p.y=a.y1+(a.y2-a.y1)*t;renderPlayer(p)})}else next()
+ }else if(a.type==="pass"){
+  setBall(a.x1,a.y1);
+  animate(550,t=>setBall(a.x1+(a.x2-a.x1)*t,a.y1+(a.y2-a.y1)*t))
+ }else if(a.type==="ball"){
+  const sx=ballPos.x,sy=ballPos.y;
+  animate(450,t=>setBall(sx+(a.x-sx)*t,sy+(a.y-sy)*t))
+ }else next()
 }
-function animate(ms,fn){const st=performance.now();function f(now){const t=Math.min(1,(now-st)/ms);fn(t);if(t<1)raf=requestAnimationFrame(f);else next()}raf=requestAnimationFrame(f)}
-function next(){playIndex++;msg("PLAYING • "+Math.min(playIndex+1,sequence.length)+"/"+sequence.length);runStep()}
+function animate(ms,fn){
+ const st=performance.now();
+ function f(now){if(!playing)return;const t=Math.min(1,(now-st)/ms);fn(t);if(t<1)raf=requestAnimationFrame(f);else next()}
+ raf=requestAnimationFrame(f)
+}
+function next(){if(!playing)return;playIndex++;msg("PLAYING • "+Math.min(playIndex+1,sequence.length)+"/"+sequence.length);runStep()}
 function save(){
  const data=snapshot();localStorage.setItem(key,JSON.stringify(data));msg("TACTIC SAVED ON THIS PHONE")
 }
