@@ -146,7 +146,8 @@ function renderOpp(o){o.el.style.left=o.x+"%";o.el.style.top=o.y+"%"}
 function clearOpp(silent=false){opps.forEach(o=>o.el.remove());opps=[];if(!silent){persist();msg("OPPOSITION CLEARED")}}
 function reset(){pushHistory();players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1];renderPlayer(p)});arrows=[];sequence=[];setBall(50,50);draw();persist();msg("XI RESET • "+formation)}
 function clear(){pushHistory();arrows=[];sequence=[];draw();persist();msg("TACTICAL DRAWING CLEARED")}
-function undo(){if(!history.length){msg("NOTHING TO UNDO");return}redoStack.push(JSON.stringify(snapshot()));const s=JSON.parse(history.pop());restore(s);persist();msg("UNDO COMPLETE")}\nfunction redo(){if(!redoStack.length){msg("NOTHING TO REDO");return}history.push(JSON.stringify(snapshot()));const s=JSON.parse(redoStack.pop());restore(s);persist();msg("REDO COMPLETE")}
+function undo(){if(!history.length){msg("NOTHING TO UNDO");return}redoStack.push(JSON.stringify(snapshot()));const s=JSON.parse(history.pop());restore(s);persist();msg("UNDO COMPLETE")}
+function redo(){if(!redoStack.length){msg("NOTHING TO REDO");return}history.push(JSON.stringify(snapshot()));const s=JSON.parse(redoStack.pop());restore(s);persist();msg("REDO COMPLETE")}
 function restore(s){
   if(!s||typeof s!=="object")throw new Error("Invalid session");
   formation=formations[s.formation]?s.formation:"433";
@@ -275,7 +276,8 @@ document.getElementById("oppClear").onclick=()=>{stopPlayback();clearSelection()
 document.getElementById("grid").onclick=function(){pitch.classList.toggle("grid");this.classList.toggle("active",pitch.classList.contains("grid"));if(pitch.classList.contains("grid"))pitch.style.backgroundImage="linear-gradient(#ffffff18 1px,transparent 1px),linear-gradient(90deg,#ffffff18 1px,transparent 1px)";else pitch.style.backgroundImage="none"};
 document.getElementById("freeze").onclick=function(){frozen=!frozen;this.classList.toggle("active",frozen);msg(frozen?"BOARD FROZEN":"BOARD UNLOCKED")};
 document.getElementById("rebuild").onclick=function(){stopPlayback();clearSelection();players.forEach(p=>p.el.remove());players=[];opps.forEach(o=>o.el.remove());opps=[];formation="433";arrows=[];sequence=[];ballPos={x:50,y:50};for(let i=0;i<11;i++)createPlayer(i);ensureBoardIntegrity();persist();msg("BOARD REBUILT • 11 PLAYERS + BALL READY")};
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){document.getElementById("modal").classList.add("hidden");window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))}});\npitch.addEventListener("pointercancel",()=>{window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){document.getElementById("modal").classList.add("hidden");window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))}});
+pitch.addEventListener("pointercancel",()=>{window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))});
 notes.addEventListener("input",()=>{clearTimeout(window.__noteTimer);window.__noteTimer=setTimeout(persist,250)});
 pitch.addEventListener("dblclick",e=>{if(tool==="opp")addOpp()});
 pitch.addEventListener("pointerdown",e=>{if(tool==="opp"&&!frozen&&e.target===pitch){const q=posFromEvent(e);addOppAt(q.x,q.y)}});
