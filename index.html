@@ -55,7 +55,7 @@ const formations={
 let formation="433",tool="select",players=[],opps=[],arrows=[],history=[],sequence=[],recording=false,playing=false,playIndex=0,raf=0,ballPos={x:50,y:50},frozen=false;
 let names=Array.from({length:11},(_,i)=>"Player "+(i+1));
 const key="wealdstone_pro_coach_v1";
-function msg(t){status.textContent=t}
+function msg(t){status.textContent=t;status.setAttribute("aria-live","polite")}
 function persist(){try{localStorage.setItem(key,JSON.stringify(snapshot()))}catch(_){}}
 function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
 function posFromEvent(e){const r=pitch.getBoundingClientRect();return{x:clamp((e.clientX-r.left)/r.width*100,1,99),y:clamp((e.clientY-r.top)/r.height*100,1,99)}}
@@ -81,14 +81,22 @@ function dragPlayer(p){
 }
 function elDown(el,fn){el.addEventListener("pointerdown",fn,{passive:false})}
 function selectPassStart(p){
- if(!window.passStart){window.passStart=p;msg("PASS • now tap the receiving player");return}
+ if(!window.passStart){window.passStart=p;p.el.classList.add("selected");msg("PASS • "+(p.i+1)+" selected • now tap receiver");return}
  const a=window.passStart,b=p;window.passStart=null;
+ players.forEach(x=>x.el.classList.remove("selected"));
  if(a===b){msg("PASS CANCELLED • choose another player");return}
+ pushHistory();
  const pass={type:"pass",x1:a.x,y1:a.y,x2:b.x,y2:b.y};
- arrows.push(pass);sequence.push({...pass});draw();persist();
- setBall(a.x,a.y);playing=true;playIndex=0;const sx=a.x,sy=a.y;
- animate(500,t=>setBall(sx+(b.x-sx)*t,sy+(b.y-sy)*t));
- msg("PASS • "+(a.i+1)+" → "+(b.i+1)+" • ball travelling");
+ arrows.push(pass);
+ if(recording)sequence.push({...pass});
+ draw();persist();
+ const sx=a.x,sy=a.y;
+ setBall(sx,sy);
+ const wasPlaying=playing; playing=true;
+ animate(500,t=>setBall(sx+(b.x-sx)*t,sy+(b.y-sy)*t),()=>{
+   setBall(b.x,b.y);playing=wasPlaying;
+   msg("PASS COMPLETE • "+(a.i+1)+" → "+(b.i+1));
+ });
 }
 function drawLiveRun(p,q){\n draw(); if(!recording||tool!=="run"||!p.__runStart)return;\n const a=p.__runStart; const l=document.createElementNS("http://www.w3.org/2000/svg","line");\n l.classList.add("dyn","run","arrow","liveRun"); l.setAttribute("x1",a.x*10);l.setAttribute("y1",a.y*7);l.setAttribute("x2",q.x*10);l.setAttribute("y2",q.y*7);l.style.color="#fff";svg.appendChild(l);\n}
 function recordRun(p,start){svg.querySelectorAll(".liveRun").forEach(x=>x.remove());if(start&&((Math.abs(start.x-p.x)+Math.abs(start.y-p.y))>0.5)){const a={type:"run",i:p.i,x1:start.x,y1:start.y,x2:p.x,y2:p.y};sequence.push({...a});arrows.push(a);draw()}}
@@ -134,10 +142,16 @@ function runStep(){
   animate(450,t=>setBall(sx+(a.x-sx)*t,sy+(a.y-sy)*t))
  }else next()
 }
-function animate(ms,fn){
+function animate(ms,fn,done){
  const st=performance.now();
- function f(now){if(!playing)return;const t=Math.min(1,(now-st)/ms);fn(t);if(t<1)raf=requestAnimationFrame(f);else next()}
- raf=requestAnimationFrame(f)
+ function f(now){
+  if(!playing)return;
+  const t=Math.min(1,(now-st)/ms);fn(t);
+  if(t<1)raf=requestAnimationFrame(f);
+  else if(done)done();
+  else next();
+ }
+ raf=requestAnimationFrame(f);
 }
 function next(){if(!playing)return;playIndex++;msg("PLAYING • "+Math.min(playIndex+1,sequence.length)+"/"+sequence.length);runStep()}
 function save(){
@@ -184,7 +198,16 @@ function library(){
  m.querySelector("#mSave").onclick=save;m.querySelector("#mLoad").onclick=load;m.querySelector("#mClose").onclick=()=>m.classList.add("hidden")
 }
 function hub(){
- const m=document.getElementById("modal");m.classList.remove("hidden");m.innerHTML='<h2>🧠 Coach Hub</h2><p>Core coaching controls</p><div class="row"><b>Formation</b><span>'+formation+'</span></div><div class="row"><b>Players</b><span>'+players.length+'</span></div><div class="row"><b>Opposition</b><span>'+opps.length+'</span></div><div class="row"><button id="saveHub">💾 Save Tactic</button><button id="loadHub">📂 Load</button></div><div class="row"><button id="closeHub">Close</button></div>';m.querySelector("#saveHub").onclick=save;m.querySelector("#loadHub").onclick=load;m.querySelector("#closeHub").onclick=()=>m.classList.add("hidden")
+ const m=document.getElementById("modal");m.classList.remove("hidden");
+ const savedOk=!!localStorage.getItem(key);
+ m.innerHTML='<h2>🧠 Coach Hub</h2><p>Professional coaching controls</p>'+
+ '<div class="row"><b>Engine</b><span>READY • '+players.length+' players • ball active</span></div>'+
+ '<div class="row"><b>Formation</b><span>'+formation+'</span></div>'+
+ '<div class="row"><b>Recorded actions</b><span>'+sequence.length+'</span></div>'+
+ '<div class="row"><b>Saved tactic</b><span>'+(savedOk?"AVAILABLE":"NONE")+'</span></div>'+
+ '<div class="row"><button id="saveHub">💾 Save Tactic</button><button id="loadHub">📂 Load</button></div>'+
+ '<div class="row"><button id="closeHub">Close</button></div>';
+ m.querySelector("#saveHub").onclick=save;m.querySelector("#loadHub").onclick=load;m.querySelector("#closeHub").onclick=()=>m.classList.add("hidden")
 }
 document.querySelectorAll("[data-formation]").forEach(b=>b.onclick=()=>setFormation(b.dataset.formation));
 document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{if(b.dataset.tool==="opp")addOpp();else setTool(b.dataset.tool)});
