@@ -1489,3 +1489,13 @@ window.addEventListener('load',function(){setTimeout(ensureBoard,700);setTimeout
 setTimeout(ensureBoard,1100);
 })();
 </script>
+<!-- V39 TACTIC PERSISTENCE + BOARD POLISH -->
+<script>
+(function(){
+function persist(){try{localStorage.setItem('wealdstone_live_tactic',JSON.stringify(getState()));if(typeof v27SaveXIPositions==='function')v27SaveXIPositions()}catch(e){}}
+window.v39Persist=persist;
+document.addEventListener('pointerup',function(e){if(e.target&&e.target.closest&&e.target.closest('.player')&&!e.target.closest('.opp'))setTimeout(persist,40);if(e.target&&e.target.closest&&e.target.closest('.ball'))setTimeout(persist,40)});
+function restore(){try{var raw=localStorage.getItem('wealdstone_live_tactic');if(raw&&typeof applyState==='function'){var d=JSON.parse(raw);if(d&&Array.isArray(d.positions)&&d.positions.length>=11)applyState(d)}}catch(e){}}
+window.addEventListener('load',function(){setTimeout(restore,1250);setTimeout(function(){if(typeof v34Mode==='function')v34Mode('move')},1450)});
+})();
+</script>
