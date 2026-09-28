@@ -2296,3 +2296,134 @@ window.addEventListener('load',function(){setTimeout(restore,1250);setTimeout(fu
   setInterval(sync,200);
 })();
 </script>
+
+<!-- V52 MASTER BOARD STABILITY + DIRECT TOOL CONTROL -->
+<script>
+(function(){
+  if(window.__v52)return; window.__v52=true;
+
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+  function ensureBoard(){
+    try{
+      if(!pitch)return;
+
+      /* Rehydrate the starting XI every time the board becomes visible. */
+      while(players.length<11 && typeof addPlayer==="function") addPlayer();
+      players.slice(0,11).forEach(function(p,i){
+        if(!p)return;
+        if(p.parentNode!==pitch)pitch.appendChild(p);
+        p.style.position="absolute";
+        p.style.display="flex";
+        p.style.visibility="visible";
+        p.style.opacity="1";
+        p.style.zIndex="3";
+        p.style.pointerEvents="auto";
+        p.setAttribute("aria-label",(names[i]||("Player "+(i+1)))+" tactical player");
+        var x=parseFloat(p.style.left), y=parseFloat(p.style.top);
+        var pos=(formations[currentFormation]||formations["433"])[i];
+        if(!isFinite(x)||!isFinite(y)||x<1||x>99||y<1||y>99){
+          if(pos){p.style.left=pos[0]+"%";p.style.top=pos[1]+"%";}
+          else {p.style.left="50%";p.style.top="50%";}
+        }
+      });
+      if(typeof renderNames==="function")renderNames();
+
+      if(ball){
+        if(ball.parentNode!==pitch)pitch.appendChild(ball);
+        ball.style.position="absolute";
+        ball.style.display="flex";
+        ball.style.visibility="visible";
+        ball.style.opacity="1";
+        ball.style.zIndex="5";
+        ball.style.left=clamp(+ballX||50,1,99)+"%";
+        ball.style.top=clamp(+ballY||50,1,99)+"%";
+      }
+      if(typeof drawArrows==="function")drawArrows();
+    }catch(e){
+      try{status.textContent="Board recovery active";}catch(_){}
+    }
+  }
+
+  function setMode(mode){
+    arrowMode=false;
+    movementMode=false;
+    ballMode=false;
+    arrowStart=null;
+    if(mode==="pass")arrowMode=true;
+    if(mode==="run")movementMode=true;
+    if(mode==="ball")ballMode=true;
+
+    var b=document.getElementById("realPlayBuilder");
+    if(b)b.querySelectorAll("[data-t]").forEach(function(x){
+      var t=x.getAttribute("data-t");
+      x.classList.toggle("active",t===mode);
+    });
+    var map={pass:"passBtn",run:"movementBtn"};
+    Object.keys(map).forEach(function(k){
+      var q=document.getElementById(map[k]);
+      if(q)q.classList.toggle("active",mode===k);
+    });
+
+    if(mode==="pass")status.textContent="PASS MODE • tap passer, then receiver";
+    else if(mode==="run")status.textContent="RUN MODE • drag a player to show the run";
+    else if(mode==="ball")status.textContent="BALL MODE • drag or place the ball";
+    else status.textContent="SELECT MODE • drag players normally";
+  }
+
+  /* Replace the fragile toolbar click wiring with direct state control. */
+  var b=document.getElementById("realPlayBuilder");
+  if(b){
+    b.querySelectorAll("[data-t]").forEach(function(btn){
+      var fresh=btn.cloneNode(true);
+      btn.parentNode.replaceChild(fresh,btn);
+      fresh.addEventListener("click",function(){
+        var t=fresh.getAttribute("data-t");
+        if(t==="select")setMode("select");
+        else if(t==="pass")setMode(arrowMode?"select":"pass");
+        else if(t==="run")setMode(movementMode?"select":"run");
+        else if(t==="ball")setMode(ballMode?"select":"ball");
+        else if(t==="opp"){
+          try{toggleOpposition(fresh);}catch(e){status.textContent="Opposition tool unavailable";}
+        }else if(t==="record"){
+          setMode("select");startSequence();fresh.classList.add("active");
+        }else if(t==="stop"){
+          finishSequence();fresh.classList.remove("active");
+        }else if(t==="play"){
+          playSequence();
+        }else if(t==="save"){
+          savePlay();
+        }else if(t==="library"){
+          if(typeof openPlayMenu==="function")openPlayMenu();
+          else if(typeof openPlayLibrary==="function")openPlayLibrary();
+        }else if(t==="undo"){
+          undo();
+        }else if(t==="clear"){
+          clearArrows();
+          setMode("select");
+        }
+      });
+    });
+  }
+
+  /* Keep the tactical board usable after iOS page restore/cache events. */
+  ensureBoard();
+  window.addEventListener("pageshow",function(){setTimeout(ensureBoard,30);setTimeout(ensureBoard,500);});
+  window.addEventListener("focus",function(){setTimeout(ensureBoard,30);});
+  document.addEventListener("visibilitychange",function(){
+    if(!document.hidden)setTimeout(ensureBoard,50);
+  });
+
+  /* Visible build marker so we know the phone is loading the corrected build. */
+  var badge=document.getElementById("v52BuildBadge");
+  if(!badge){
+    badge=document.createElement("div");
+    badge.id="v52BuildBadge";
+    badge.textContent="V52 • BOARD READY";
+    badge.style.cssText="position:fixed;left:8px;top:8px;z-index:99997;background:#11161d;color:#fff;border:1px solid #39414d;border-radius:8px;padding:4px 7px;font:800 9px Arial;opacity:.78;pointer-events:none";
+    document.body.appendChild(badge);
+  }
+  setTimeout(ensureBoard,80);
+  setTimeout(ensureBoard,700);
+})();
+</script>
