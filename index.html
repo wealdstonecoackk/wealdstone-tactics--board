@@ -1464,3 +1464,28 @@ var oldXI=window.v26SaveXI;window.v26SaveXI=function(){var r=typeof oldXI==='fun
 var oldTeam=window.v28SaveTeam;window.v28SaveTeam=function(){var r=typeof oldTeam==='function'?oldTeam.apply(this,arguments):undefined;setTimeout(function(){if(typeof v33SyncTeamToBoard==='function')v33SyncTeamToBoard()},80);return r};
 })();
 </script>
+
+<!-- V38 ELITE BOARD CONTROL OVERRIDE -->
+<style>
+#v34Tools{position:relative;z-index:25}
+#pitch{position:relative}
+#v34Tools button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+</style>
+<script>
+(function(){
+function setActive(id){['v34Move','v34Ball','v34Pass'].forEach(function(x){var e=document.getElementById(x);if(e)e.classList.toggle('active',x===id)})}
+window.v34Mode=function(mode){
+ setActive(mode==='move'?'v34Move':mode==='ball'?'v34Ball':'v34Pass');
+ if(typeof setCoachTool==='function')setCoachTool(mode==='move'?'none':mode);
+ if(typeof status!=='undefined')status.textContent=mode==='move'?'MOVE MODE — drag players to position them. No run recorded.':mode==='ball'?'BALL MODE — drag the ball or tap the pitch to place it.':'PASS MODE — tap the passer, then the receiver.';
+};
+function ensureBoard(){
+ if(typeof ball!=='undefined'&&ball){ball.style.display='block';ball.style.left=(typeof ballX!=='undefined'?ballX:50)+'%';ball.style.top=(typeof ballY!=='undefined'?ballY:50)+'%'}
+ if(typeof currentFormation!=='undefined'&&typeof formations!=='undefined'&&typeof players!=='undefined'&&players.length>=11){
+  players.slice(0,11).forEach(function(p,i){if(!p.style.left||!p.style.top){var pos=formations[currentFormation||'433'][i];if(pos){p.style.left=pos[0]+'%';p.style.top=pos[1]+'%'}}})
+ }
+}
+window.addEventListener('load',function(){setTimeout(ensureBoard,700);setTimeout(function(){v34Mode('move')},900)});
+setTimeout(ensureBoard,1100);
+})();
+</script>
