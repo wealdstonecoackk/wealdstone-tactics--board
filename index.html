@@ -135,11 +135,11 @@ function setFormation(f){pushHistory();formation=f;players.forEach((p,i)=>{p.x=f
 function setTool(t){tool=t;window.passStart=null;document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===t));msg(t==="pass"?"PASS MODE • tap passer then receiver":t==="run"?"RUN MODE • drag players while recording":t==="ball"?"BALL MODE • drag the ball":"SELECT MODE • drag players")}
 function addOpp(){if(frozen)return;const n=opps.length;const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x:72-(n%4)*8,y:25+Math.floor(n/4)*18,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);persist();msg("OPPONENT POSITIONED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
 function renderOpp(o){o.el.style.left=o.x+"%";o.el.style.top=o.y+"%"}
-function clearOpp(){opps.forEach(o=>o.el.remove());opps=[];persist();msg("OPPOSITION CLEARED")}
+function clearOpp(silent=false){opps.forEach(o=>o.el.remove());opps=[];if(!silent){persist();msg("OPPOSITION CLEARED")}}
 function reset(){pushHistory();players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1];renderPlayer(p)});arrows=[];sequence=[];setBall(50,50);draw();persist();msg("XI RESET • "+formation)}
 function clear(){pushHistory();arrows=[];sequence=[];draw();persist();msg("TACTICAL DRAWING CLEARED")}
 function undo(){if(!history.length){msg("NOTHING TO UNDO");return}const s=JSON.parse(history.pop());restore(s);persist();msg("UNDO COMPLETE")}
-function restore(s){formation=s.formation||"433";names=s.names||names;while(players.length<11)createPlayer(players.length);players.forEach((p,i)=>{const q=s.players[i]||formations[formation][i];p.x=q.x;p.y=q.y;p.name=names[i]||("Player "+(i+1));renderPlayer(p)});clearOpp();(s.opps||[]).forEach(o=>{addOpp();const x=opps[opps.length-1];x.x=o.x;x.y=o.y;renderOpp(x)});arrows=s.arrows||[];sequence=s.sequence||[];setBall((s.ball||{}).x??50,(s.ball||{}).y??50);notes.value=s.notes||"";draw();document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===formation))}
+function restore(s){formation=s.formation||"433";names=s.names||names;while(players.length<11)createPlayer(players.length);players.forEach((p,i)=>{const q=s.players[i]||formations[formation][i];p.x=q.x;p.y=q.y;p.name=names[i]||("Player "+(i+1));renderPlayer(p)});clearOpp(true);(s.opps||[]).forEach(o=>{addOpp();const x=opps[opps.length-1];x.x=o.x;x.y=o.y;renderOpp(x)});arrows=s.arrows||[];sequence=s.sequence||[];setBall((s.ball||{}).x??50,(s.ball||{}).y??50);notes.value=s.notes||"";draw();document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===formation))}
 function startRec(){if(playing){playing=false;cancelAnimationFrame(raf)};recording=true;sequence=[];msg("RECORDING • drag players for runs or add passes")}
 function stopRec(){recording=false;persist();msg("RECORDING STOPPED • "+sequence.length+" actions")}
 function play(){
@@ -231,7 +231,7 @@ function hub(){
  m.querySelector("#saveHub").onclick=save;m.querySelector("#loadHub").onclick=load;m.querySelector("#closeHub").onclick=()=>m.classList.add("hidden")
 }
 document.querySelectorAll("[data-formation]").forEach(b=>b.onclick=()=>setFormation(b.dataset.formation));
-document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{if(b.dataset.tool==="opp")addOpp();else setTool(b.dataset.tool)});
+document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{setTool(b.dataset.tool)});
 document.getElementById("record").onclick=()=>{stopPlayback();clearSelection();startRec()};
 document.getElementById("newSession").onclick=newSession;
 document.getElementById("stop").onclick=stopRec;document.getElementById("play").onclick=play;document.getElementById("clear").onclick=()=>{stopPlayback();clearSelection();clear()};
@@ -244,6 +244,9 @@ document.getElementById("grid").onclick=function(){pitch.classList.toggle("grid"
 document.getElementById("freeze").onclick=function(){frozen=!frozen;this.classList.toggle("active",frozen);msg(frozen?"BOARD FROZEN":"BOARD UNLOCKED")};\ndocument.addEventListener("keydown",e=>{if(e.key==="Escape"){document.getElementById("modal").classList.add("hidden");window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))}});\npitch.addEventListener("pointercancel",()=>{window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))});
 notes.addEventListener("input",()=>{clearTimeout(window.__noteTimer);window.__noteTimer=setTimeout(persist,250)});
 pitch.addEventListener("dblclick",e=>{if(tool==="opp")addOpp()});
+pitch.addEventListener("pointerdown",e=>{if(tool==="opp"&&!frozen&&e.target===pitch){const q=posFromEvent(e);addOppAt(q.x,q.y)}});
+function addOppAt(x,y){if(frozen)return;const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x,y,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);persist();msg("OPPONENT POSITIONED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
+
 for(let i=0;i<11;i++)createPlayer(i);
 const saved=localStorage.getItem(key);if(saved)try{restore(JSON.parse(saved))}catch(_){}
 msg("READY • 11 PLAYERS + BALL LOADED");
