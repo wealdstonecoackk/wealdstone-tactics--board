@@ -56,6 +56,18 @@ let formation="433",tool="select",players=[],opps=[],arrows=[],history=[],sequen
 let names=Array.from({length:11},(_,i)=>"Player "+(i+1));
 const key="wealdstone_pro_coach_v1";
 function msg(t){status.textContent=t;status.setAttribute("aria-live","polite")}
+// ELITE COACHING UX + SAFE INTERACTION LAYER
+function stopPlayback(){if(playing){playing=false;cancelAnimationFrame(raf);msg("PLAYBACK STOPPED")}}
+function clearSelection(){window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))}
+function ensureBoardIntegrity(){
+  while(players.length<11)createPlayer(players.length);
+  if(players.length>11){players.slice(11).forEach(p=>p.el.remove());players=players.slice(0,11)}
+  players.forEach((p,i)=>{if(!Number.isFinite(p.x)||!Number.isFinite(p.y)){p.x=formations[formation][i][0];p.y=formations[formation][i][1]}renderPlayer(p)});
+  if(!Number.isFinite(ballPos.x)||!Number.isFinite(ballPos.y))setBall(50,50);
+  ball.style.display="flex";draw();
+}
+function newSession(){stopPlayback();clearSelection();pushHistory();formation="433";players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1]});arrows=[];sequence=[];opps.forEach(o=>o.el.remove());opps=[];setBall(50,50);notes.value="";draw();persist();document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation==="433"));msg("NEW SESSION • 4-3-3 READY")}
+
 function persist(){try{localStorage.setItem(key,JSON.stringify(snapshot()))}catch(_){}}
 function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
 function posFromEvent(e){const r=pitch.getBoundingClientRect();return{x:clamp((e.clientX-r.left)/r.width*100,1,99),y:clamp((e.clientY-r.top)/r.height*100,1,99)}}
@@ -123,6 +135,7 @@ function restore(s){formation=s.formation||"433";names=s.names||names;while(play
 function startRec(){if(playing){playing=false;cancelAnimationFrame(raf)};recording=true;sequence=[];msg("RECORDING • drag players for runs or add passes")}
 function stopRec(){recording=false;persist();msg("RECORDING STOPPED • "+sequence.length+" actions")}
 function play(){
+ ensureBoardIntegrity();
  if(!sequence.length){msg("NO RECORDED PLAY");return}
  if(playing){playing=false;cancelAnimationFrame(raf);msg("PLAY PAUSED • tap Play to restart");return}
  playing=true;playIndex=0;setBall(50,50);msg("PLAYING • 1/"+sequence.length);runStep()
@@ -211,8 +224,14 @@ function hub(){
 }
 document.querySelectorAll("[data-formation]").forEach(b=>b.onclick=()=>setFormation(b.dataset.formation));
 document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{if(b.dataset.tool==="opp")addOpp();else setTool(b.dataset.tool)});
-document.getElementById("record").onclick=startRec;document.getElementById("stop").onclick=stopRec;document.getElementById("play").onclick=play;document.getElementById("clear").onclick=clear;document.getElementById("undo").onclick=undo;document.getElementById("save").onclick=save;document.getElementById("library").onclick=library;document.getElementById("more").onclick=hub;
-document.getElementById("reset").onclick=reset;document.getElementById("oppClear").onclick=clearOpp;document.getElementById("grid").onclick=function(){pitch.classList.toggle("grid");this.classList.toggle("active",pitch.classList.contains("grid"));if(pitch.classList.contains("grid"))pitch.style.backgroundImage="linear-gradient(#ffffff18 1px,transparent 1px),linear-gradient(90deg,#ffffff18 1px,transparent 1px)";else pitch.style.backgroundImage="none"};
+document.getElementById("record").onclick=()=>{stopPlayback();clearSelection();startRec()};
+document.getElementById("stop").onclick=stopRec;document.getElementById("play").onclick=play;document.getElementById("clear").onclick=()=>{stopPlayback();clearSelection();clear()};
+document.getElementById("undo").onclick=undo;document.getElementById("save").onclick=save;document.getElementById("library").onclick=library;document.getElementById("more").onclick=hub;
+document.getElementById("notes").setAttribute("aria-label","Coach notes");
+
+document.getElementById("reset").onclick=()=>{stopPlayback();clearSelection();reset()};
+document.getElementById("oppClear").onclick=()=>{stopPlayback();clearSelection();clearOpp()};
+document.getElementById("grid").onclick=function(){pitch.classList.toggle("grid");this.classList.toggle("active",pitch.classList.contains("grid"));if(pitch.classList.contains("grid"))pitch.style.backgroundImage="linear-gradient(#ffffff18 1px,transparent 1px),linear-gradient(90deg,#ffffff18 1px,transparent 1px)";else pitch.style.backgroundImage="none"};
 document.getElementById("freeze").onclick=function(){frozen=!frozen;this.classList.toggle("active",frozen);msg(frozen?"BOARD FROZEN":"BOARD UNLOCKED")};\ndocument.addEventListener("keydown",e=>{if(e.key==="Escape"){document.getElementById("modal").classList.add("hidden");window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))}});\npitch.addEventListener("pointercancel",()=>{window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))});
 notes.addEventListener("input",()=>{clearTimeout(window.__noteTimer);window.__noteTimer=setTimeout(persist,250)});
 pitch.addEventListener("dblclick",e=>{if(tool==="opp")addOpp()});
