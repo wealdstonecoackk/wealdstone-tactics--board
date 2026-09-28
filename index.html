@@ -56,7 +56,7 @@ const formations={
 };
 let formation="433",tool="select",players=[],opps=[],arrows=[],history=[],redoStack=[],sequence=[],recording=false,playing=false,playIndex=0,raf=0,ballPos={x:50,y:50},frozen=false;
 let names=Array.from({length:11},(_,i)=>"Player "+(i+1));
-const key="wealdstone_pro_coach_v5";
+const key="wealdstone_pro_coach_v6";
 function msg(t){status.textContent=t;status.setAttribute("aria-live","polite")}
 function elDown(el,fn){el.addEventListener("pointerdown",fn,{passive:false})}
 // ELITE COACHING UX + SAFE INTERACTION LAYER
@@ -93,7 +93,7 @@ function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
 function posFromEvent(e){const r=pitch.getBoundingClientRect();return{x:clamp((e.clientX-r.left)/r.width*100,1,99),y:clamp((e.clientY-r.top)/r.height*100,1,99)}}
 function pushHistory(){history.push(JSON.stringify(snapshot()));redoStack=[];if(history.length>30)history.shift()}
 function snapshot(){return{formation,names:names.slice(),players:players.map(p=>({x:p.x,y:p.y})),opps:opps.map(o=>({x:o.x,y:o.y})),arrows:arrows.map(a=>({...a})),ball:{...ballPos},sequence:sequence.map(a=>({...a})),notes:notes.value}}
-function renderPlayer(p){if(!p||!p.el)return; p.el.style.position="absolute";p.el.style.display="flex";p.el.style.visibility="visible";p.el.style.opacity="1";p.el.style.pointerEvents="auto";p.el.style.left=p.x+"%";p.el.style.top=p.y+"%";p.el.style.zIndex="20";const nm=p.el.querySelector(".nm");if(nm)nm.textContent=p.name}
+function renderPlayer(p){if(!p||!p.el)return; p.el.classList.add("player");p.el.style.position="absolute";p.el.style.display="flex";p.el.style.visibility="visible";p.el.style.opacity="1";p.el.style.pointerEvents="auto";p.el.style.left=p.x+"%";p.el.style.top=p.y+"%";p.el.style.zIndex="20";const nm=p.el.querySelector(".nm");if(nm)nm.textContent=p.name}
 function createPlayer(i){
  const el=document.createElement("div");el.className="player"+(i===0?" gk":"");el.innerHTML='<span class="num">'+(i+1)+'</span><span class="nm"></span>';document.getElementById("playersLayer").appendChild(el);
  const p={i,x:formations[formation][i][0],y:formations[formation][i][1],name:names[i],el};players.push(p);renderPlayer(p);dragPlayer(p)
@@ -202,7 +202,7 @@ function setTool(t){tool=t;window.passStart=null;players.forEach(p=>p.el.classLi
 function addOpp(){if(frozen)return;const n=opps.length;const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x:72-(n%4)*8,y:25+Math.floor(n/4)*18,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);
  if(Math.abs(o.x-startX)+Math.abs(o.y-startY)<0.5){history.pop();}
  persist();msg("OPPONENT POSITIONED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
-function renderOpp(o){o.el.style.left=o.x+"%";o.el.style.top=o.y+"%"}
+function renderOpp(o){o.el.classList.add("player","opp");o.el.style.position="absolute";o.el.style.display="flex";o.el.style.visibility="visible";o.el.style.opacity="1";o.el.style.pointerEvents="auto";o.el.style.zIndex="19";o.el.style.left=o.x+"%";o.el.style.top=o.y+"%"}
 function clearOpp(silent=false){if(!opps.length)return;if(!silent)pushHistory();opps.forEach(o=>o.el.remove());opps=[];if(!silent){persist();msg("OPPOSITION CLEARED")}}
 function reset(){pushHistory();players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1];renderPlayer(p)});arrows=[];sequence=[];setBall(50,50);draw();persist();msg("XI RESET • "+formation)}
 function clear(){pushHistory();arrows=[];sequence=[];draw();persist();msg("TACTICAL DRAWING CLEARED")}
@@ -354,7 +354,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO ENGINE");
+msg("READY • 11 PLAYERS + BALL • PRO ENGINE • V6");
 window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(r=>r.update()).catch(()=>{}));}
