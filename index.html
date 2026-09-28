@@ -2427,3 +2427,163 @@ window.addEventListener('load',function(){setTimeout(restore,1250);setTimeout(fu
   setTimeout(ensureBoard,700);
 })();
 </script>
+
+
+<!-- V53 PRO TACTICAL STUDIO -->
+<script>
+(function(){
+  if(window.__v53)return; window.__v53=true;
+
+  var pitch=document.getElementById("pitch"), status=document.getElementById("status");
+  if(!pitch)return;
+
+  /* ---------- authoritative UI helpers ---------- */
+  function msg(t){if(status)status.textContent=t;}
+  function pct(v,a,b){return Math.max(a,Math.min(b,v));}
+  function xy(e){
+    var r=pitch.getBoundingClientRect();
+    return {x:pct((e.clientX-r.left)/r.width*100,2,98),y:pct((e.clientY-r.top)/r.height*100,3,97)};
+  }
+  function setTool(t){
+    if(typeof setMode==="function"){setMode(t);return;}
+    arrowMode=false;movementMode=false;ballMode=false;arrowStart=null;
+    if(t==="pass")arrowMode=true;
+    if(t==="run")movementMode=true;
+    if(t==="ball")ballMode=true;
+  }
+
+  /* ---------- proper ball interaction ---------- */
+  if(ball){
+    ball.style.cursor="grab";
+    ball.style.touchAction="none";
+    ball.addEventListener("pointerdown",function(e){
+      if(!ballMode)return;
+      e.preventDefault();e.stopPropagation();
+      try{ball.setPointerCapture(e.pointerId)}catch(_){}
+      var move=function(ev){
+        var q=xy(ev);ballX=q.x;ballY=q.y;
+        ball.style.left=q.x+"%";ball.style.top=q.y+"%";
+        if(typeof drawArrows==="function")drawArrows();
+      };
+      var up=function(ev){
+        ball.removeEventListener("pointermove",move);
+        ball.removeEventListener("pointerup",up);
+        if(typeof recordBallMove==="function")recordBallMove();
+        msg("BALL MOVED • drag again or choose another tool");
+      };
+      ball.addEventListener("pointermove",move);
+      ball.addEventListener("pointerup",up);
+    });
+  }
+
+  /* ---------- clean opposition tool ---------- */
+  function makeOpponent(x,y){
+    var o=document.createElement("div");
+    o.className="player opp";
+    o.dataset.opponent="1";
+    o.textContent="O";
+    o.style.cssText="position:absolute;left:"+x+"%;top:"+y+"%;width:44px;height:44px;border-radius:50%;background:#c62828;border:3px solid #fff;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);z-index:4;touch-action:none;user-select:none;box-shadow:0 2px 6px #0008";
+    pitch.appendChild(o);
+    o.addEventListener("pointerdown",function(e){
+      if(ballMode||arrowMode)return;
+      e.preventDefault();e.stopPropagation();
+      try{o.setPointerCapture(e.pointerId)}catch(_){}
+      var move=function(ev){var q=xy(ev);o.style.left=q.x+"%";o.style.top=q.y+"%";};
+      var up=function(){o.removeEventListener("pointermove",move);o.removeEventListener("pointerup",up);};
+      o.addEventListener("pointermove",move);o.addEventListener("pointerup",up);
+    });
+    return o;
+  }
+
+  window.__v53AddOpponent=function(){
+    var n=pitch.querySelectorAll(".opp").length;
+    if(n>=11){msg("MAX 11 OPPONENTS");return;}
+    makeOpponent(72-(n%4)*7,25+Math.floor(n/4)*18);
+    msg("OPPONENT ADDED • drag to position");
+  };
+
+  /* ---------- tactical overlays ---------- */
+  var style=document.createElement("style");
+  style.textContent=
+    ".v53-panel{width:94%;max-width:720px;margin:7px auto;display:grid;grid-template-columns:repeat(5,1fr);gap:5px}"+
+    ".v53-panel button{min-height:42px;border:1px solid #38414c;border-radius:9px;background:#151a20;color:#fff;font-weight:800;font-size:10px;touch-action:manipulation}"+
+    ".v53-panel button.on{background:#174ea6;border-color:#8bb7ff}"+
+    "#pitch.v53-grid{background-image:linear-gradient(#ffffff18 1px,transparent 1px),linear-gradient(90deg,#ffffff18 1px,transparent 1px);background-size:10% 10%}"+
+    ".player.selected{outline:3px solid #ffd54a;outline-offset:2px}"+
+    ".v53-hint{width:94%;max-width:720px;margin:4px auto;color:#aeb8c4;font:700 9px Arial;letter-spacing:.4px;text-align:center}"+
+    "@media(max-width:600px){.v53-panel{grid-template-columns:repeat(5,1fr)}.v53-panel button{min-height:46px;font-size:9px}}";
+  document.head.appendChild(style);
+
+  var panel=document.createElement("div");panel.className="v53-panel";
+  panel.innerHTML=
+    '<button data-v53="grid">▦ Grid</button>'+
+    '<button data-v53="home">⌂ Reset XI</button>'+
+    '<button data-v53="opp">🔴 Add Opp</button>'+
+    '<button data-v53="clearopp">✕ Opp Clear</button>'+
+    '<button data-v53="freeze">🔒 Freeze</button>';
+  var builder=document.getElementById("realPlayBuilder");
+  if(builder)builder.parentNode.insertBefore(panel,builder.nextSibling);
+  else pitch.parentNode.insertBefore(panel,pitch);
+
+  var hint=document.createElement("div");hint.className="v53-hint";
+  hint.textContent="TACTICAL STUDIO • select tools above, then build directly on the pitch";
+  panel.parentNode.insertBefore(hint,panel.nextSibling);
+
+  panel.querySelector('[data-v53="grid"]').onclick=function(){
+    pitch.classList.toggle("v53-grid");
+    this.classList.toggle("on",pitch.classList.contains("v53-grid"));
+    msg(pitch.classList.contains("v53-grid")?"GRID ON":"GRID OFF");
+  };
+  panel.querySelector('[data-v53="home"]').onclick=function(){
+    if(typeof applyFormation==="function")applyFormation(currentFormation||"433");
+    else if(typeof setFormation==="function")setFormation(currentFormation||"433");
+    if(typeof drawArrows==="function")drawArrows();
+    msg("STARTING XI RESET • "+(currentFormation||"433"));
+  };
+  panel.querySelector('[data-v53="opp"]').onclick=window.__v53AddOpponent;
+  panel.querySelector('[data-v53="clearopp"]').onclick=function(){
+    pitch.querySelectorAll(".opp").forEach(function(o){o.remove();});
+    msg("OPPOSITION CLEARED");
+  };
+  panel.querySelector('[data-v53="freeze"]').onclick=function(){
+    var on=pitch.classList.toggle("v53-frozen");
+    pitch.querySelectorAll(".player").forEach(function(p){p.style.pointerEvents=on?"none":"auto";});
+    this.classList.toggle("on",on);
+    msg(on?"BOARD FROZEN • tap Freeze to unlock":"BOARD UNLOCKED");
+  };
+
+  /* ---------- save a complete tactical snapshot ---------- */
+  window.v53Snapshot=function(){
+    var data={
+      formation:currentFormation,
+      names:names.slice(),
+      positions:players.map(function(p){return {left:p.style.left,top:p.style.top};}),
+      ball:{x:ballX,y:ballY},
+      arrows:arrows.map(function(a){return Array.isArray(a)?a.slice():Object.assign({},a);}),
+      opponents:Array.from(pitch.querySelectorAll(".opp")).map(function(o){return {left:o.style.left,top:o.style.top};}),
+      notes:notes?notes.value:""
+    };
+    localStorage.setItem("wealdstone_tactical_snapshot",JSON.stringify(data));
+    msg("TACTIC SNAPSHOT SAVED");
+  };
+  window.v53Restore=function(){
+    var raw=localStorage.getItem("wealdstone_tactical_snapshot");
+    if(!raw){msg("NO TACTIC SNAPSHOT SAVED");return;}
+    try{
+      var d=JSON.parse(raw);
+      if(typeof applyState==="function")applyState(d);
+      pitch.querySelectorAll(".opp").forEach(function(o){o.remove();});
+      (d.opponents||[]).forEach(function(o){makeOpponent(parseFloat(o.left)||50,parseFloat(o.top)||50);});
+      msg("TACTIC SNAPSHOT RESTORED");
+    }catch(e){msg("SNAPSHOT RESTORE FAILED");}
+  };
+
+  /* expose useful coach actions without replacing existing menu system */
+  window.addEventListener("keydown",function(e){
+    if(e.key==="Escape"){setTool("select");msg("SELECT MODE");}
+  });
+
+  /* ensure panel appears after the existing board */
+  setTimeout(function(){if(typeof ensureBoard==="function")ensureBoard();},120);
+})();
+</script>
