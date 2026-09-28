@@ -358,7 +358,7 @@ if(saved){
   try{restore(JSON.parse(saved));ensureBoardIntegrity()}catch(_){
     localStorage.removeItem(key);
     formation="433";arrows=[];sequence=[];opps.forEach(o=>o.el.remove());opps=[];
-    players.forEach((p,i)=>{p.x=formations.433[i][0];p.y=formations.433[i][1];p.name="Player "+(i+1);renderPlayer(p)});
+    players.forEach((p,i)=>{p.x=formations["433"][i][0];p.y=formations["433"][i][1];p.name="Player "+(i+1);renderPlayer(p)});
     setBall(50,50);notes.value="";draw();
   }
 }
