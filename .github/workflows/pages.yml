@@ -34,7 +34,7 @@ jobs:
           test -s index.html
           grep -q 'id="pitch"' index.html
           grep -q 'id="ball"' index.html
-          test "$(grep -o 'data-player="' index.html | wc -l)" -eq 11
+          test "$(grep -o 'data-player="[0-9][0-9]*"' index.html | wc -l)" -eq 11
           python - <<'PY'
           from pathlib import Path
           import re
