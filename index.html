@@ -60,8 +60,9 @@ const key="wealdstone_pro_coach_v5";
 function msg(t){status.textContent=t;status.setAttribute("aria-live","polite")}
 function elDown(el,fn){el.addEventListener("pointerdown",fn,{passive:false})}
 // ELITE COACHING UX + SAFE INTERACTION LAYER
-function stopPlayback(){if(playing){playing=false;cancelAnimationFrame(raf);msg("PLAYBACK STOPPED")}}
+function stopPlayback(){if(playing){playing=false;cancelAnimationFrame(raf);playing=false;msg("PLAYBACK STOPPED")}}
 function clearSelection(){window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))}
+function commitMove(startX,startY,endX,endY,label){const moved=Math.abs(endX-startX)+Math.abs(endY-startY)>0.5;if(!moved){history.pop();return false}persist();msg(label);return true}
 function ensureBoardIntegrity(){
   pitch.style.position="relative";
   playersLayer.querySelectorAll(".player").forEach(el=>{el.style.display="flex";el.style.visibility="visible";el.style.opacity="1";el.style.pointerEvents="auto";el.style.zIndex=el.classList.contains("opp")?"19":"20"});
@@ -128,12 +129,14 @@ function dragPlayer(p){
       document.removeEventListener("pointercancel",cancel);
       if(cancelled){
         p.x=startX;p.y=startY;renderPlayer(p);
+        history.pop();
         msg("MOVE CANCELLED");
         return;
       }
-      if(tool==="run" && recording && moved)recordRun(p,startX,startY,p.x,p.y);
+      if(!moved){history.pop();msg("PLAYER "+(p.i+1)+" SELECTED");return}
+      if(tool==="run" && recording)recordRun(p,startX,startY,p.x,p.y);
       persist();
-      msg(moved ? "PLAYER "+(p.i+1)+" MOVED" : "PLAYER "+(p.i+1)+" SELECTED");
+      msg("PLAYER "+(p.i+1)+" MOVED");
     };
     const up=()=>finish(false);
     const cancel=()=>finish(true);
@@ -182,12 +185,17 @@ function setBall(x,y){ballPos={x:clamp(Number(x)||50,1,99),y:clamp(Number(y)||50
 elDown(ball,e=>{
  if(frozen||tool!=="ball")return;e.preventDefault();
  pushHistory();try{ball.setPointerCapture(e.pointerId)}catch(_){}
- const startBall={...ballPos};
- const move=ev=>{const q=posFromEvent(ev);setBall(q.x,q.y)};
- const up=()=>{ball.removeEventListener("pointermove",move);ball.removeEventListener("pointerup",up);
- if(Math.abs(ballPos.x-startBall.x)+Math.abs(ballPos.y-startBall.y)<0.5){history.pop();}
- if(recording)sequence.push({type:"ball",x:ballPos.x,y:ballPos.y});persist();msg("BALL POSITIONED")};
- ball.addEventListener("pointermove",move);ball.addEventListener("pointerup",up)
+ const startBall={...ballPos};let active=true;
+ const move=ev=>{if(!active)return;ev.preventDefault();const q=posFromEvent(ev);setBall(q.x,q.y)};
+ const finish=cancelled=>{if(!active)return;active=false;ball.removeEventListener("pointermove",move);ball.removeEventListener("pointerup",up);ball.removeEventListener("pointercancel",cancel);
+   if(cancelled){setBall(startBall.x,startBall.y);history.pop();msg("BALL MOVE CANCELLED");return}
+   const moved=Math.abs(ballPos.x-startBall.x)+Math.abs(ballPos.y-startBall.y)>0.5;
+   if(!moved){history.pop();msg("BALL SELECTED");return}
+   if(recording)sequence.push({type:"ball",x:ballPos.x,y:ballPos.y});
+   persist();msg("BALL POSITIONED");
+ };
+ const up=()=>finish(false),cancel=()=>finish(true);
+ ball.addEventListener("pointermove",move,{passive:false});ball.addEventListener("pointerup",up,{passive:true});ball.addEventListener("pointercancel",cancel,{passive:true});
 });
 function setFormation(f){pushHistory();formation=f;players.forEach((p,i)=>{p.x=formations[f][i][0];p.y=formations[f][i][1];renderPlayer(p)});document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===f));draw();persist();msg("FORMATION • "+f)}
 function setTool(t){tool=t;window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"));document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===t));const status={select:"SELECT MODE • drag players",pass:"PASS MODE • tap passer then receiver",run:"RUN MODE • drag players • press Record to capture",ball:"BALL MODE • drag the ball",opp:"OPP MODE • tap pitch to add opponents"};msg(status[t]||status.select)}
@@ -333,7 +341,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"){document.getElement
 pitch.addEventListener("pointercancel",()=>{window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))});
 notes.addEventListener("input",()=>{clearTimeout(window.__noteTimer);window.__noteTimer=setTimeout(persist,250)});
 pitch.addEventListener("pointerdown",e=>{if(tool==="opp"&&!frozen&&e.target===pitch){const q=posFromEvent(e);addOppAt(q.x,q.y)}});
-function addOppAt(x,y,silent=false){if(frozen)return;if(!silent)pushHistory();const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x,y,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();pushHistory();const startX=o.x,startY=o.y;let moved=false;try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;moved=true;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);if(!moved)history.pop();persist();msg("OPPONENT POSITIONED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
+function addOppAt(x,y,silent=false){if(frozen)return;if(!silent)pushHistory();const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x,y,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();pushHistory();const startX=o.x,startY=o.y;let moved=false;try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;if(Math.abs(o.x-startX)+Math.abs(o.y-startY)>0.5)moved=true;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);if(!moved)history.pop();persist();msg(moved?"OPPONENT POSITIONED":"OPPONENT SELECTED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
 
 for(let i=0;i<11;i++)createPlayer(i);
 ensureBoardIntegrity();
@@ -346,7 +354,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • ENGINE V6");
+msg("READY • 11 PLAYERS + BALL • PRO ENGINE");
 window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).then(r=>r.update()).catch(()=>{}));}
