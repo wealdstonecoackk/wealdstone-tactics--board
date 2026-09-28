@@ -20,7 +20,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 </style>
 </head>
 <body>
-<header class="top"><img src="https://assets.footylogos.com/logos/wealdstone-logo-footylogos.svg" alt="Wealdstone FC"><div><h1>WEALDSTONE FC COACH BOARD</h1><p>Professional tactical planning • mobile ready</p></div></header>
+<header class="top"><img src="https://assets.footylogos.com/logos/wealdstone-logo-footylogos.svg" alt="Wealdstone FC" onerror="this.onerror=null;this.src='icon.svg'"><div><h1>WEALDSTONE FC COACH BOARD</h1><p>Professional tactical planning • mobile ready</p></div></header>
 <main class="wrap">
 <div class="tabs">
 <button data-formation="433" class="active">4-3-3</button><button data-formation="442">4-4-2</button><button data-formation="352">3-5-2</button><button data-formation="4231">4-2-3-1</button><button data-formation="4141">4-1-4-1</button>
@@ -75,14 +75,14 @@ function dragPlayer(p){
   if(tool!=="select"&&tool!=="run")return;
   e.preventDefault();active=true;dragStart={x:p.x,y:p.y};pushHistory();try{p.el.setPointerCapture(e.pointerId)}catch(_){}
   const move=ev=>{if(!active)return;const q=posFromEvent(ev);p.x=q.x;p.y=q.y;renderPlayer(p);if(tool==="run"&&recording)drawLiveRun(p,q)};
-  const up=()=>{if(!active)return;active=false;p.el.removeEventListener("pointermove",move);p.el.removeEventListener("pointerup",up);if(tool==="run"&&recording)recordRun(p,dragStart);dragStart=null;persist();msg("PLAYER "+(p.i+1)+" POSITIONED")};
+  const up=()=>{if(!active)return;active=false;p.el.removeEventListener("pointermove",move);p.el.removeEventListener("pointerup",up);if(tool==="run"&&recording)recordRun(p,dragStart);dragStart=null;persist();msg(tool==="run"&&recording?"RUN RECORDED • "+(p.i+1):"PLAYER "+(p.i+1)+" POSITIONED")};
   p.el.addEventListener("pointermove",move);p.el.addEventListener("pointerup",up)
  })
 }
 function elDown(el,fn){el.addEventListener("pointerdown",fn,{passive:false})}
 function selectPassStart(p){if(!window.passStart){window.passStart=p;msg("PASS • now tap the receiving player")}else{const a=window.passStart;const b=p;if(a!==b){arrows.push({type:"pass",x1:a.x,y1:a.y,x2:b.x,y2:b.y});if(recording)sequence.push({...arrows[arrows.length-1]});draw();persist();msg("PASS ADDED • "+(a.i+1)+" → "+(b.i+1))}window.passStart=null}}
 function drawLiveRun(p,q){draw()}
-function recordRun(p,start){if(start&&((Math.abs(start.x-p.x)+Math.abs(start.y-p.y))>0.5))sequence.push({type:"run",i:p.i,x1:start.x,y1:start.y,x2:p.x,y2:p.y})}
+function recordRun(p,start){if(start&&((Math.abs(start.x-p.x)+Math.abs(start.y-p.y))>0.5)){const a={type:"run",i:p.i,x1:start.x,y1:start.y,x2:p.x,y2:p.y};sequence.push({...a});arrows.push(a);draw()}}
 function draw(){
  svg.querySelectorAll(".dyn").forEach(x=>x.remove());
  arrows.forEach(a=>{const l=document.createElementNS("http://www.w3.org/2000/svg","line");l.classList.add("dyn",a.type==="run"?"run":"pass","arrow");l.setAttribute("x1",a.x1*10);l.setAttribute("y1",a.y1*7);l.setAttribute("x2",a.x2*10);l.setAttribute("y2",a.y2*7);l.style.color=a.type==="run"?"#fff":"#ffd84d";svg.appendChild(l)})
@@ -103,7 +103,7 @@ function reset(){pushHistory();players.forEach((p,i)=>{p.x=formations[formation]
 function clear(){pushHistory();arrows=[];sequence=[];draw();persist();msg("TACTICAL DRAWING CLEARED")}
 function undo(){if(!history.length){msg("NOTHING TO UNDO");return}const s=JSON.parse(history.pop());restore(s);persist();msg("UNDO COMPLETE")}
 function restore(s){formation=s.formation||"433";names=s.names||names;while(players.length<11)createPlayer(players.length);players.forEach((p,i)=>{const q=s.players[i]||formations[formation][i];p.x=q.x;p.y=q.y;p.name=names[i]||("Player "+(i+1));renderPlayer(p)});clearOpp();(s.opps||[]).forEach(o=>{addOpp();const x=opps[opps.length-1];x.x=o.x;x.y=o.y;renderOpp(x)});arrows=s.arrows||[];sequence=s.sequence||[];setBall((s.ball||{}).x??50,(s.ball||{}).y??50);notes.value=s.notes||"";draw();document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===formation))}
-function startRec(){if(playing){playing=false;cancelAnimationFrame(raf)};recording=true;sequence=[];msg("RECORDING • build your play")}
+function startRec(){if(playing){playing=false;cancelAnimationFrame(raf)};recording=true;sequence=[];msg("RECORDING • drag players for runs or add passes")}
 function stopRec(){recording=false;persist();msg("RECORDING STOPPED • "+sequence.length+" actions")}
 function play(){
  if(!sequence.length){msg("NO RECORDED PLAY");return}
