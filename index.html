@@ -34,7 +34,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 </div>
 <div id="status" class="status">READY • Select a player or choose a coaching tool</div>
 <section id="pitch">
-<div id="playersLayer" aria-label="Players"></div>
+<div id="playersLayer" aria-label="Players"><div class="player gk" data-player="0" style="left:50%;top:88%"><span class="num">1</span><span class="nm">Player 1</span></div><div class="player" data-player="1" style="left:18%;top:72%"><span class="num">2</span><span class="nm">Player 2</span></div><div class="player" data-player="2" style="left:38%;top:76%"><span class="num">3</span><span class="nm">Player 3</span></div><div class="player" data-player="3" style="left:62%;top:76%"><span class="num">4</span><span class="nm">Player 4</span></div><div class="player" data-player="4" style="left:82%;top:72%"><span class="num">5</span><span class="nm">Player 5</span></div><div class="player" data-player="5" style="left:30%;top:57%"><span class="num">6</span><span class="nm">Player 6</span></div><div class="player" data-player="6" style="left:50%;top:63%"><span class="num">7</span><span class="nm">Player 7</span></div><div class="player" data-player="7" style="left:70%;top:57%"><span class="num">8</span><span class="nm">Player 8</span></div><div class="player" data-player="8" style="left:18%;top:32%"><span class="num">9</span><span class="nm">Player 9</span></div><div class="player" data-player="9" style="left:50%;top:25%"><span class="num">10</span><span class="nm">Player 10</span></div><div class="player" data-player="10" style="left:82%;top:32%"><span class="num">11</span><span class="nm">Player 11</span></div></div>
 <svg id="svg" viewBox="0 0 1000 700" preserveAspectRatio="none"><defs><marker id="head" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0 0L9 4L0 8Z" fill="currentColor"/></marker></defs></svg>
 <div class="line half"></div><div class="line centre"></div><div class="line box a"></div><div class="line box b"></div><div class="line goal a"></div><div class="line goal b"></div>
 <div id="ball" class="ball" style="left:50%;top:50%">⚽</div>
@@ -95,7 +95,17 @@ function pushHistory(){history.push(JSON.stringify(snapshot()));redoStack=[];if(
 function snapshot(){return{formation,names:names.slice(),players:players.map(p=>({x:p.x,y:p.y})),opps:opps.map(o=>({x:o.x,y:o.y})),arrows:arrows.map(a=>({...a})),ball:{...ballPos},sequence:sequence.map(a=>({...a})),notes:notes.value}}
 function renderPlayer(p){if(!p||!p.el)return; p.el.classList.add("player");p.el.style.position="absolute";p.el.style.display="flex";p.el.style.visibility="visible";p.el.style.opacity="1";p.el.style.pointerEvents="auto";p.el.style.left=p.x+"%";p.el.style.top=p.y+"%";p.el.style.zIndex="20";const nm=p.el.querySelector(".nm");if(nm)nm.textContent=p.name}
 function createPlayer(i){
- const el=document.createElement("div");el.className="player"+(i===0?" gk":"");el.innerHTML='<span class="num">'+(i+1)+'</span><span class="nm"></span>';document.getElementById("playersLayer").appendChild(el);
+ const layer=document.getElementById("playersLayer");
+ let el=layer.querySelector('.player[data-player="'+i+'"]');
+ if(!el){
+  el=document.createElement("div");
+  el.className="player"+(i===0?" gk":"");
+  el.dataset.player=String(i);
+  el.innerHTML='<span class="num">'+(i+1)+'</span><span class="nm"></span>';
+  layer.appendChild(el);
+ }
+ el.classList.add("player");
+ if(i===0)el.classList.add("gk");
  const p={i,x:formations[formation][i][0],y:formations[formation][i][1],name:names[i],el};players.push(p);renderPlayer(p);dragPlayer(p)
 }
 function dragPlayer(p){
@@ -352,7 +362,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO ENGINE • V7");
+msg("READY • 11 PLAYERS + BALL • PRO ENGINE • V8");
 window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
