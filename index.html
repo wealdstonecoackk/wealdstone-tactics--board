@@ -249,6 +249,9 @@ const saved=localStorage.getItem(key);if(saved)try{restore(JSON.parse(saved))}ca
 msg("READY • 11 PLAYERS + BALL LOADED");
 window.addEventListener("pageshow",()=>{ball.style.display="flex";players.forEach(renderPlayer)});
 })();
+<script>
+// SELF TEST: keep the board usable if saved state is malformed.
+try{ensureBoardIntegrity();msg("READY • 11 PLAYERS + BALL LOADED")}catch(e){players=[];for(let i=0;i<11;i++)createPlayer(i);setBall(50,50);draw();msg("BOARD RECOVERED • 11 PLAYERS + BALL READY")}
 </script>
 </body>
 </html>
