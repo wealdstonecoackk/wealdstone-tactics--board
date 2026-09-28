@@ -1499,3 +1499,93 @@ function restore(){try{var raw=localStorage.getItem('wealdstone_live_tactic');if
 window.addEventListener('load',function(){setTimeout(restore,1250);setTimeout(function(){if(typeof v34Mode==='function')v34Mode('move')},1450)});
 })();
 </script>
+<!-- V40 COACH WORKFLOW + INTERACTION INTEGRITY -->
+<script>
+(function(){
+  function saveLive(){
+    try{
+      if(typeof getState==='function') localStorage.setItem('wealdstone_live_tactic',JSON.stringify(getState()));
+    }catch(e){}
+  }
+  window.v40SaveLive=saveLive;
+
+  /* Keep the current board state as the single source of truth for all coach areas. */
+  window.v40SyncXIKeys=function(){
+    try{
+      var modern=JSON.parse(localStorage.getItem('wealdstone_starting11_players_v26')||'[]');
+      if(Array.isArray(modern)&&modern.length===11){
+        localStorage.setItem('wealdstone_starting11',JSON.stringify(modern.map(function(_,i){return i})));
+      }
+    }catch(e){}
+  };
+
+  /* BALL mode: tap anywhere on the pitch to place the ball; drag still works. */
+  function installBallTap(){
+    var p=document.getElementById('pitch');
+    if(!p||p.__v40BallTap)return;
+    p.__v40BallTap=true;
+    p.addEventListener('pointerdown',function(e){
+      if(typeof ballMode==='undefined'||!ballMode)return;
+      if(e.target.closest && (e.target.closest('.player')||e.target.closest('.ball')||e.target.closest('#v34Tools')))return;
+      var r=p.getBoundingClientRect();
+      var x=Math.max(2,Math.min(98,(e.clientX-r.left)/r.width*100));
+      var y=Math.max(2,Math.min(98,(e.clientY-r.top)/r.height*100));
+      if(typeof ballX!=='undefined')ballX=x;
+      if(typeof ballY!=='undefined')ballY=y;
+      var b=document.getElementById('ball');
+      if(b){b.style.display='block';b.style.left=x+'%';b.style.top=y+'%';}
+      saveLive();
+      if(typeof status!=='undefined')status.textContent='Ball placed.';
+    },{passive:true});
+  }
+
+  /* Make state restore refresh the visual board and active formation reliably. */
+  var originalApply=window.applyState;
+  if(typeof originalApply==='function'){
+    window.applyState=function(d){
+      originalApply(d);
+      try{
+        if(typeof ball!=='undefined'&&ball){
+          ball.style.display='block';
+          ball.style.left=(typeof ballX!=='undefined'?ballX:50)+'%';
+          ball.style.top=(typeof ballY!=='undefined'?ballY:50)+'%';
+        }
+        if(typeof renderNames==='function')renderNames();
+        if(typeof drawArrows==='function')drawArrows();
+        if(typeof renderOpposition==='function')renderOpposition();
+      }catch(e){}
+      setTimeout(saveLive,30);
+    };
+  }
+
+  /* Saved-play workflow also refreshes the live tactic after loading. */
+  var originalLoadSaved=window.loadSavedPlay;
+  if(typeof originalLoadSaved==='function'){
+    window.loadSavedPlay=function(i){
+      originalLoadSaved(i);
+      setTimeout(function(){saveLive();if(typeof v40SyncXIKeys==='function')v40SyncXIKeys()},60);
+    };
+  }
+
+  /* Keep Matchday's legacy key aligned with the current Starting XI system. */
+  var originalApplyXI=window.applyStarting11;
+  if(typeof originalApplyXI==='function'){
+    window.applyStarting11=function(){
+      var result=originalApplyXI.apply(this,arguments);
+      setTimeout(function(){if(typeof v40SyncXIKeys==='function')v40SyncXIKeys();saveLive()},40);
+      return result;
+    };
+  }
+
+  window.addEventListener('load',function(){
+    installBallTap();
+    setTimeout(installBallTap,700);
+    setTimeout(function(){if(typeof v40SyncXIKeys==='function')v40SyncXIKeys()},1200);
+  });
+
+  /* Persist important coach edits, not just board drags. */
+  document.addEventListener('change',function(e){
+    if(e.target && (e.target.matches('textarea,input,select')))setTimeout(saveLive,50);
+  });
+})();
+</script>
