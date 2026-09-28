@@ -56,6 +56,7 @@ let formation="433",tool="select",players=[],opps=[],arrows=[],history=[],redoSt
 let names=Array.from({length:11},(_,i)=>"Player "+(i+1));
 const key="wealdstone_pro_coach_v1";
 function msg(t){status.textContent=t;status.setAttribute("aria-live","polite")}
+function elDown(el,fn){el.addEventListener("pointerdown",fn,{passive:false})}
 // ELITE COACHING UX + SAFE INTERACTION LAYER
 function stopPlayback(){if(playing){playing=false;cancelAnimationFrame(raf);msg("PLAYBACK STOPPED")}}
 function clearSelection(){window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))}
@@ -148,16 +149,20 @@ function selectPassStart(p){
    msg("PASS COMPLETE • "+(a.i+1)+" → "+(b.i+1));
  });
 }
-function drawLiveRun(p,q){
+function drawLiveRun(p,x1,y1,x2,y2){
  draw();
- if(!recording||tool!=="run"||!p.__runStart)return;
- const a=p.__runStart;
+ if(!recording||tool!=="run")return;
  const l=document.createElementNS("http://www.w3.org/2000/svg","line");
  l.classList.add("dyn","run","arrow","liveRun");
- l.setAttribute("x1",a.x*10);l.setAttribute("y1",a.y*7);l.setAttribute("x2",q.x*10);l.setAttribute("y2",q.y*7);
+ l.setAttribute("x1",x1*10);l.setAttribute("y1",y1*7);l.setAttribute("x2",x2*10);l.setAttribute("y2",y2*7);
  l.style.color="#fff";svg.appendChild(l);
 }
-function recordRun(p,start){svg.querySelectorAll(".liveRun").forEach(x=>x.remove());if(start&&((Math.abs(start.x-p.x)+Math.abs(start.y-p.y))>0.5)){const a={type:"run",i:p.i,x1:start.x,y1:start.y,x2:p.x,y2:p.y};sequence.push({...a});arrows.push(a);draw()}}
+function recordRun(p,x1,y1,x2,y2){
+ svg.querySelectorAll(".liveRun").forEach(x=>x.remove());
+ if(!p||Math.abs(x1-x2)+Math.abs(y1-y2)<=0.5)return;
+ const a={type:"run",i:p.i,x1,y1,x2,y2};
+ sequence.push({...a});arrows.push(a);draw();
+}
 function draw(){
  svg.querySelectorAll(".dyn").forEach(x=>x.remove());
  arrows.forEach(a=>{const l=document.createElementNS("http://www.w3.org/2000/svg","line");l.classList.add("dyn",a.type==="run"?"run":"pass","arrow");l.setAttribute("x1",a.x1*10);l.setAttribute("y1",a.y1*7);l.setAttribute("x2",a.x2*10);l.setAttribute("y2",a.y2*7);l.style.color=a.type==="run"?"#fff":"#ffd84d";svg.appendChild(l)})
