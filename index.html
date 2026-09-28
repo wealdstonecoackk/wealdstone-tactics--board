@@ -55,7 +55,7 @@ const formations={
 };
 let formation="433",tool="select",players=[],opps=[],arrows=[],history=[],redoStack=[],sequence=[],recording=false,playing=false,playIndex=0,raf=0,ballPos={x:50,y:50},frozen=false;
 let names=Array.from({length:11},(_,i)=>"Player "+(i+1));
-const key="wealdstone_pro_coach_v3";
+const key="wealdstone_pro_coach_v4";
 function msg(t){status.textContent=t;status.setAttribute("aria-live","polite")}
 function elDown(el,fn){el.addEventListener("pointerdown",fn,{passive:false})}
 // ELITE COACHING UX + SAFE INTERACTION LAYER
@@ -129,7 +129,7 @@ function dragPlayer(p){
         msg("MOVE CANCELLED");
         return;
       }
-      if(tool==="run" && recording && moved)recordRun(startX,startY,p.x,p.y);
+      if(tool==="run" && recording && moved)recordRun(p,startX,startY,p.x,p.y);
       persist();
       msg(moved ? "PLAYER "+(p.i+1)+" MOVED" : "PLAYER "+(p.i+1)+" SELECTED");
     };
@@ -218,7 +218,7 @@ function restore(s){
   document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===formation));
 }
 function startRec(){if(playing){playing=false;cancelAnimationFrame(raf)};recording=true;sequence=[];msg("RECORDING • drag players for runs or add passes")}
-function stopRec(){recording=false;persist();msg("RECORDING STOPPED • "+sequence.length+" actions")}
+function stopRec(){recording=false;svg.querySelectorAll(".liveRun").forEach(x=>x.remove());stopPlayback();persist();msg("STOPPED • "+sequence.length+" actions")}
 function play(){
  ensureBoardIntegrity();
  if(!sequence.length){msg("NO RECORDED PLAY");return}
@@ -323,7 +323,6 @@ document.getElementById("rebuild").onclick=function(){stopPlayback();clearSelect
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){document.getElementById("modal").classList.add("hidden");window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))}});
 pitch.addEventListener("pointercancel",()=>{window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))});
 notes.addEventListener("input",()=>{clearTimeout(window.__noteTimer);window.__noteTimer=setTimeout(persist,250)});
-pitch.addEventListener("dblclick",e=>{if(tool==="opp")addOpp()});
 pitch.addEventListener("pointerdown",e=>{if(tool==="opp"&&!frozen&&e.target===pitch){const q=posFromEvent(e);addOppAt(q.x,q.y)}});
 function addOppAt(x,y){if(frozen)return;const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x,y,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);persist();msg("OPPONENT POSITIONED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
 
@@ -338,7 +337,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL LOADED • V3");
+msg("READY • 11 PLAYERS + BALL LOADED • V4");
 window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 })();
