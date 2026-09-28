@@ -29,7 +29,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 <button data-tool="select" class="active">👆 Select</button><button data-tool="pass">➜ Pass</button><button data-tool="run">↗ Run</button><button data-tool="ball">⚽ Ball</button><button data-tool="opp">🔴 Opp</button>
 </div>
 <div class="actions">
-<button id="record">⏺ Record</button><button id="stop">⏹ Stop</button><button id="play">▶ Play</button><button id="clear">🧹 Clear</button><button id="undo">↶ Undo</button><button id="save">💾 Save</button><button id="library">📚 Library</button><button id="more">🧠 Coach Hub</button>
+<button id="record">⏺ Record</button><button id="newSession">🆕 New Session</button><button id="stop">⏹ Stop</button><button id="play">▶ Play</button><button id="clear">🧹 Clear</button><button id="undo">↶ Undo</button><button id="save">💾 Save</button><button id="library">📚 Library</button><button id="more">🧠 Coach Hub</button>
 </div>
 <div id="status" class="status">READY • Select a player or choose a coaching tool</div>
 <section id="pitch">
@@ -110,7 +110,15 @@ function selectPassStart(p){
    msg("PASS COMPLETE • "+(a.i+1)+" → "+(b.i+1));
  });
 }
-function drawLiveRun(p,q){\n draw(); if(!recording||tool!=="run"||!p.__runStart)return;\n const a=p.__runStart; const l=document.createElementNS("http://www.w3.org/2000/svg","line");\n l.classList.add("dyn","run","arrow","liveRun"); l.setAttribute("x1",a.x*10);l.setAttribute("y1",a.y*7);l.setAttribute("x2",q.x*10);l.setAttribute("y2",q.y*7);l.style.color="#fff";svg.appendChild(l);\n}
+function drawLiveRun(p,q){
+ draw();
+ if(!recording||tool!=="run"||!p.__runStart)return;
+ const a=p.__runStart;
+ const l=document.createElementNS("http://www.w3.org/2000/svg","line");
+ l.classList.add("dyn","run","arrow","liveRun");
+ l.setAttribute("x1",a.x*10);l.setAttribute("y1",a.y*7);l.setAttribute("x2",q.x*10);l.setAttribute("y2",q.y*7);
+ l.style.color="#fff";svg.appendChild(l);
+}
 function recordRun(p,start){svg.querySelectorAll(".liveRun").forEach(x=>x.remove());if(start&&((Math.abs(start.x-p.x)+Math.abs(start.y-p.y))>0.5)){const a={type:"run",i:p.i,x1:start.x,y1:start.y,x2:p.x,y2:p.y};sequence.push({...a});arrows.push(a);draw()}}
 function draw(){
  svg.querySelectorAll(".dyn").forEach(x=>x.remove());
@@ -225,6 +233,7 @@ function hub(){
 document.querySelectorAll("[data-formation]").forEach(b=>b.onclick=()=>setFormation(b.dataset.formation));
 document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{if(b.dataset.tool==="opp")addOpp();else setTool(b.dataset.tool)});
 document.getElementById("record").onclick=()=>{stopPlayback();clearSelection();startRec()};
+document.getElementById("newSession").onclick=newSession;
 document.getElementById("stop").onclick=stopRec;document.getElementById("play").onclick=play;document.getElementById("clear").onclick=()=>{stopPlayback();clearSelection();clear()};
 document.getElementById("undo").onclick=undo;document.getElementById("save").onclick=save;document.getElementById("library").onclick=library;document.getElementById("more").onclick=hub;
 document.getElementById("notes").setAttribute("aria-label","Coach notes");
