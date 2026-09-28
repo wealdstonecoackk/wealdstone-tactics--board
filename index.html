@@ -60,11 +60,18 @@ function msg(t){status.textContent=t;status.setAttribute("aria-live","polite")}
 function stopPlayback(){if(playing){playing=false;cancelAnimationFrame(raf);msg("PLAYBACK STOPPED")}}
 function clearSelection(){window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))}
 function ensureBoardIntegrity(){
+  if(!formations[formation]) formation="433";
   while(players.length<11)createPlayer(players.length);
   if(players.length>11){players.slice(11).forEach(p=>p.el.remove());players=players.slice(0,11)}
-  players.forEach((p,i)=>{if(!Number.isFinite(p.x)||!Number.isFinite(p.y)){p.x=formations[formation][i][0];p.y=formations[formation][i][1]}renderPlayer(p)});
-  if(!Number.isFinite(ballPos.x)||!Number.isFinite(ballPos.y))setBall(50,50);
-  ball.style.display="flex";draw();
+  players.forEach((p,i)=>{
+    if(!Number.isFinite(p.x)||!Number.isFinite(p.y)){p.x=formations[formation][i][0];p.y=formations[formation][i][1]}
+    if(!p.name)p.name=names[i]||("Player "+(i+1));
+    renderPlayer(p);
+  });
+  if(!Number.isFinite(ballPos.x)||!Number.isFinite(ballPos.y)){ballPos={x:50,y:50}}
+  setBall(ballPos.x,ballPos.y);
+  ball.style.display="flex";
+  draw();
 }
 function newSession(){stopPlayback();clearSelection();pushHistory();formation="433";players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1]});arrows=[];sequence=[];opps.forEach(o=>o.el.remove());opps=[];setBall(50,50);notes.value="";draw();persist();document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation==="433"));msg("NEW SESSION • 4-3-3 READY")}
 
@@ -139,7 +146,31 @@ function clearOpp(silent=false){opps.forEach(o=>o.el.remove());opps=[];if(!silen
 function reset(){pushHistory();players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1];renderPlayer(p)});arrows=[];sequence=[];setBall(50,50);draw();persist();msg("XI RESET • "+formation)}
 function clear(){pushHistory();arrows=[];sequence=[];draw();persist();msg("TACTICAL DRAWING CLEARED")}
 function undo(){if(!history.length){msg("NOTHING TO UNDO");return}const s=JSON.parse(history.pop());restore(s);persist();msg("UNDO COMPLETE")}
-function restore(s){formation=s.formation||"433";names=s.names||names;while(players.length<11)createPlayer(players.length);players.forEach((p,i)=>{const q=s.players[i]||formations[formation][i];p.x=q.x;p.y=q.y;p.name=names[i]||("Player "+(i+1));renderPlayer(p)});clearOpp(true);(s.opps||[]).forEach(o=>{addOpp();const x=opps[opps.length-1];x.x=o.x;x.y=o.y;renderOpp(x)});arrows=s.arrows||[];sequence=s.sequence||[];setBall((s.ball||{}).x??50,(s.ball||{}).y??50);notes.value=s.notes||"";draw();document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===formation))}
+function restore(s){
+  if(!s||typeof s!=="object")throw new Error("Invalid session");
+  formation=formations[s.formation]?s.formation:"433";
+  names=Array.isArray(s.names)&&s.names.length>=11?s.names.slice(0,11):Array.from({length:11},(_,i)=>"Player "+(i+1));
+  while(players.length<11)createPlayer(players.length);
+  players.forEach((p,i)=>{
+    const q=Array.isArray(s.players)&&s.players[i]?s.players[i]:formations[formation][i];
+    p.x=Number.isFinite(q.x)?clamp(q.x,1,99):formations[formation][i][0];
+    p.y=Number.isFinite(q.y)?clamp(q.y,1,99):formations[formation][i][1];
+    p.name=names[i]||("Player "+(i+1));
+    renderPlayer(p);
+  });
+  clearOpp(true);
+  if(Array.isArray(s.opps))s.opps.slice(0,20).forEach(o=>{
+    if(Number.isFinite(o.x)&&Number.isFinite(o.y)){addOppAt(clamp(o.x,1,99),clamp(o.y,1,99));}
+  });
+  arrows=Array.isArray(s.arrows)?s.arrows.filter(a=>a&&["pass","run"].includes(a.type)&&Number.isFinite(a.x1)&&Number.isFinite(a.y1)&&Number.isFinite(a.x2)&&Number.isFinite(a.y2)).map(a=>({...a})):[]; 
+  sequence=Array.isArray(s.sequence)?s.sequence.filter(a=>a&&["pass","run","ball"].includes(a.type)).map(a=>({...a})):[]; 
+  const bx=s.ball&&Number.isFinite(s.ball.x)?clamp(s.ball.x,1,99):50;
+  const by=s.ball&&Number.isFinite(s.ball.y)?clamp(s.ball.y,1,99):50;
+  setBall(bx,by);
+  notes.value=typeof s.notes==="string"?s.notes:"";
+  draw();
+  document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===formation));
+}
 function startRec(){if(playing){playing=false;cancelAnimationFrame(raf)};recording=true;sequence=[];msg("RECORDING • drag players for runs or add passes")}
 function stopRec(){recording=false;persist();msg("RECORDING STOPPED • "+sequence.length+" actions")}
 function play(){
@@ -248,13 +279,19 @@ pitch.addEventListener("pointerdown",e=>{if(tool==="opp"&&!frozen&&e.target===pi
 function addOppAt(x,y){if(frozen)return;const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x,y,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);persist();msg("OPPONENT POSITIONED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
 
 for(let i=0;i<11;i++)createPlayer(i);
-const saved=localStorage.getItem(key);if(saved)try{restore(JSON.parse(saved))}catch(_){}
+ensureBoardIntegrity();
+const saved=localStorage.getItem(key);
+if(saved){
+  try{restore(JSON.parse(saved));ensureBoardIntegrity()}catch(_){
+    localStorage.removeItem(key);
+    formation="433";arrows=[];sequence=[];opps.forEach(o=>o.el.remove());opps=[];
+    players.forEach((p,i)=>{p.x=formations.433[i][0];p.y=formations.433[i][1];p.name="Player "+(i+1);renderPlayer(p)});
+    setBall(50,50);notes.value="";draw();
+  }
+}
 msg("READY • 11 PLAYERS + BALL LOADED");
 window.addEventListener("pageshow",()=>{ball.style.display="flex";players.forEach(renderPlayer)});
 })();
-<script>
-// SELF TEST: keep the board usable if saved state is malformed.
-try{ensureBoardIntegrity();msg("READY • 11 PLAYERS + BALL LOADED")}catch(e){players=[];for(let i=0;i<11;i++)createPlayer(i);setBall(50,50);draw();msg("BOARD RECOVERED • 11 PLAYERS + BALL READY")}
-</script>
+
 </body>
 </html>
