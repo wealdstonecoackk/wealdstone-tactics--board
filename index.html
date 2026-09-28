@@ -1724,3 +1724,55 @@ window.addEventListener('load',function(){setTimeout(restore,1250);setTimeout(fu
  if(typeof oldSaveSlot==='function')window.saveSlot=function(slot){var r=oldSaveSlot.apply(this,arguments);try{localStorage.setItem('wealdstone_live_tactic',JSON.stringify(getState()))}catch(e){}return r};
 })();
 </script>
+<!-- V43 RELIABILITY FIX + COACH HUB REBUILD -->
+<script>
+(function(){
+  function readXI(){
+    try{
+      var a=JSON.parse(localStorage.getItem('wealdstone_starting11_players_v26')||'[]');
+      if(Array.isArray(a)&&a.length===11)return a;
+      a=JSON.parse(localStorage.getItem('wealdstone_starting11')||'[]');
+      return Array.isArray(a)?a:[];
+    }catch(e){return[]}
+  }
+  function plays(){try{var a=JSON.parse(localStorage.getItem('wealdstone_saved_plays')||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+  function session(){try{return JSON.parse(localStorage.getItem('wealdstone_session_plan')||'null')}catch(e){return null}}
+  window.openCoachCommandCentre=function(){
+    var m=document.getElementById('v41CoachHub');
+    if(!m){m=document.createElement('div');m.id='v41CoachHub';m.style='display:none;position:fixed;inset:3%;z-index:160;background:#111;color:#fff;border:1px solid #343b45;border-radius:14px;padding:16px;overflow:auto;text-align:left';document.body.appendChild(m)}
+    var xi=readXI(),ps=plays(),ss=session(),pack=localStorage.getItem('wealdstone_matchday_pack');
+    var grid='display:grid;grid-template-columns:1fr 1fr;gap:8px';
+    var card='background:#1b2026;border:1px solid #343b45;border-radius:12px;padding:12px';
+    var esc=function(x){return String(x||'').replace(/</g,'&lt;').replace(/"/g,'&quot;')};
+    m.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><div><h2 style="margin:0">🧠 Coach Command Centre</h2><small style="opacity:.7">Complete coaching workflow</small></div><button id="v43Close">✕</button></div>'+
+      '<div style="'+grid+';margin-top:12px">'+
+      '<div style="'+card+'"><b>👥 Squad</b><br>'+players.length+' players loaded</div>'+
+      '<div style="'+card+'"><b>🧤 Starting XI</b><br>'+(xi.length===11?'✅ Ready':'⚠ '+xi.length+' selected')+'</div>'+
+      '<div style="'+card+'"><b>⚽ Tactics</b><br>'+esc(typeof currentFormation!=='undefined'?currentFormation:'433')+' · '+(typeof sequence!=='undefined'?sequence.length:0)+' actions</div>'+
+      '<div style="'+card+'"><b>▶ Play Library</b><br>'+ps.length+' saved plays</div>'+
+      '<div style="'+card+'"><b>📋 Session</b><br>'+(ss?'✅ '+esc(ss.name||'Session saved'):'⚠ Not saved')+'</div>'+
+      '<div style="'+card+'"><b>🏟 Matchday</b><br>'+(pack?'✅ Pack saved':'⚠ Pack not saved')+'</div></div>'+
+      '<h3>Coach workflow</h3><div style="'+grid+'">'+
+      '<button id="v43Squad">👥 Squad</button><button id="v43XI">🧤 Starting XI</button>'+
+      '<button id="v43Plays">▶ Play Library</button><button id="v43Session">📋 Session Planner</button>'+
+      '<button id="v43Matchday">🏟 Matchday</button><button id="v43System">🩺 System Check</button></div>'+
+      '<div style="margin-top:12px"><button id="v43Board">Back to Board</button></div>';
+    m.style.display='block';
+    document.getElementById('v43Close').onclick=window.v41Close=function(){m.style.display='none'};
+    document.getElementById('v43Board').onclick=function(){m.style.display='none'};
+    document.getElementById('v43Squad').onclick=function(){m.style.display='none';if(typeof openSquadHub==='function')openSquadHub()};
+    document.getElementById('v43XI').onclick=function(){m.style.display='none';if(typeof openTeamManager==='function')openTeamManager()};
+    document.getElementById('v43Plays').onclick=function(){m.style.display='none';if(typeof openPlayMenu==='function')openPlayMenu()};
+    document.getElementById('v43Session').onclick=function(){m.style.display='none';if(typeof openSessionHub==='function')openSessionHub()};
+    document.getElementById('v43Matchday').onclick=function(){m.style.display='none';if(typeof openMatchdayHub==='function')openMatchdayHub()};
+    document.getElementById('v43System').onclick=function(){if(typeof coachHealthCheck==='function')coachHealthCheck()};
+  };
+  window.v41Refresh=function(){if(document.getElementById('v41CoachHub')&&document.getElementById('v41CoachHub').style.display!=='none')openCoachCommandCentre()};
+  window.openCoachHub=function(){openCoachCommandCentre()};
+  document.addEventListener('pointerup',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('.player,.ball'))setTimeout(function(){
+      try{if(typeof getState==='function')localStorage.setItem('wealdstone_live_tactic',JSON.stringify(getState()))}catch(_){}
+    },80);
+  });
+})();
+</script>
