@@ -2587,3 +2587,35 @@ window.addEventListener('load',function(){setTimeout(restore,1250);setTimeout(fu
   setTimeout(function(){if(typeof ensureBoard==="function")ensureBoard();},120);
 })();
 </script>
+<script>
+(function(){
+ if(window.__v54)return;window.__v54=true;
+ var p=document.getElementById("pitch");if(!p)return;
+ var s=document.createElement("style");s.textContent=
+ "#pitch .player{display:flex!important;visibility:visible!important;opacity:1!important;z-index:20!important}"+
+ "#pitch .ball{display:flex!important;visibility:visible!important;opacity:1!important;z-index:30!important;position:absolute!important;width:42px!important;height:42px!important;border-radius:50%!important;background:#fff!important;border:3px solid #111!important;color:#111!important;align-items:center!important;justify-content:center!important;font-size:25px!important;line-height:1!important;transform:translate(-50%,-50%)!important;pointer-events:auto!important;touch-action:none!important}"+
+ "#pitch .v54-icon{position:absolute;z-index:35;pointer-events:none;transform:translate(-50%,-50%);font-size:24px;line-height:1;text-shadow:0 1px 2px #000}"+
+ "#pitch .v54-zone{position:absolute;z-index:5;pointer-events:none;border:2px dashed #fff8;border-radius:50%;transform:translate(-50%,-50%)}";
+ document.head.appendChild(s);
+ function ensure(){
+   var players=p.querySelectorAll(".player:not(.opp)");
+   players.forEach(function(x,i){x.style.display="flex";x.style.visibility="visible";x.style.opacity="1";x.style.zIndex="20";if(!x.querySelector(".num"))x.textContent=i+1;});
+   var b=document.querySelector("#pitch .ball");
+   if(!b && typeof ball!=="undefined"){b=ball;p.appendChild(b);}
+   if(b){b.style.display="flex";b.style.visibility="visible";b.style.opacity="1";b.style.left=(typeof ballX==="number"?ballX:50)+"%";b.style.top=(typeof ballY==="number"?ballY:50)+"%";b.style.zIndex="30";b.textContent="⚽";}
+   var old=p.querySelectorAll(".v54-icon");old.forEach(x=>x.remove());
+ }
+ function addIcon(x,y,t){
+   var i=document.createElement("div");i.className="v54-icon";i.textContent=t;i.style.left=x+"%";i.style.top=y+"%";p.appendChild(i);
+ }
+ function addZones(){
+   p.querySelectorAll(".v54-zone").forEach(x=>x.remove());
+   [[50,50,34,24],[50,50,15,12]].forEach(function(z){var d=document.createElement("div");d.className="v54-zone";d.style.left=z[0]+"%";d.style.top=z[1]+"%";d.style.width=z[2]+"%";d.style.height=z[3]+"%";p.appendChild(d);});
+ }
+ ensure();addZones();
+ ["pageshow","focus","visibilitychange"].forEach(e=>addEventListener(e,function(){setTimeout(ensure,50);}));
+ setTimeout(ensure,300);setTimeout(ensure,1000);
+ var b=document.querySelector("#pitch .ball");
+ if(b){b.addEventListener("pointerdown",function(e){if(typeof ballMode!=="undefined"&&!ballMode)return;e.stopPropagation();});}
+})();
+</script>
