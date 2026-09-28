@@ -37,7 +37,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 <div class="line half"></div><div class="line centre"></div><div class="line box a"></div><div class="line box b"></div><div class="line goal a"></div><div class="line goal b"></div>
 <div id="ball" class="ball" style="left:50%;top:50%">⚽</div>
 </section>
-<div class="actions bottom"><button id="grid">▦ Grid</button><button id="reset">⌂ Reset XI</button><button id="oppClear">✕ Clear Opp</button><button id="freeze">🔒 Freeze</button></div>
+<div class="actions bottom"><button id="grid">▦ Grid</button><button id="reset">⌂ Reset XI</button><button id="oppClear">✕ Clear Opp</button><button id="freeze">🔒 Freeze</button><button id="rebuild">🔧 Rebuild Board</button></div>
 <div class="panel"><textarea id="notes" placeholder="Coach notes — objectives, triggers, details..."></textarea></div>
 </main>
 <div id="modal" class="modal hidden"></div>
@@ -61,6 +61,7 @@ function stopPlayback(){if(playing){playing=false;cancelAnimationFrame(raf);msg(
 function clearSelection(){window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))}
 function ensureBoardIntegrity(){
   if(!formations[formation]) formation="433";
+  pitch.querySelectorAll(".player:not(.opp)").forEach(el=>{if(!players.some(p=>p.el===el))el.remove()});
   while(players.length<11)createPlayer(players.length);
   if(players.length>11){players.slice(11).forEach(p=>p.el.remove());players=players.slice(0,11)}
   players.forEach((p,i)=>{
@@ -273,6 +274,7 @@ document.getElementById("reset").onclick=()=>{stopPlayback();clearSelection();re
 document.getElementById("oppClear").onclick=()=>{stopPlayback();clearSelection();clearOpp()};
 document.getElementById("grid").onclick=function(){pitch.classList.toggle("grid");this.classList.toggle("active",pitch.classList.contains("grid"));if(pitch.classList.contains("grid"))pitch.style.backgroundImage="linear-gradient(#ffffff18 1px,transparent 1px),linear-gradient(90deg,#ffffff18 1px,transparent 1px)";else pitch.style.backgroundImage="none"};
 document.getElementById("freeze").onclick=function(){frozen=!frozen;this.classList.toggle("active",frozen);msg(frozen?"BOARD FROZEN":"BOARD UNLOCKED")};
+document.getElementById("rebuild").onclick=function(){stopPlayback();clearSelection();players.forEach(p=>p.el.remove());players=[];opps.forEach(o=>o.el.remove());opps=[];formation="433";arrows=[];sequence=[];ballPos={x:50,y:50};for(let i=0;i<11;i++)createPlayer(i);ensureBoardIntegrity();persist();msg("BOARD REBUILT • 11 PLAYERS + BALL READY")};
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){document.getElementById("modal").classList.add("hidden");window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))}});\npitch.addEventListener("pointercancel",()=>{window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))});
 notes.addEventListener("input",()=>{clearTimeout(window.__noteTimer);window.__noteTimer=setTimeout(persist,250)});
 pitch.addEventListener("dblclick",e=>{if(tool==="opp")addOpp()});
