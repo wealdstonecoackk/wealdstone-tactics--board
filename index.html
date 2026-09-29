@@ -358,8 +358,22 @@ function training(){
  '<h3>🛡️ Defending</h3>'+
  '<button data-training="defensive-unit">Defending • Unit Movement</button> <button data-training="pressing-triggers">Defending • Pressing Triggers</button>'+
  '<hr><button id="tClose">Close</button>';
- m.querySelectorAll("[data-training]").forEach(b=>b.onclick=()=>loadTraining(b.dataset.training));
+ m.querySelectorAll("[data-training]").forEach(b=>b.onclick=()=>drillPreview(b.dataset.training));
  m.querySelector("#tClose").onclick=()=>m.classList.add("hidden");
+}
+function drillPreview(id){
+ const s=trainingLibrary[id];if(!s)return;
+ const m=document.getElementById("modal");m.classList.remove("hidden");
+ const duration=((s.notes||"").match(/\\b\\d+(?:[-–]\\d+)?\\s*min\\b/i)||[])[0]||"Coach-led";
+ const safeNotes=(s.notes||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+ m.innerHTML='<h2>▶️ Drill Mode</h2>'+
+ '<h3>'+s.title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</h3>'+
+ '<div class="card"><strong>⏱️ Suggested duration:</strong> '+duration+'</div>'+
+ '<div class="card"><strong>🎯 Coaching information</strong><p>'+safeNotes.replace(/\\n/g,"<br>")+'</p></div>'+
+ '<div class="row"><button id="drillLoad">▶ Load Drill</button> <button id="drillBack">← Back to Training</button> <button id="drillClose">Close</button></div>';
+ m.querySelector("#drillLoad").onclick=()=>loadTraining(id);
+ m.querySelector("#drillBack").onclick=training;
+ m.querySelector("#drillClose").onclick=()=>m.classList.add("hidden");
 }
 function loadTraining(id){
  const s=trainingLibrary[id];if(!s)return;
