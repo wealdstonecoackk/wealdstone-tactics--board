@@ -364,10 +364,10 @@ function training(){
 function drillPreview(id){
  const s=trainingLibrary[id];if(!s)return;
  const m=document.getElementById("modal");m.classList.remove("hidden");
- const duration=((s.notes||"").match(/\\b\\d+(?:[-–]\\d+)?\\s*min\\b/i)||[])[0]||"Coach-led";
+ const duration=((s.notes||"").match(/\b\d+(?:[-–]\d+)?\s*min\b/i)||[])[0]||"Coach-led";
  const safeTitle=s.title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
  const safeNotes=(s.notes||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
- const timerMinutes=Math.max(1,parseInt((duration.match(/\\d+/)||["10"])[0],10));
+ const timerMinutes=Math.max(1,parseInt((duration.match(/\d+/)||["10"])[0],10));
  let remaining=timerMinutes*60,timer=null,running=false;
  const fmt=n=>String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0");
  const renderTimer=()=>{const el=m.querySelector("#drillTimer");if(el)el.textContent=fmt(remaining)};
