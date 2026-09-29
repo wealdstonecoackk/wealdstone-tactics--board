@@ -365,15 +365,22 @@ function drillPreview(id){
  const s=trainingLibrary[id];if(!s)return;
  const m=document.getElementById("modal");m.classList.remove("hidden");
  const duration=((s.notes||"").match(/\\b\\d+(?:[-–]\\d+)?\\s*min\\b/i)||[])[0]||"Coach-led";
+ const safeTitle=s.title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
  const safeNotes=(s.notes||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
- m.innerHTML='<h2>▶️ Drill Mode</h2>'+
- '<h3>'+s.title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</h3>'+
- '<div class="card"><strong>⏱️ Suggested duration:</strong> '+duration+'</div>'+
- '<div class="card"><strong>🎯 Coaching information</strong><p>'+safeNotes.replace(/\\n/g,"<br>")+'</p></div>'+
- '<div class="row"><button id="drillLoad">▶ Load Drill</button> <button id="drillBack">← Back to Training</button> <button id="drillClose">Close</button></div>';
- m.querySelector("#drillLoad").onclick=()=>loadTraining(id);
- m.querySelector("#drillBack").onclick=training;
- m.querySelector("#drillClose").onclick=()=>m.classList.add("hidden");
+ const timerMinutes=Math.max(1,parseInt((duration.match(/\\d+/)||["10"])[0],10));
+ let remaining=timerMinutes*60,timer=null,running=false;
+ const fmt=n=>String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0");
+ const renderTimer=()=>{const el=m.querySelector("#drillTimer");if(el)el.textContent=fmt(remaining)};
+ m.innerHTML="<h2>▶️ Drill Mode</h2><h3>"+safeTitle+"</h3><div class=\"card\"><strong>⏱️ Suggested duration:</strong> "+duration+"</div><div class=\"card\"><strong>⏱️ Drill Timer</strong><div id=\"drillTimer\" style=\"font-size:2rem;font-weight:800;margin:8px 0\"></div><div class=\"row\"><button id=\"timerStart\">▶ Start</button> <button id=\"timerPause\">⏸ Pause</button> <button id=\"timerReset\">↺ Reset</button></div></div><div class=\"card\"><strong>🎯 Coaching information</strong><p>"+safeNotes.replace(/\\n/g,"<br>")+"</p></div><div class=\"row\"><button id=\"drillLoad\">▶ Load Drill</button> <button id=\"drillBack\">← Back to Training</button> <button id=\"drillClose\">Close</button></div>";
+ renderTimer();
+ const stopTimer=()=>{if(timer){clearInterval(timer);timer=null}running=false};
+ const startTimer=()=>{if(running||remaining<=0)return;running=true;timer=setInterval(()=>{remaining=Math.max(0,remaining-1);renderTimer();if(remaining===0){stopTimer();msg(s.title+" • TIME");}},1000)};
+ m.querySelector("#timerStart").onclick=startTimer;
+ m.querySelector("#timerPause").onclick=stopTimer;
+ m.querySelector("#timerReset").onclick=()=>{stopTimer();remaining=timerMinutes*60;renderTimer()};
+ m.querySelector("#drillLoad").onclick=()=>{stopTimer();loadTraining(id)};
+ m.querySelector("#drillBack").onclick=()=>{stopTimer();training()};
+ m.querySelector("#drillClose").onclick=()=>{stopTimer();m.classList.add("hidden")};
 }
 function loadTraining(id){
  const s=trainingLibrary[id];if(!s)return;
