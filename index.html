@@ -30,7 +30,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 <button data-tool="select" class="active">👆 Select</button><button data-tool="pass">➜ Pass</button><button data-tool="run">↗ Run</button><button data-tool="ball">⚽ Ball</button><button data-tool="opp">🔴 Opp</button>
 </div>
 <div class="actions">
-<button id="record">⏺ Record</button><button id="newSession">🆕 New Session</button><button id="stop">⏹ Stop</button><button id="play">▶ Play</button><button id="clear">🧹 Clear</button><button id="undo">↶ Undo</button><button id="redo">↷ Redo</button><button id="save">💾 Save</button><button id="library">📚 Library</button><button id="training">🏋️ Training</button><button id="more">🧠 Coach Hub</button>
+<button id="record">⏺ Record</button><button id="newSession">🆕 New Session</button><button id="stop">⏹ Stop</button><button id="play">▶ Play</button><button id="clear">🧹 Clear</button><button id="undo">↶ Undo</button><button id="redo">↷ Redo</button><button id="save">💾 Save</button><button id="library">📚 Library</button><button id="training">🏋️ Training</button><button id="sessionPlanner">🗓️ Session Plan</button><button id="more">🧠 Coach Hub</button>
 </div>
 <div id="status" class="status">READY • Select a player or choose a coaching tool</div>
 <section id="pitch">
@@ -293,7 +293,12 @@ const trainingLibrary={
  "shooting-second-ball":{title:"Shooting • Second Ball",notes:"15 min. First shot creates a rebound/second-ball situation. Supporting attackers react quickly. Coach anticipation, composure and finishing under pressure.",formation:"433",players:[[50,88],[25,70],[40,75],[60,75],[75,70],[30,55],[50,60],[70,55],[25,30],[50,25],[75,30]],ball:[50,60],arrows:[{type:"pass",x1:50,y1:60,x2:50,y2:25},{type:"run",i:8,x1:25,y1:30,x2:42,y2:25},{type:"run",i:10,x1:75,y1:30,x2:58,y2:25}]},
  "pre-stretch":{title:"Before Game • Mobility & Activation",notes:"8–10 min before the main warm-up. Use controlled dynamic movements: ankle rocks, calf raises, hip openers, walking lunges with rotation, hamstring sweeps and progressive skips. Avoid long static holds immediately before explosive work.",formation:"433",players:[[50,82],[30,70],[50,70],[70,70],[30,50],[50,50],[70,50],[30,30],[50,30],[70,30],[50,18]],ball:[50,50],arrows:[]},
  "post-stretch":{title:"After Game • Cool-Down Stretch",notes:"5–10 min easy walk/jog first, then relaxed static stretches for calves, quads, hamstrings, hip flexors and glutes. Hold each comfortable stretch around 20–30 seconds, without bouncing or forcing range.",formation:"433",players:[[50,82],[30,70],[50,70],[70,70],[30,50],[50,50],[70,50],[30,30],[50,30],[70,30],[50,18]],ball:[50,50],arrows:[]},
- "recovery-mobility":{title:"After Game • Recovery Mobility",notes:"8–10 min gentle mobility after the cool-down: ankle circles, controlled hip rotations, gentle trunk rotation and relaxed walking. Keep the range comfortable and stop if anything causes pain.",formation:"433",players:[[50,82],[30,70],[50,70],[70,70],[30,50],[50,50],[70,50],[30,30],[50,30],[70,30],[50,18]],ball:[50,50],arrows:[]}
+ "recovery-mobility":{title:"After Game • Recovery Mobility",notes:"8–10 min gentle mobility after the cool-down: ankle circles, controlled hip rotations, gentle trunk rotation and relaxed walking. Keep the range comfortable and stop if anything causes pain.",formation:"433",players:[[50,82],[30,70],[50,70],[70,70],[30,50],[50,50],[70,50],[30,30],[50,30],[70,30],[50,18]],ball:[50,50],arrows:[]},
+ "possession-box":{title:"Possession • 4v4+3",notes:"15 min. Keep possession in a defined area with three neutral players. Coach support angles, scanning, quick circulation and immediate reaction after losing the ball.",formation:"433",players:[[50,50],[25,25],[75,25],[25,75],[75,75],[50,20],[50,80],[20,50],[80,50],[35,50],[65,50]],ball:[50,50],arrows:[{type:"pass",x1:25,y1:25,x2:50,y2:20},{type:"pass",x1:50,y1:20,x2:75,y2:25},{type:"pass",x1:75,y1:25,x2:65,y2:50}]},
+ "transition-wave":{title:"Transition • Wave Attack",notes:"15–20 min. Attack quickly after winning the ball, use width and support underneath, then recover into shape immediately if the attack breaks down.",formation:"433",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[30,57],[50,63],[70,57],[18,32],[50,25],[82,32]],ball:[50,63],arrows:[{type:"pass",x1:50,y1:63,x2:18,y2:32},{type:"run",i:8,x1:18,y1:32,x2:30,y2:22},{type:"run",i:10,x1:82,y1:32,x2:68,y2:22},{type:"pass",x1:18,y1:32,x2:50,y2:25}]},
+ "counter-press":{title:"Transition • Counter-Press",notes:"12–15 min. On losing the ball, nearest players react immediately while the rest squeeze space behind them. If the regain is not on, recover into compact shape.",formation:"433",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[30,57],[50,63],[70,57],[18,32],[50,25],[82,32]],ball:[50,50],arrows:[{type:"run",i:5,x1:30,y1:57,x2:40,y2:48},{type:"run",i:6,x1:50,y1:63,x2:50,y2:50},{type:"run",i:7,x1:70,y1:57,x2:60,y2:48},{type:"run",i:8,x1:18,y1:32,x2:30,y2:28}]},
+ "defensive-unit":{title:"Defending • Unit Movement",notes:"15 min. Back four move together in relation to the ball. Coach distances, communication, cover and controlled movement across the pitch.",formation:"442",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[18,52],[38,57],[62,57],[82,52],[35,30],[65,30]],ball:[82,35],arrows:[{type:"run",i:1,x1:18,y1:72,x2:30,y2:68},{type:"run",i:2,x1:38,y1:76,x2:45,y2:70},{type:"run",i:3,x1:62,y1:76,x2:62,y2:70},{type:"run",i:4,x1:82,y1:72,x2:76,y2:68}]},
+ "pressing-triggers":{title:"Defending • Pressing Triggers",notes:"15 min. Recognise triggers such as a poor touch, backwards pass or isolated receiver. Nearest player presses while teammates cover and squeeze.",formation:"433",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[30,57],[50,63],[70,57],[18,32],[50,25],[82,32]],ball:[38,45],arrows:[{type:"run",i:9,x1:50,y1:25,x2:45,y2:18},{type:"run",i:8,x1:18,y1:32,x2:30,y2:28},{type:"run",i:5,x1:30,y1:57,x2:38,y2:45},{type:"run",i:6,x1:50,y1:63,x2:50,y2:52}]}
 };
 const presetLibrary={
  "playing-back":{title:"Pro Template • Playing From The Back",formation:"433",notes:"Build with the goalkeeper + centre-backs. Create a short outlet, move the ball through midfield, then progress into the front three.",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[32,57],[50,62],[68,57],[18,32],[50,25],[82,32]],ball:[50,88],arrows:[
@@ -348,9 +353,38 @@ function training(){
  '<button data-training="shooting-finishing">Combination Finish</button> <button data-training="shooting-cross">Cross & Finish</button> <button data-training="shooting-1v1">1v1 Finishing</button> <button data-training="shooting-second-ball">Second Ball</button>'+
  '<h3>🧘 Stretching & Recovery</h3>'+
  '<button data-training="pre-stretch">Before Game Mobility</button> <button data-training="post-stretch">After Game Stretch</button> <button data-training="recovery-mobility">Recovery Mobility</button>'+
- '<hr><button id="tClose">Close</button>';
+ '<h3>🔄 Possession & Transition</h3>'+
+ '<button data-training="possession-box">Possession • 4v4+3</button> <button data-training="transition-wave">Transition • Wave Attack</button> <button data-training="counter-press">Transition • Counter-Press</button>'+
+ '<h3>🛡️ Defending</h3>'+
+ '<button data-training="defensive-unit">Defending • Unit Movement</button> <button data-training="pressing-triggers">Defending • Pressing Triggers</button>'+
+ '<hr><button id="tPlan">🗓️ Add to Session Plan</button> <button id="tClose">Close</button>';
  m.querySelectorAll("[data-training]").forEach(b=>b.onclick=()=>loadTraining(b.dataset.training));
- m.querySelector("#tClose").onclick=()=>m.classList.add("hidden");
+ m.querySelector("#tPlan").onclick=()=>sessionPlanner();m.querySelector("#tClose").onclick=()=>m.classList.add("hidden");
+}
+function sessionPlanner(){
+ const m=document.getElementById("modal");m.classList.remove("hidden");
+ const sessionKey="wealdstone_training_sessions_v1";
+ let saved=[];try{saved=JSON.parse(localStorage.getItem(sessionKey)||"[]");if(!Array.isArray(saved))saved=[]}catch(_){saved=[]}
+ const options=Object.entries(trainingLibrary).map(([id,s])=>'<option value="'+id+'">'+s.title.replace(/"/g,'&quot;')+'</option>').join("");
+ const savedOptions=saved.map((s,i)=>'<option value="'+i+'">'+(s.title||("Session "+(i+1))).replace(/"/g,'&quot;')+'</option>').join("");
+ m.innerHTML='<h2>🗓️ Training Session Planner</h2><p>Build a complete session around the existing board engine. Add drills, set timings and coaching objectives, then save the session on this phone.</p>'+
+ '<div class="row"><input id="spTitle" placeholder="Session title" value="Training Session"></div>'+
+ '<div class="row"><input id="spDuration" type="number" min="1" value="90" placeholder="Total minutes"><input id="spPlayers" type="number" min="1" value="16" placeholder="Players"></div>'+
+ '<div class="row"><input id="spFocus" placeholder="Main focus — e.g. build-up, pressing, finishing"></div>'+
+ '<div class="row"><input id="spEquipment" placeholder="Equipment — balls, cones, bibs, goals..."></div>'+
+ '<div class="panel"><b>Drills in this session</b><div id="spList" style="margin-top:7px;color:#c8d0d9">No drills added yet.</div></div>'+
+ '<div class="row"><select id="spDrill">'+options+'</select><button id="spAdd">➕ Add Drill</button></div>'+
+ '<div class="row"><input id="spMinutes" type="number" min="1" value="10" placeholder="Drill minutes"><input id="spCoach" placeholder="Coaching point"></div>'+
+ '<div class="row"><textarea id="spNotes" style="width:100%;min-height:80px" placeholder="Session objectives, progressions and coach notes..."></textarea></div>'+
+ '<hr><button id="spSave">💾 Save Session</button> <button id="spLoad">📂 Load Saved Session</button> <button id="spEdit">✏️ Edit Selected Drill</button> <button id="spClose">Close</button>'+
+ '<div class="row"><select id="spSaved">'+(savedOptions||'<option value="">No saved sessions</option>')+'</select></div>';
+ let drills=[];
+ function renderList(){const list=m.querySelector("#spList");list.innerHTML=drills.length?drills.map((d,i)=>'<div style="padding:6px 0;border-bottom:1px solid #2c333c"><b>'+(i+1)+'. '+d.title+'</b> • '+d.minutes+' min'+(d.coach?' • '+d.coach:'')+'</div>').join(""):'No drills added yet.'}
+ m.querySelector("#spAdd").onclick=()=>{const id=m.querySelector("#spDrill").value,s=trainingLibrary[id];if(!s)return;drills.push({id,title:s.title,minutes:Math.max(1,Number(m.querySelector("#spMinutes").value)||10),coach:m.querySelector("#spCoach").value.trim()});renderList();msg(s.title+" • ADDED TO SESSION")};
+ m.querySelector("#spSave").onclick=()=>{const data={title:m.querySelector("#spTitle").value.trim()||"Training Session",duration:Math.max(1,Number(m.querySelector("#spDuration").value)||90),players:Math.max(1,Number(m.querySelector("#spPlayers").value)||16),focus:m.querySelector("#spFocus").value.trim(),equipment:m.querySelector("#spEquipment").value.trim(),notes:m.querySelector("#spNotes").value,drills};saved.push(data);localStorage.setItem(sessionKey,JSON.stringify(saved));msg("SESSION SAVED • "+data.title);sessionPlanner()};
+ m.querySelector("#spLoad").onclick=()=>{const idx=Number(m.querySelector("#spSaved").value);if(!Number.isInteger(idx)||!saved[idx]){msg("SELECT A SAVED SESSION");return}const ss=saved[idx];m.querySelector("#spTitle").value=ss.title||"Training Session";m.querySelector("#spDuration").value=ss.duration||90;m.querySelector("#spPlayers").value=ss.players||16;m.querySelector("#spFocus").value=ss.focus||"";m.querySelector("#spEquipment").value=ss.equipment||"";m.querySelector("#spNotes").value=ss.notes||"";drills=Array.isArray(ss.drills)?ss.drills.map(d=>({...d})):[];renderList();msg("SESSION LOADED • "+ss.title)};
+ m.querySelector("#spEdit").onclick=()=>{const id=m.querySelector("#spDrill").value;if(id){loadTraining(id);msg("DRILL LOADED • NOW EDITABLE ON BOARD")}};
+ m.querySelector("#spClose").onclick=()=>m.classList.add("hidden");renderList();
 }
 function loadTraining(id){
  const s=trainingLibrary[id];if(!s)return;
@@ -401,7 +435,7 @@ document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{setTool(b.dat
 document.getElementById("record").onclick=()=>{stopPlayback();clearSelection();startRec()};
 document.getElementById("newSession").onclick=newSession;
 document.getElementById("stop").onclick=stopRec;document.getElementById("play").onclick=play;document.getElementById("clear").onclick=()=>{stopPlayback();clearSelection();clear()};
-document.getElementById("undo").onclick=()=>{stopPlayback();clearSelection();undo()};document.getElementById("redo").onclick=()=>{stopPlayback();clearSelection();redo()};document.getElementById("save").onclick=save;document.getElementById("library").onclick=library;document.getElementById("training").onclick=training;document.getElementById("more").onclick=hub;
+document.getElementById("undo").onclick=()=>{stopPlayback();clearSelection();undo()};document.getElementById("redo").onclick=()=>{stopPlayback();clearSelection();redo()};document.getElementById("save").onclick=save;document.getElementById("library").onclick=library;document.getElementById("training").onclick=training;document.getElementById("sessionPlanner").onclick=sessionPlanner;document.getElementById("more").onclick=hub;
 document.getElementById("notes").setAttribute("aria-label","Coach notes");
 
 document.getElementById("reset").onclick=()=>{stopPlayback();clearSelection();reset()};
