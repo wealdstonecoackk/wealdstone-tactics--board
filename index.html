@@ -30,7 +30,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 <button data-tool="select" class="active">👆 Select</button><button data-tool="pass">➜ Pass</button><button data-tool="run">↗ Run</button><button data-tool="ball">⚽ Ball</button><button data-tool="opp">🔴 Opp</button>
 </div>
 <div class="actions">
-<button id="record">⏺ Record</button><button id="newSession">🆕 New Session</button><button id="stop">⏹ Stop</button><button id="play">▶ Play</button><button id="clear">🧹 Clear</button><button id="undo">↶ Undo</button><button id="redo">↷ Redo</button><button id="save">💾 Save</button><button id="library">📚 Library</button><button id="more">🧠 Coach Hub</button>
+<button id="record">⏺ Record</button><button id="newSession">🆕 New Session</button><button id="stop">⏹ Stop</button><button id="play">▶ Play</button><button id="clear">🧹 Clear</button><button id="undo">↶ Undo</button><button id="redo">↷ Redo</button><button id="save">💾 Save</button><button id="library">📚 Library</button><button id="training">🏋️ Training</button><button id="more">🧠 Coach Hub</button>
 </div>
 <div id="status" class="status">READY • Select a player or choose a coaching tool</div>
 <section id="pitch">
@@ -281,6 +281,20 @@ function save(){
 }
 function load(){
  const raw=localStorage.getItem(key);if(!raw){msg("NO SAVED TACTIC");return}try{restore(JSON.parse(raw));msg("TACTIC LOADED")}catch(_){msg("SAVE LOAD FAILED")}}
+const trainingLibrary={
+ "warm-dynamic":{title:"Warm-Up • Dynamic Movement",notes:"8–10 min. Easy jog, side steps, open/close the gate, walking lunges, hamstring sweeps and progressive accelerations. Build intensity gradually.",formation:"433",players:[[50,82],[30,70],[50,70],[70,70],[50,55],[30,55],[70,55],[20,40],[40,35],[60,35],[80,40]],ball:[50,50],arrows:[]},
+ "warm-ball":{title:"Warm-Up • Ball Activation",notes:"10–12 min. Pairs: short passes, receive on the back foot, two-touch combinations and gentle movement after every pass. Progress tempo gradually.",formation:"433",players:[[50,82],[30,70],[50,70],[70,70],[25,55],[50,55],[75,55],[25,35],[50,30],[75,35],[50,18]],ball:[50,50],arrows:[{type:"pass",x1:25,y1:55,x2:50,y2:55},{type:"pass",x1:50,y1:55,x2:75,y2:55},{type:"pass",x1:75,y1:55,x2:50,y2:30}]},
+ "passing-gates":{title:"Passing • Gates & Movement",notes:"12–15 min. Set up passing gates. Players pass through a gate, follow the pass and receive the next ball on an angle. Coach two-touch then one-touch.",formation:"433",players:[[50,82],[20,65],[50,65],[80,65],[20,42],[50,42],[80,42],[20,20],[50,20],[80,20],[50,55]],ball:[20,65],arrows:[{type:"pass",x1:20,y1:65,x2:50,y2:65},{type:"run",i:1,x1:20,y1:65,x2:35,y2:52},{type:"pass",x1:50,y1:65,x2:80,y2:65},{type:"run",i:10,x1:50,y1:55,x2:65,y2:45}]},
+ "passing-third":{title:"Passing • Third-Man Combination",notes:"15 min. Pass into the target, set back to the supporting player and play through the third player. Coach timing, body shape and movement after release.",formation:"4231",players:[[50,82],[25,70],[50,70],[75,70],[30,52],[50,52],[70,52],[25,30],[50,30],[75,30],[50,18]],ball:[25,70],arrows:[{type:"pass",x1:25,y1:70,x2:50,y2:52},{type:"pass",x1:50,y1:52,x2:30,y2:52},{type:"pass",x1:30,y1:52,x2:50,y2:30},{type:"run",i:9,x1:50,y1:30,x2:65,y2:22}]},
+ "passing-rondo":{title:"Passing • 5v2 Rondo",notes:"12–15 min. Keep the ball moving with two-touch limits. Defenders press together. Coach scanning, support angles and immediate reaction after losing possession.",formation:"433",players:[[50,50],[25,35],[75,35],[25,65],[75,65],[50,20],[50,80],[35,50],[65,50],[20,50],[80,50]],ball:[50,50],arrows:[]},
+ "shooting-finishing":{title:"Shooting • Combination Finish",notes:"15–20 min. Player sets the ball, combines with the next player and attacks the box for a finish. Rotate roles. Coach first touch, head up and finishing technique.",formation:"433",players:[[50,88],[30,70],[50,70],[70,70],[35,50],[65,50],[20,30],[50,25],[80,30],[50,60],[50,15]],ball:[50,60],arrows:[{type:"pass",x1:50,y1:60,x2:50,y2:70},{type:"run",i:9,x1:50,y1:60,x2:50,y2:35},{type:"pass",x1:50,y1:70,x2:50,y2:35}]},
+ "shooting-cross":{title:"Shooting • Cross & Finish",notes:"15–20 min. Wide player receives and crosses. Attackers make near-post, central and far-post runs. Alternate sides and service types.",formation:"433",players:[[50,88],[20,70],[38,76],[62,76],[80,70],[30,55],[50,60],[70,55],[15,30],[50,25],[85,30]],ball:[85,30],arrows:[{type:"run",i:8,x1:15,y1:30,x2:35,y2:25},{type:"run",i:9,x1:50,y1:25,x2:50,y2:18},{type:"run",i:10,x1:85,y1:30,x2:68,y2:22},{type:"pass",x1:85,y1:30,x2:50,y2:22}]},
+ "shooting-1v1":{title:"Shooting • 1v1 Finishing",notes:"12–15 min. Attacker receives on the move, takes a positive first touch and attacks the goal. Add passive then active pressure as players improve.",formation:"442",players:[[50,88],[25,70],[40,75],[60,75],[75,70],[25,50],[50,55],[75,50],[35,30],[65,30],[50,20]],ball:[50,55],arrows:[{type:"run",i:9,x1:65,y1:30,x2:50,y2:20},{type:"pass",x1:50,y1:55,x2:50,y2:20}]},
+ "shooting-second-ball":{title:"Shooting • Second Ball",notes:"15 min. First shot creates a rebound/second-ball situation. Supporting attackers react quickly. Coach anticipation, composure and finishing under pressure.",formation:"433",players:[[50,88],[25,70],[40,75],[60,75],[75,70],[30,55],[50,60],[70,55],[25,30],[50,25],[75,30]],ball:[50,60],arrows:[{type:"pass",x1:50,y1:60,x2:50,y2:25},{type:"run",i:8,x1:25,y1:30,x2:42,y2:25},{type:"run",i:10,x1:75,y1:30,x2:58,y2:25}]},
+ "pre-stretch":{title:"Before Game • Mobility & Activation",notes:"8–10 min before the main warm-up. Use controlled dynamic movements: ankle rocks, calf raises, hip openers, walking lunges with rotation, hamstring sweeps and progressive skips. Avoid long static holds immediately before explosive work.",formation:"433",players:[[50,82],[30,70],[50,70],[70,70],[30,50],[50,50],[70,50],[30,30],[50,30],[70,30],[50,18]],ball:[50,50],arrows:[]},
+ "post-stretch":{title:"After Game • Cool-Down Stretch",notes:"5–10 min easy walk/jog first, then relaxed static stretches for calves, quads, hamstrings, hip flexors and glutes. Hold each comfortable stretch around 20–30 seconds, without bouncing or forcing range.",formation:"433",players:[[50,82],[30,70],[50,70],[70,70],[30,50],[50,50],[70,50],[30,30],[50,30],[70,30],[50,18]],ball:[50,50],arrows:[]},
+ "recovery-mobility":{title:"After Game • Recovery Mobility",notes:"8–10 min gentle mobility after the cool-down: ankle circles, controlled hip rotations, gentle trunk rotation and relaxed walking. Keep the range comfortable and stop if anything causes pain.",formation:"433",players:[[50,82],[30,70],[50,70],[70,70],[30,50],[50,50],[70,50],[30,30],[50,30],[70,30],[50,18]],ball:[50,50],arrows:[]}
+};
 const presetLibrary={
  "playing-back":{title:"Pro Template • Playing From The Back",formation:"433",notes:"Build with the goalkeeper + centre-backs. Create a short outlet, move the ball through midfield, then progress into the front three.",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[32,57],[50,62],[68,57],[18,32],[50,25],[82,32]],ball:[50,88],arrows:[
   {type:"pass",x1:50,y1:88,x2:38,y2:76},{type:"pass",x1:38,y1:76,x2:32,y2:57},{type:"pass",x1:32,y1:57,x2:50,y2:62},{type:"pass",x1:50,y1:62,x2:68,y2:57},{type:"pass",x1:68,y1:57,x2:82,y2:32}
@@ -320,6 +334,30 @@ function loadPreset(id){
  players.forEach((p,i)=>{const q=s.players[i];p.x=q[0];p.y=q[1];p.name=names[i];renderPlayer(p)});
  arrows=(s.arrows||[]).map(a=>({...a}));sequence=(s.arrows||[]).map(a=>({...a}));opps.forEach(o=>o.el.remove());opps=[];
  setBall(s.ball[0],s.ball[1]);notes.value=s.notes||"";draw();persist();
+ document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===formation));
+ document.getElementById("modal").classList.add("hidden");msg(s.title+" • LOADED");
+}
+function training(){
+ const m=document.getElementById("modal");m.classList.remove("hidden");
+ m.innerHTML='<h2>🏋️ Training Session Library</h2><p>Ready-to-load sessions and individual drills. Adjust duration, numbers and intensity to suit the group, age and pitch.</p>'+
+ '<h3>🔥 Warm-Ups</h3>'+
+ '<button data-training="warm-dynamic">Dynamic Movement</button> <button data-training="warm-ball">Ball Activation</button> <button data-training="pre-stretch">Mobility & Activation</button>'+
+ '<h3>🎯 Passing Drills</h3>'+
+ '<button data-training="passing-gates">Gates & Movement</button> <button data-training="passing-third">Third-Man Combination</button> <button data-training="passing-rondo">5v2 Rondo</button>'+
+ '<h3>🥅 Shooting & Finishing</h3>'+
+ '<button data-training="shooting-finishing">Combination Finish</button> <button data-training="shooting-cross">Cross & Finish</button> <button data-training="shooting-1v1">1v1 Finishing</button> <button data-training="shooting-second-ball">Second Ball</button>'+
+ '<h3>🧘 Stretching & Recovery</h3>'+
+ '<button data-training="pre-stretch">Before Game Mobility</button> <button data-training="post-stretch">After Game Stretch</button> <button data-training="recovery-mobility">Recovery Mobility</button>'+
+ '<hr><button id="tClose">Close</button>';
+ m.querySelectorAll("[data-training]").forEach(b=>b.onclick=()=>loadTraining(b.dataset.training));
+ m.querySelector("#tClose").onclick=()=>m.classList.add("hidden");
+}
+function loadTraining(id){
+ const s=trainingLibrary[id];if(!s)return;
+ pushHistory();formation=s.formation;while(players.length<11)createPlayer(players.length);
+ players.forEach((p,i)=>{const q=s.players[i];p.x=q[0];p.y=q[1];p.name=names[i];renderPlayer(p)});
+ arrows=(s.arrows||[]).map(a=>({...a}));sequence=(s.arrows||[]).map(a=>({...a}));
+ opps.forEach(o=>o.el.remove());opps=[];setBall(s.ball[0],s.ball[1]);notes.value=s.notes||"";draw();persist();
  document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===formation));
  document.getElementById("modal").classList.add("hidden");msg(s.title+" • LOADED");
 }
@@ -363,7 +401,7 @@ document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{setTool(b.dat
 document.getElementById("record").onclick=()=>{stopPlayback();clearSelection();startRec()};
 document.getElementById("newSession").onclick=newSession;
 document.getElementById("stop").onclick=stopRec;document.getElementById("play").onclick=play;document.getElementById("clear").onclick=()=>{stopPlayback();clearSelection();clear()};
-document.getElementById("undo").onclick=()=>{stopPlayback();clearSelection();undo()};document.getElementById("redo").onclick=()=>{stopPlayback();clearSelection();redo()};document.getElementById("save").onclick=save;document.getElementById("library").onclick=library;document.getElementById("more").onclick=hub;
+document.getElementById("undo").onclick=()=>{stopPlayback();clearSelection();undo()};document.getElementById("redo").onclick=()=>{stopPlayback();clearSelection();redo()};document.getElementById("save").onclick=save;document.getElementById("library").onclick=library;document.getElementById("training").onclick=training;document.getElementById("more").onclick=hub;
 document.getElementById("notes").setAttribute("aria-label","Coach notes");
 
 document.getElementById("reset").onclick=()=>{stopPlayback();clearSelection();reset()};
