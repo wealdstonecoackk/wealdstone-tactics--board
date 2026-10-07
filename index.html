@@ -243,40 +243,65 @@ function restore(s){
 }
 function startRec(){if(playing){playing=false;cancelAnimationFrame(raf)};recording=true;sequence=[];msg("RECORDING • drag players for runs or add passes")}
 function stopRec(){recording=false;svg.querySelectorAll(".liveRun").forEach(x=>x.remove());stopPlayback();persist();msg("STOPPED • "+sequence.length+" actions")}
+function firstPlaybackBall(){
+ for(const a of sequence){
+  if(a.type==="pass" && Number.isFinite(a.x1)&&Number.isFinite(a.y1))return{x:a.x1,y:a.y1};
+  if(a.type==="ball" && Number.isFinite(a.x)&&Number.isFinite(a.y))return{x:a.x,y:a.y};
+ }
+ return{x:50,y:50};
+}
 function play(){
  ensureBoardIntegrity();
  if(!sequence.length){msg("NO RECORDED PLAY");return}
- if(playing){playing=false;cancelAnimationFrame(raf);msg("PLAY PAUSED • tap Play to restart");return}
- playing=true;playIndex=0;setBall(50,50);msg("PLAYING • 1/"+sequence.length);runStep()
+ if(playing){playing=false;cancelAnimationFrame(raf);msg("PLAY PAUSED • tap Play to resume");return}
+ if(playIndex>=sequence.length){playIndex=0}
+ playing=true;
+ if(playIndex===0){const b=firstPlaybackBall();setBall(b.x,b.y)}
+ msg("PLAYING • "+(playIndex+1)+"/"+sequence.length);
+ runStep()
 }
 function runStep(){
  if(!playing)return;
- if(playIndex>=sequence.length){playing=false;persist();msg("PLAY COMPLETE • "+sequence.length+" actions");return}
+ if(playIndex>=sequence.length){playing=false;persist();msg("PLAY COMPLETE • "+sequence.length+" actions");playIndex=0;return}
  const a=sequence[playIndex];
  msg("PLAYING • "+(playIndex+1)+"/"+sequence.length);
  if(a.type==="run"){
   const p=players[a.i];
   if(p){
-   const homeX=a.x1,homeY=a.y1;
-   p.x=homeX;p.y=homeY;renderPlayer(p);
+   const homeX=Number.isFinite(p.x)?p.x:a.x1;
+   const homeY=Number.isFinite(p.y)?p.y:a.y1;
+   const targetX=Number.isFinite(a.x2)?a.x2:homeX;
+   const targetY=Number.isFinite(a.y2)?a.y2:homeY;
    animate(650,t=>{
-    p.x=homeX+(a.x2-homeX)*t;
-    p.y=homeY+(a.y2-homeY)*t;
+    p.x=homeX+(targetX-homeX)*t;
+    p.y=homeY+(targetY-homeY)*t;
     renderPlayer(p);
    },()=>{
     animate(350,t=>{
-     p.x=a.x2+(homeX-a.x2)*t;
-     p.y=a.y2+(homeY-a.y2)*t;
+     p.x=targetX+(homeX-targetX)*t;
+     p.y=targetY+(homeY-targetY)*t;
      renderPlayer(p);
     },next);
    });
   }else next();
  }else if(a.type==="pass"){
-  setBall(a.x1,a.y1);
-  animate(550,t=>setBall(a.x1+(a.x2-a.x1)*t,a.y1+(a.y2-a.y1)*t));
+  const sx=Number.isFinite(a.x1)?a.x1:ballPos.x;
+  const sy=Number.isFinite(a.y1)?a.y1:ballPos.y;
+  const ex=Number.isFinite(a.x2)?a.x2:sx;
+  const ey=Number.isFinite(a.y2)?a.y2:sy;
+  setBall(sx,sy);
+  animate(550,t=>setBall(sx+(ex-sx)*t,sy+(ey-sy)*t),()=>{
+   setBall(ex,ey);
+   next();
+  });
  }else if(a.type==="ball"){
   const sx=ballPos.x,sy=ballPos.y;
-  animate(450,t=>setBall(sx+(a.x-sx)*t,sy+(a.y-sy)*t));
+  const ex=Number.isFinite(a.x)?a.x:sx;
+  const ey=Number.isFinite(a.y)?a.y:sy;
+  animate(450,t=>setBall(sx+(ex-sx)*t,sy+(ey-sy)*t),()=>{
+   setBall(ex,ey);
+   next();
+  });
  }else next()
 }
 function animate(ms,fn,done){
@@ -290,7 +315,7 @@ function animate(ms,fn,done){
  }
  raf=requestAnimationFrame(f);
 }
-function next(){if(!playing)return;playIndex++;msg("PLAYING • "+Math.min(playIndex+1,sequence.length)+"/"+sequence.length);runStep()}
+function next(){if(!playing)return;playIndex++;runStep()}
 function save(){
  const data=snapshot();localStorage.setItem(key,JSON.stringify(data));msg("TACTIC SAVED ON THIS PHONE")
 }
