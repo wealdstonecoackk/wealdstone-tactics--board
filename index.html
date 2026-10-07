@@ -54,7 +54,7 @@ const formations={
 "4231":[[50,88],[18,72],[38,76],[62,76],[82,72],[35,58],[65,58],[18,36],[50,42],[82,36],[50,25]],
 "4141":[[50,88],[18,72],[38,76],[62,76],[82,72],[50,63],[18,43],[38,48],[62,48],[82,43],[50,25]]
 };
-let formation="433",tool="select",players=[],opps=[],arrows=[],history=[],redoStack=[],sequence=[],recording=false,playing=false,playIndex=0,raf=0,ballPos={x:50,y:50},frozen=false;
+let formation="433",tool="select",players=[],opps=[],arrows=[],history=[],redoStack=[],sequence=[],recording=false,playing=false,playIndex=0,raf=0,ballPos={x:50,y:50},frozen=false,returnQueue=[];
 let names=Array.from({length:11},(_,i)=>"Player "+(i+1));
 const key="wealdstone_pro_coach_v7";
 function msg(t){status.textContent=t;status.setAttribute("aria-live","polite")}
@@ -256,13 +256,27 @@ function play(){
  if(playing){playing=false;cancelAnimationFrame(raf);msg("PLAY PAUSED • tap Play to resume");return}
  if(playIndex>=sequence.length){playIndex=0}
  playing=true;
- if(playIndex===0){const b=firstPlaybackBall();setBall(b.x,b.y)}
+ if(playIndex===0){returnQueue=[];const b=firstPlaybackBall();setBall(b.x,b.y)}
  msg("PLAYING • "+(playIndex+1)+"/"+sequence.length);
  runStep()
 }
+function finishQueuedReturns(done){
+ if(!returnQueue.length){done();return}
+ const q=returnQueue.shift();
+ animate(300,t=>{
+  q.p.x=q.targetX+(q.homeX-q.targetX)*t;
+  q.p.y=q.targetY+(q.homeY-q.targetY)*t;
+  renderPlayer(q.p);
+ },()=>finishQueuedReturns(done));
+}
 function runStep(){
  if(!playing)return;
- if(playIndex>=sequence.length){playing=false;persist();msg("PLAY COMPLETE • "+sequence.length+" actions");playIndex=0;return}
+ if(playIndex>=sequence.length){
+  finishQueuedReturns(()=>{
+   playing=false;persist();msg("PLAY COMPLETE • "+sequence.length+" actions");playIndex=0;
+  });
+  return;
+ }
  const a=sequence[playIndex];
  msg("PLAYING • "+(playIndex+1)+"/"+sequence.length);
  if(a.type==="run"){
@@ -272,16 +286,23 @@ function runStep(){
    const homeY=Number.isFinite(p.y)?p.y:a.y1;
    const targetX=Number.isFinite(a.x2)?a.x2:homeX;
    const targetY=Number.isFinite(a.y2)?a.y2:homeY;
+   const following=sequence[playIndex+1];
+   const holdsForNext=following&&following.type==="pass"&&Math.hypot((following.x1||0)-targetX,(following.y1||0)-targetY)<2.5;
    animate(650,t=>{
     p.x=homeX+(targetX-homeX)*t;
     p.y=homeY+(targetY-homeY)*t;
     renderPlayer(p);
    },()=>{
-    animate(350,t=>{
-     p.x=targetX+(homeX-targetX)*t;
-     p.y=targetY+(homeY-targetY)*t;
-     renderPlayer(p);
-    },next);
+    if(holdsForNext){
+     returnQueue.push({p,homeX,homeY,targetX,targetY});
+     next();
+    }else{
+     animate(350,t=>{
+      p.x=targetX+(homeX-targetX)*t;
+      p.y=targetY+(homeY-targetY)*t;
+      renderPlayer(p);
+     },next);
+    }
    });
   }else next();
  }else if(a.type==="pass"){
@@ -292,7 +313,7 @@ function runStep(){
   setBall(sx,sy);
   animate(550,t=>setBall(sx+(ex-sx)*t,sy+(ey-sy)*t),()=>{
    setBall(ex,ey);
-   next();
+   finishQueuedReturns(next);
   });
  }else if(a.type==="ball"){
   const sx=ballPos.x,sy=ballPos.y;
@@ -300,7 +321,7 @@ function runStep(){
   const ey=Number.isFinite(a.y)?a.y:sy;
   animate(450,t=>setBall(sx+(ex-sx)*t,sy+(ey-sy)*t),()=>{
    setBall(ex,ey);
-   next();
+   finishQueuedReturns(next);
   });
  }else next()
 }
