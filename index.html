@@ -20,6 +20,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 .modal{position:fixed;inset:3%;z-index:100;background:#0f1318;border:1px solid #3b434d;border-radius:14px;padding:14px;overflow:auto;text-align:left}.modal h2{margin:0 0 8px}.row{display:flex;gap:7px;align-items:center;justify-content:space-between;margin:7px 0}.row input,.row select{flex:1;min-width:0;padding:9px;border-radius:7px;border:1px solid #3a424c;background:#20262e;color:#fff}
 @media(max-width:600px){.tabs{grid-template-columns:repeat(3,1fr)}.tools{grid-template-columns:repeat(3,1fr)}.actions{grid-template-columns:repeat(2,1fr)}#pitch{height:66vh;min-height:500px}.player{width:45px;height:45px}.player .nm{top:43px;font-size:9px}}
 .view-switch{display:flex;gap:8px;margin:10px 0}.view-switch button{flex:1}.view-switch button.active{outline:2px solid #fff}.timeline{padding:10px;border-radius:10px;background:rgba(0,0,0,.25);font-size:13px;overflow:auto;white-space:nowrap}.player-view .arrow,.player-view .opp.press-trigger:after,.player-view .opp.cover:after{opacity:0}.player-view .notes{display:none}
+.timeline-step{border:0;border-radius:8px;padding:7px 9px;background:rgba(255,255,255,.12);color:inherit;font-weight:700}.timeline-step.active{outline:2px solid #fff}.timeline-arrow{margin:0 5px;opacity:.65}
 </style>
 </head>
 <body>
@@ -246,10 +247,25 @@ function setViewMode(mode){
  document.getElementById("playerView").classList.toggle("active",mode==="player");
  msg(mode==="coach"?"COACH VIEW • FULL TACTICAL DETAIL":"PLAYER VIEW • CLEAN MOVEMENT");
 }
+function jumpToStep(index){
+ if(!sequence[index])return;
+ stopPlayback();
+ playIndex=index;
+ sequence.slice(0,index+1).forEach(a=>{
+  if(a.type==="ball")setBall(Number(a.x)||ballPos.x,Number(a.y)||ballPos.y);
+  if(a.type==="pass")setBall(Number(a.x2)||ballPos.x,Number(a.y2)||ballPos.y);
+  if(a.type==="run"){
+   const p=players[a.i]; if(p&&Number.isFinite(a.x2)&&Number.isFinite(a.y2)){p.x=a.x2;p.y=a.y2;renderPlayer(p);}
+  }
+ });
+ updateTimeline();
+ document.querySelectorAll(".timeline-step").forEach((b,i)=>b.classList.toggle("active",i===index));
+ msg("TIMELINE • STEP "+(index+1)+"/"+sequence.length);
+}
 function updateTimeline(){
  const el=document.getElementById("timeline"); if(!el)return;
  const labels=sequence.map((a,i)=>((i+1)+". "+(a.type==="pass"?"PASS":a.type==="run"?"RUN":"BALL")));
- el.textContent=labels.length?labels.join("  ›  "):"Sequence ready • 0 actions";
+ el.innerHTML=labels.length?labels.map((label,i)=>'<button class="timeline-step" onclick="jumpToStep('+i+')">'+label+'</button>').join('<span class="timeline-arrow">›</span>'):'Sequence ready • 0 actions';
 }
 function setTool(t){tool=t;window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"));document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===t));const status={select:"SELECT MODE • drag players",pass:"PASS MODE • tap passer then receiver",run:"RUN MODE • drag players • press Record to capture",ball:"BALL MODE • drag the ball",opp:"OPP MODE • tap pitch to add opponents"};msg(status[t]||status.select)}
 function addOpp(){if(frozen)return;const n=opps.length;const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x:72-(n%4)*8,y:25+Math.floor(n/4)*18,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();const startX=o.x,startY=o.y;let moved=false;try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;if(Math.abs(o.x-startX)+Math.abs(o.y-startY)>0.5)moved=true;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);if(!moved)msg("OPPONENT SELECTED");else persist();msg(moved?"OPPONENT POSITIONED":"OPPONENT SELECTED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
@@ -602,7 +618,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V14");
+msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V15");
 window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
