@@ -202,7 +202,7 @@ function selectPassStart(p){
  pushHistory();
  const pass={type:"pass",x1:a.x,y1:a.y,x2:b.x,y2:b.y};
  arrows.push(pass);
- if(recording)sequence.push({...pass});
+ if(recording)sequence.push({...pass,receiver:b.i});
  draw();persist();
  const sx=a.x,sy=a.y;
  setBall(sx,sy);
@@ -386,8 +386,11 @@ function runStep(){
    const targetX=Number.isFinite(a.x2)?a.x2:homeX;
    const targetY=Number.isFinite(a.y2)?a.y2:homeY;
    const following=sequence[playIndex+1];
-   const holdsForNext=following&&following.type==="pass"&&Math.hypot((following.x1||0)-targetX,(following.y1||0)-targetY)<2.5;
-   animate(650,t=>{
+   const nextPass=following&&following.type==="pass";
+   const holdsForNext=nextPass&&Math.hypot((following.x1||0)-targetX,(following.y1||0)-targetY)<4.5;
+   const runIntoPass=nextPass&&following.i===p.i;
+   const runTiming=runIntoPass?760:650;
+   animate(runTiming,t=>{
     p.x=homeX+(targetX-homeX)*t;
     p.y=homeY+(targetY-homeY)*t;
     renderPlayer(p);
@@ -409,10 +412,14 @@ function runStep(){
   const sy=Number.isFinite(a.y1)?a.y1:ballPos.y;
   const ex=Number.isFinite(a.x2)?a.x2:sx;
   const ey=Number.isFinite(a.y2)?a.y2:sy;
+  const receiver=players.find(p=>p.i===a.receiver)||players.reduce((best,p)=>{
+   const d=Math.hypot(p.x-ex,p.y-ey); return !best||d<best.d?{p,d}:best
+  },null)?.p;
+  const receiveX=receiver?receiver.x:ex, receiveY=receiver?receiver.y:ey;
   setBall(sx,sy);
-  animate(550,t=>setBall(sx+(ex-sx)*t,sy+(ey-sy)*t),()=>{
-   setBall(ex,ey);
-   settleReceiver(ex,ey);
+  animate(550,t=>setBall(sx+(receiveX-sx)*t,sy+(receiveY-sy)*t),()=>{
+   setBall(receiveX,receiveY);
+   settleReceiver(receiveX,receiveY);
    reactPress(ex,ey);
    msg("PASS COMPLETE • RECEIVE • SCAN • THIRD MAN • PRESS • RECOVERY");
    finishQueuedReturns(next);
