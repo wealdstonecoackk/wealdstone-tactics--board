@@ -93,7 +93,7 @@ function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
 function posFromEvent(e){const r=pitch.getBoundingClientRect();return{x:clamp((e.clientX-r.left)/r.width*100,1,99),y:clamp((e.clientY-r.top)/r.height*100,1,99)}}
 function pushHistory(){history.push(JSON.stringify(snapshot()));redoStack=[];if(history.length>30)history.shift()}
 function snapshot(){return{formation,names:names.slice(),players:players.map(p=>({x:p.x,y:p.y})),opps:opps.map(o=>({x:o.x,y:o.y})),arrows:arrows.map(a=>({...a})),ball:{...ballPos},sequence:sequence.map(a=>({...a})),notes:notes.value}}
-function flashReceiver(x,y){const p=players.reduce((best,q)=>{const d=Math.hypot(q.x-x,q.y-y);return !best||d<best.d?{p:q,d}:best},null);if(!p||p.d>4)return;const el=p.p.el;el.classList.add("receiving");clearTimeout(el.__receiveTimer);el.__receiveTimer=setTimeout(()=>el.classList.remove("receiving"),500)}
+function flashReceiver(x,y){const p=players.reduce((best,q)=>{const d=Math.hypot(q.x-x,q.y-y);return !best||d<best.d?{p:q,d}:best},null);if(!p||p.d>4)return;const el=p.p.el;el.classList.add("receiving");clearTimeout(el.__receiveTimer);el.__receiveTimer=setTimeout(()=>el.classList.remove("receiving"),500)}\nfunction settleReceiver(x,y){flashReceiver(x,y);}
 function renderPlayer(p){if(!p||!p.el)return; p.el.classList.add("player");p.el.style.position="absolute";p.el.style.display="flex";p.el.style.visibility="visible";p.el.style.opacity="1";p.el.style.pointerEvents="auto";p.el.style.left=p.x+"%";p.el.style.top=p.y+"%";p.el.style.zIndex="20";const nm=p.el.querySelector(".nm");if(nm)nm.textContent=p.name}
 function createPlayer(i){
  const layer=document.getElementById("playersLayer");
