@@ -19,6 +19,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 .press-key{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:5px;font-size:10px;color:#cbd3dc}.press-key span{padding:4px 7px;border-radius:999px;border:1px solid #39414c;background:#151a20}.press-key .blue{border-color:#4aa3ff}.press-key .red{border-color:#ff6b73}.bottom{margin-top:6px}.panel{margin-top:7px;background:#151a20;border:1px solid #2c333c;border-radius:10px;padding:8px}.panel textarea{width:100%;min-height:70px;border:0;border-radius:7px;padding:9px;font:13px system-ui}.hidden{display:none!important}
 .modal{position:fixed;inset:3%;z-index:100;background:#0f1318;border:1px solid #3b434d;border-radius:14px;padding:14px;overflow:auto;text-align:left}.modal h2{margin:0 0 8px}.row{display:flex;gap:7px;align-items:center;justify-content:space-between;margin:7px 0}.row input,.row select{flex:1;min-width:0;padding:9px;border-radius:7px;border:1px solid #3a424c;background:#20262e;color:#fff}
 @media(max-width:600px){.tabs{grid-template-columns:repeat(3,1fr)}.tools{grid-template-columns:repeat(3,1fr)}.actions{grid-template-columns:repeat(2,1fr)}#pitch{height:66vh;min-height:500px}.player{width:45px;height:45px}.player .nm{top:43px;font-size:9px}}
+.view-switch{display:flex;gap:8px;margin:10px 0}.view-switch button{flex:1}.view-switch button.active{outline:2px solid #fff}.timeline{padding:10px;border-radius:10px;background:rgba(0,0,0,.25);font-size:13px;overflow:auto;white-space:nowrap}.player-view .arrow,.player-view .opp.press-trigger:after,.player-view .opp.cover:after{opacity:0}.player-view .notes{display:none}
 </style>
 </head>
 <body>
@@ -30,7 +31,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 <div class="tools">
 <button data-tool="select" class="active">👆 Select</button><button data-tool="pass">➜ Pass</button><button data-tool="run">↗ Run</button><button data-tool="ball">⚽ Ball</button><button data-tool="opp">🔴 Opp</button>
 </div>
-<div class="actions">
+<div class="view-switch"><button id="coachView" class="active" onclick="setViewMode('coach')">🧠 Coach View</button><button id="playerView" onclick="setViewMode('player')">👤 Player View</button></div><div id="timeline" class="timeline">Sequence ready • 0 actions</div><div class="actions">
 <button id="newSession" class="primary-action">🆕 New Session</button><button id="record" class="primary-action">⏺ Record</button><button id="play" class="primary-action">▶ Play</button><button id="stop" class="primary-action">⏹ Stop</button><button id="clear">🧹 Clear</button><button id="undo">↶ Undo</button><button id="redo">↷ Redo</button><button id="save" class="save-action">💾 Save</button><button id="library" class="library-action">📚 Library</button><button id="training" class="training-action">🏋️ Training</button><button id="more" class="coach-action">🧠 Coach Hub</button>
 </div>
 <div id="status" class="status">READY • Select a player or choose a coaching tool</div>
@@ -89,7 +90,8 @@ function ensureBoardIntegrity(){
 }
 function newSession(){stopPlayback();clearSelection();pushHistory();redoStack=[];formation="433";players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1]});arrows=[];sequence=[];opps.forEach(o=>o.el.remove());opps=[];setBall(50,50);notes.value="";draw();persist();document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation==="433"));msg("NEW SESSION • 4-3-3 READY")}
 
-function persist(){try{localStorage.setItem(key,JSON.stringify(snapshot()))}catch(_){}}
+function persist(){
+ updateTimeline();try{localStorage.setItem(key,JSON.stringify(snapshot()))}catch(_){}}
 function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
 function posFromEvent(e){const r=pitch.getBoundingClientRect();return{x:clamp((e.clientX-r.left)/r.width*100,1,99),y:clamp((e.clientY-r.top)/r.height*100,1,99)}}
 function pushHistory(){history.push(JSON.stringify(snapshot()));redoStack=[];if(history.length>30)history.shift()}
@@ -238,6 +240,17 @@ elDown(ball,e=>{
  ball.addEventListener("pointermove",move,{passive:false});ball.addEventListener("pointerup",up,{passive:true});ball.addEventListener("pointercancel",cancel,{passive:true});
 });
 function setFormation(f){pushHistory();formation=f;players.forEach((p,i)=>{p.x=formations[f][i][0];p.y=formations[f][i][1];renderPlayer(p)});document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===f));draw();persist();msg("FORMATION • "+f)}
+function setViewMode(mode){
+ document.body.classList.toggle("player-view",mode==="player");
+ document.getElementById("coachView").classList.toggle("active",mode==="coach");
+ document.getElementById("playerView").classList.toggle("active",mode==="player");
+ msg(mode==="coach"?"COACH VIEW • FULL TACTICAL DETAIL":"PLAYER VIEW • CLEAN MOVEMENT");
+}
+function updateTimeline(){
+ const el=document.getElementById("timeline"); if(!el)return;
+ const labels=sequence.map((a,i)=>((i+1)+". "+(a.type==="pass"?"PASS":a.type==="run"?"RUN":"BALL")));
+ el.textContent=labels.length?labels.join("  ›  "):"Sequence ready • 0 actions";
+}
 function setTool(t){tool=t;window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"));document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===t));const status={select:"SELECT MODE • drag players",pass:"PASS MODE • tap passer then receiver",run:"RUN MODE • drag players • press Record to capture",ball:"BALL MODE • drag the ball",opp:"OPP MODE • tap pitch to add opponents"};msg(status[t]||status.select)}
 function addOpp(){if(frozen)return;const n=opps.length;const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x:72-(n%4)*8,y:25+Math.floor(n/4)*18,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();const startX=o.x,startY=o.y;let moved=false;try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;if(Math.abs(o.x-startX)+Math.abs(o.y-startY)>0.5)moved=true;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);if(!moved)msg("OPPONENT SELECTED");else persist();msg(moved?"OPPONENT POSITIONED":"OPPONENT SELECTED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
 function renderOpp(o){o.el.classList.add("player","opp");o.el.style.position="absolute";o.el.style.display="flex";o.el.style.visibility="visible";o.el.style.opacity="1";o.el.style.pointerEvents="auto";o.el.style.zIndex="19";o.el.style.left=o.x+"%";o.el.style.top=o.y+"%";if(!o.el.dataset.label)o.el.dataset.label="PRESS";o.el.setAttribute("aria-label","Opposition "+o.el.dataset.label)}
@@ -336,7 +349,7 @@ function runStep(){
  if(!playing)return;
  if(playIndex>=sequence.length){
   finishQueuedReturns(()=>{
-   playing=false;persist();msg("PLAY COMPLETE • "+sequence.length+" actions");playIndex=0;
+   playing=false;persist();updateTimeline();msg("PLAY COMPLETE • "+sequence.length+" actions");playIndex=0;
   });
   return;
  }
@@ -589,7 +602,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V13");
+msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V14");
 window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
