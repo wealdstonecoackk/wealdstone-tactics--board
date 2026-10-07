@@ -577,16 +577,30 @@ function library(){
  m.querySelector("#mSave").onclick=save;m.querySelector("#mLoad").onclick=load;m.querySelector("#mClose").onclick=()=>m.classList.add("hidden")
 }
 function hub(){
- const m=document.getElementById("modal");m.classList.remove("hidden");
- const savedOk=!!localStorage.getItem(key);
- m.innerHTML='<h2>🧠 Coach Hub</h2><p>Professional coaching controls</p>'+
- '<div class="row"><b>Engine</b><span>READY • '+players.length+' players • ball active</span></div>'+
- '<div class="row"><b>Formation</b><span>'+formation+'</span></div>'+
- '<div class="row"><b>Recorded actions</b><span>'+sequence.length+'</span></div>'+
- '<div class="row"><b>Saved tactic</b><span>'+(savedOk?"AVAILABLE":"NONE")+'</span></div>'+
- '<div class="row"><button id="saveHub">💾 Save Tactic</button><button id="loadHub">📂 Load</button></div>'+
- '<div class="row"><button id="closeHub">Close</button></div>';
- m.querySelector("#saveHub").onclick=save;m.querySelector("#loadHub").onclick=load;m.querySelector("#closeHub").onclick=()=>m.classList.add("hidden")
+ const formationName=(formations[formation]&&formations[formation].name)||formation||"4-3-3";
+ const actions=sequence.length;
+ const passes=sequence.filter(a=>a.type==="pass").length;
+ const runs=sequence.filter(a=>a.type==="run").length;
+ msg([
+  "🧠 COACH HUB",
+  "━━━━━━━━━━━━━━━━",
+  "SESSION • "+formationName,
+  "ACTIONS • "+actions+"   PASSES • "+passes+"   RUNS • "+runs,
+  "",
+  "COACHING ENGINE",
+  "✓ Players + ball",
+  "✓ Opposition press",
+  "✓ Receiver scan",
+  "✓ Third-man movement",
+  "✓ Defensive recovery",
+  "",
+  "QUICK ROUTES",
+  "📚 LIBRARY • Build-up / Press / Set Pieces",
+  "🏋️ TRAINING • Session drills",
+  "🎬 TIMELINE • Step through play",
+  "",
+  "UP THE STONES ⬜️🟦⚽️"
+ ].join("\n"));
 }
 document.querySelectorAll("[data-formation]").forEach(b=>b.onclick=()=>setFormation(b.dataset.formation));
 document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{setTool(b.dataset.tool)});
@@ -619,7 +633,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V16");
+msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V17");
 window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
