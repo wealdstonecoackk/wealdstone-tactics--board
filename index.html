@@ -21,6 +21,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 @media(max-width:600px){.tabs{grid-template-columns:repeat(3,1fr)}.tools{grid-template-columns:repeat(3,1fr)}.actions{grid-template-columns:repeat(2,1fr)}#pitch{height:66vh;min-height:500px}.player{width:45px;height:45px}.player .nm{top:43px;font-size:9px}}
 .view-switch{display:flex;gap:8px;margin:10px 0}.view-switch button{flex:1}.view-switch button.active{outline:2px solid #fff}.timeline{padding:10px;border-radius:10px;background:rgba(0,0,0,.25);font-size:13px;overflow:auto;white-space:nowrap}.player-view .arrow,.player-view .opp.press-trigger:after,.player-view .opp.cover:after{opacity:0}.player-view .notes{display:none}
 .timeline-step{border:0;border-radius:8px;padding:7px 9px;background:rgba(255,255,255,.12);color:inherit;font-weight:700}.timeline-step.active{outline:2px solid #fff}.timeline-arrow{margin:0 5px;opacity:.65}
+.pitch-zones{position:absolute;inset:0;pointer-events:none;display:flex;z-index:0}.zone{flex:1;display:flex;align-items:flex-start;justify-content:center;padding-top:8px;font-size:9px;letter-spacing:1.4px;font-weight:800;opacity:.28}.zone-def{background:rgba(255,255,255,.025)}.zone-mid{background:rgba(255,255,255,.045)}.zone-final{background:rgba(255,255,255,.065)}#pitch>*:not(.pitch-zones){position:relative;z-index:2}.player,.opp,.ball{transition:left .18s ease,top .18s ease,transform .18s ease,box-shadow .18s ease}.player.receiving{transform:scale(1.14)}
 </style>
 </head>
 <body>
@@ -36,7 +37,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 <button id="newSession" class="primary-action">🆕 New Session</button><button id="record" class="primary-action">⏺ Record</button><button id="play" class="primary-action">▶ Play</button><button id="stop" class="primary-action">⏹ Stop</button><button id="clear">🧹 Clear</button><button id="undo">↶ Undo</button><button id="redo">↷ Redo</button><button id="save" class="save-action">💾 Save</button><button id="library" class="library-action">📚 Library</button><button id="training" class="training-action">🏋️ Training</button><button id="more" class="coach-action">🧠 Coach Hub</button>
 </div>
 <div id="status" class="status">READY • Select a player or choose a coaching tool</div>
-<section id="pitch">
+<div class="pitch-zones" aria-hidden="true"><div class="zone zone-def">BUILD</div><div class="zone zone-mid">PROGRESS</div><div class="zone zone-final">FINISH</div></div><section id="pitch">
 <div id="playersLayer" aria-label="Players"><div class="player gk" data-player="0" style="left:50%;top:88%"><span class="num">1</span><span class="nm">Player 1</span></div><div class="player" data-player="1" style="left:18%;top:72%"><span class="num">2</span><span class="nm">Player 2</span></div><div class="player" data-player="2" style="left:38%;top:76%"><span class="num">3</span><span class="nm">Player 3</span></div><div class="player" data-player="3" style="left:62%;top:76%"><span class="num">4</span><span class="nm">Player 4</span></div><div class="player" data-player="4" style="left:82%;top:72%"><span class="num">5</span><span class="nm">Player 5</span></div><div class="player" data-player="5" style="left:30%;top:57%"><span class="num">6</span><span class="nm">Player 6</span></div><div class="player" data-player="6" style="left:50%;top:63%"><span class="num">7</span><span class="nm">Player 7</span></div><div class="player" data-player="7" style="left:70%;top:57%"><span class="num">8</span><span class="nm">Player 8</span></div><div class="player" data-player="8" style="left:18%;top:32%"><span class="num">9</span><span class="nm">Player 9</span></div><div class="player" data-player="9" style="left:50%;top:25%"><span class="num">10</span><span class="nm">Player 10</span></div><div class="player" data-player="10" style="left:82%;top:32%"><span class="num">11</span><span class="nm">Player 11</span></div></div>
 <svg id="svg" viewBox="0 0 1000 700" preserveAspectRatio="none"><defs><marker id="head" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0 0L9 4L0 8Z" fill="currentColor"/></marker></defs></svg>
 <div class="line half"></div><div class="line centre"></div><div class="line box a"></div><div class="line box b"></div><div class="line goal a"></div><div class="line goal b"></div>
@@ -618,7 +619,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V15");
+msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V16");
 window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
