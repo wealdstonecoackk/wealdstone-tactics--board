@@ -13,9 +13,9 @@ body{padding-bottom:18px;-webkit-user-select:none}.top{display:flex;align-items:
 button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;min-height:42px;font-weight:800;font-size:11px;padding:7px;touch-action:manipulation}button.active{background:#1858b5;border-color:#8ab7ff}button.danger{background:#8e2530}.status{margin:6px 0;background:#151a20;border:1px solid #2c333c;border-radius:8px;padding:7px;text-align:center;font-size:11px;color:#c8d0d9}
 #pitch{position:relative;isolation:isolate;width:100%;height:min(72vh,720px);min-height:500px;margin:7px auto;background:#16813a;border:4px solid #fff;border-radius:9px;overflow:hidden;touch-action:none;user-select:none}
 .line{position:absolute;pointer-events:none;border-color:#ffffffcc}.half{left:0;right:0;top:50%;border-top:2px solid}.centre{left:50%;top:50%;width:116px;height:116px;border:2px solid;border-radius:50%;transform:translate(-50%,-50%)}.box{left:20%;width:60%;height:17%;border:2px solid}.box.a{top:0}.box.b{bottom:0}.goal{left:38%;width:24%;height:5%;border:2px solid}.goal.a{top:0}.goal.b{bottom:0}
-#playersLayer{position:absolute;inset:0;z-index:20;pointer-events:none}.player{position:absolute!important;-webkit-tap-highlight-color:transparent;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto;width:48px;height:48px;border-radius:50%;background:#1d5dbb;border:3px solid #fff;display:flex!important;visibility:visible!important;opacity:1!important;align-items:center;justify-content:center;color:#fff;font-weight:900;transform:translate(-50%,-50%);z-index:20;touch-action:none;box-shadow:0 2px 6px #0009}.player.gk{background:#f2c500;color:#111}.player.selected{outline:4px solid #ffd84d;outline-offset:2px}.player.receiving{outline:4px solid #ffd84d;outline-offset:3px;box-shadow:0 0 0 5px #ffd84d33,0 2px 8px #0009}.player .num{font-size:15px}.player .nm{position:absolute;top:47px;pointer-events:none;white-space:nowrap;font-size:10px;text-shadow:0 1px 3px #000;font-weight:800}.opp{background:#c62828!important;z-index:19!important}.ball{position:absolute;width:40px;height:40px;border-radius:50%;background:#fff;border:3px solid #111;color:#111;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);z-index:30;font-size:24px;touch-action:none;box-shadow:0 2px 6px #0009}
+#playersLayer{position:absolute;inset:0;z-index:20;pointer-events:none}.player{position:absolute!important;-webkit-tap-highlight-color:transparent;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto;width:42px;height:58px;border:0;background:transparent!important;align-items:flex-start;justify-content:center;color:#fff;font-weight:900;transform:translate(-50%,-50%);z-index:20;touch-action:none;filter:drop-shadow(0 2px 3px #0009)}.player:before{content:"";position:absolute;top:0;width:16px;height:16px;border:2px solid #fff;border-radius:50%;background:#f0c7a8;z-index:2}.player:after{content:"";position:absolute;top:14px;width:30px;height:30px;border-radius:8px 8px 5px 5px;background:#1d5dbb;border:2px solid #fff;box-shadow:0 17px 0 -7px #111,0 17px 0 -6px #111;z-index:1}.player.gk:after{background:#f2c500}.player.opp:after{background:#c62828}.player.selected{outline:4px solid #ffd84d;outline-offset:3px;border-radius:12px}.player.receiving{outline:4px solid #ffd84d;outline-offset:3px}.player .num{position:relative;z-index:3;margin-top:20px;font-size:12px;text-shadow:0 1px 2px #000}.player .nm{position:absolute;top:58px;pointer-events:none;white-space:nowrap;font-size:10px;text-shadow:0 1px 3px #000;font-weight:800}.opp{z-index:19!important}.ball{position:absolute;width:40px;height:40px;border-radius:50%;background:#fff;border:3px solid #111;color:#111;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);z-index:30;font-size:24px;touch-action:none;box-shadow:0 2px 6px #0009}
 #svg{position:absolute;inset:0;width:100%;height:100%;z-index:10;pointer-events:none}.run{stroke:#fff;stroke-width:3;stroke-dasharray:9 7;fill:none}.pass{stroke:#ffd84d;stroke-width:3;fill:none}.arrow{marker-end:url(#head)}
-.bottom{margin-top:6px}.panel{margin-top:7px;background:#151a20;border:1px solid #2c333c;border-radius:10px;padding:8px}.panel textarea{width:100%;min-height:70px;border:0;border-radius:7px;padding:9px;font:13px system-ui}.hidden{display:none!important}
+.press-key{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:5px;font-size:10px;color:#cbd3dc}.press-key span{padding:4px 7px;border-radius:999px;border:1px solid #39414c;background:#151a20}.press-key .blue{border-color:#4aa3ff}.press-key .red{border-color:#ff6b73}.bottom{margin-top:6px}.panel{margin-top:7px;background:#151a20;border:1px solid #2c333c;border-radius:10px;padding:8px}.panel textarea{width:100%;min-height:70px;border:0;border-radius:7px;padding:9px;font:13px system-ui}.hidden{display:none!important}
 .modal{position:fixed;inset:3%;z-index:100;background:#0f1318;border:1px solid #3b434d;border-radius:14px;padding:14px;overflow:auto;text-align:left}.modal h2{margin:0 0 8px}.row{display:flex;gap:7px;align-items:center;justify-content:space-between;margin:7px 0}.row input,.row select{flex:1;min-width:0;padding:9px;border-radius:7px;border:1px solid #3a424c;background:#20262e;color:#fff}
 @media(max-width:600px){.tabs{grid-template-columns:repeat(3,1fr)}.tools{grid-template-columns:repeat(3,1fr)}.actions{grid-template-columns:repeat(2,1fr)}#pitch{height:66vh;min-height:500px}.player{width:45px;height:45px}.player .nm{top:43px;font-size:9px}}
 </style>
@@ -38,7 +38,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 <svg id="svg" viewBox="0 0 1000 700" preserveAspectRatio="none"><defs><marker id="head" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0 0L9 4L0 8Z" fill="currentColor"/></marker></defs></svg>
 <div class="line half"></div><div class="line centre"></div><div class="line box a"></div><div class="line box b"></div><div class="line goal a"></div><div class="line goal b"></div>
 <div id="ball" class="ball" style="left:50%;top:50%">⚽</div>
-</section>
+</section><div class="press-key"><span class="blue">🔵 WEALDSTONE</span><span class="red">🔴 OPPOSITION PRESS</span><span>⚽ BALL</span></div>
 <div class="actions bottom"><button id="grid">▦ Grid</button><button id="reset">⌂ Reset XI</button><button id="oppClear">✕ Clear Opp</button><button id="freeze">🔒 Freeze</button><button id="rebuild">🔧 Rebuild Board</button></div>
 <div class="panel"><textarea id="notes" placeholder="Coach notes — objectives, triggers, details..."></textarea></div>
 </main>
@@ -212,7 +212,7 @@ elDown(ball,e=>{
 function setFormation(f){pushHistory();formation=f;players.forEach((p,i)=>{p.x=formations[f][i][0];p.y=formations[f][i][1];renderPlayer(p)});document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===f));draw();persist();msg("FORMATION • "+f)}
 function setTool(t){tool=t;window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"));document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===t));const status={select:"SELECT MODE • drag players",pass:"PASS MODE • tap passer then receiver",run:"RUN MODE • drag players • press Record to capture",ball:"BALL MODE • drag the ball",opp:"OPP MODE • tap pitch to add opponents"};msg(status[t]||status.select)}
 function addOpp(){if(frozen)return;const n=opps.length;const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x:72-(n%4)*8,y:25+Math.floor(n/4)*18,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();const startX=o.x,startY=o.y;let moved=false;try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;if(Math.abs(o.x-startX)+Math.abs(o.y-startY)>0.5)moved=true;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);if(!moved)msg("OPPONENT SELECTED");else persist();msg(moved?"OPPONENT POSITIONED":"OPPONENT SELECTED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
-function renderOpp(o){o.el.classList.add("player","opp");o.el.style.position="absolute";o.el.style.display="flex";o.el.style.visibility="visible";o.el.style.opacity="1";o.el.style.pointerEvents="auto";o.el.style.zIndex="19";o.el.style.left=o.x+"%";o.el.style.top=o.y+"%"}
+function renderOpp(o){o.el.classList.add("player","opp");o.el.style.position="absolute";o.el.style.display="flex";o.el.style.visibility="visible";o.el.style.opacity="1";o.el.style.pointerEvents="auto";o.el.style.zIndex="19";o.el.style.left=o.x+"%";o.el.style.top=o.y+"%";if(!o.el.dataset.label)o.el.dataset.label="PRESS";o.el.setAttribute("aria-label","Opposition "+o.el.dataset.label)}
 function clearOpp(silent=false){if(!opps.length)return;if(!silent)pushHistory();opps.forEach(o=>o.el.remove());opps=[];if(!silent){persist();msg("OPPOSITION CLEARED")}}
 function reset(){pushHistory();players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1];renderPlayer(p)});arrows=[];sequence=[];setBall(50,50);draw();persist();msg("XI RESET • "+formation)}
 function clear(){pushHistory();arrows=[];sequence=[];draw();persist();msg("TACTICAL DRAWING CLEARED")}
@@ -271,6 +271,7 @@ function finishQueuedReturns(done){
   renderPlayer(q.p);
  },()=>finishQueuedReturns(done));
 }
+function reactPress(x,y){opps.forEach(o=>{const d=Math.hypot(x-o.x,y-o.y);if(d<28){const f=(28-d)/28*0.22;o.x=clamp(o.x+(x-o.x)*f,2,98);o.y=clamp(o.y+(y-o.y)*f,2,98);renderOpp(o)}})}
 function runStep(){
  if(!playing)return;
  if(playIndex>=sequence.length){
@@ -316,6 +317,7 @@ function runStep(){
   animate(550,t=>setBall(sx+(ex-sx)*t,sy+(ey-sy)*t),()=>{
    setBall(ex,ey);
    settleReceiver(ex,ey);
+   reactPress(ex,ey);
    finishQueuedReturns(next);
   });
  }else if(a.type==="ball"){
@@ -391,6 +393,9 @@ const presetLibrary={
  "short-corner-cutback":{title:"Pro Template • Short Corner Cutback",formation:"442",notes:"Short combination draws the defender out before a cutback is delivered toward the penalty-spot zone.",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[18,52],[38,57],[62,57],[82,52],[35,30],[65,30]],ball:[8,10],arrows:[{type:"pass",x1:8,y1:10,x2:22,y2:20},{type:"pass",x1:22,y1:20,x2:35,y2:30},{type:"run",i:9,x1:35,y1:30,x2:48,y2:25},{type:"run",i:10,x1:65,y1:30,x2:62,y2:24},{type:"pass",x1:35,y1:30,x2:48,y2:25}]},
  "short-corner-decoy":{title:"Pro Template • Short Corner Decoy",formation:"352",notes:"Use a short-corner decoy to move the first defender, then attack the near-post and central zones with timed runs.",players:[[50,88],[25,72],[50,76],[75,72],[15,55],[35,58],[50,52],[65,58],[85,55],[35,30],[65,30]],ball:[8,10],arrows:[{type:"pass",x1:8,y1:10,x2:22,y2:22},{type:"run",i:9,x1:35,y1:30,x2:48,y2:24},{type:"run",i:8,x1:22,y1:22,x2:38,y2:30},{type:"run",i:10,x1:65,y1:30,x2:62,y2:22},{type:"pass",x1:22,y1:22,x2:38,y2:30}]},
  "short-corner-edge":{title:"Pro Template • Short Corner Edge Recycle",formation:"4231",notes:"Play short, recycle to the edge of the box and reset the angle for a second delivery while attackers reset their runs.",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[35,58],[65,58],[20,36],[50,42],[82,36],[50,25]],ball:[8,10],arrows:[{type:"pass",x1:8,y1:10,x2:20,y2:24},{type:"pass",x1:20,y1:24,x2:50,y2:42},{type:"pass",x1:50,y1:42,x2:35,y2:58},{type:"run",i:10,x1:50,y1:25,x2:58,y2:20},{type:"run",i:9,x1:82,y1:36,x2:68,y2:28}]},
+ "build-v-press":{title:"Pro Template • Build-Up vs High Press",formation:"433",notes:"Build from the goalkeeper against a coordinated opposition press. Use the centre-backs to split, pivot to receive between lines, winger to pin the full-back and the 9 to threaten the space behind.",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[30,57],[50,63],[70,57],[18,32],[50,25],[82,32]],ball:[50,88],opps:[[50,12],[25,20],[75,20],[34,31],[66,31],[20,43],[50,40],[80,43],[31,54],[69,54]],arrows:[
+  {type:"pass",x1:50,y1:88,x2:38,y2:76},{type:"run",i:8,x1:18,y1:32,x2:28,y2:25},{type:"pass",x1:38,y1:76,x2:30,y2:57},{type:"run",i:6,x1:50,y1:63,x2:50,y2:48},{type:"pass",x1:30,y1:57,x2:50,y2:63},{type:"pass",x1:50,y1:63,x2:82,y2:32},{type:"run",i:10,x1:82,y1:32,x2:88,y2:22}
+]},
  "press":{title:"Pro Template • High Press",formation:"433",notes:"Pressing template: front three curve their runs to screen central access, midfield squeezes behind and the back line holds a compact high position.",players:[[50,88],[18,72],[38,76],[62,76],[82,72],[30,57],[50,63],[70,57],[18,32],[50,25],[82,32]],ball:[50,50],arrows:[
   {type:"run",i:8,x1:18,y1:32,x2:35,y2:24},{type:"run",i:9,x1:50,y1:25,x2:50,y2:18},{type:"run",i:10,x1:82,y1:32,x2:65,y2:24},{type:"run",i:5,x1:30,y1:57,x2:38,y2:48},{type:"run",i:7,x1:70,y1:57,x2:62,y2:48}
  ]},
@@ -403,6 +408,7 @@ function loadPreset(id){
  pushHistory();formation=s.formation;while(players.length<11)createPlayer(players.length);
  players.forEach((p,i)=>{const q=s.players[i];p.x=q[0];p.y=q[1];p.name=names[i];renderPlayer(p)});
  arrows=(s.arrows||[]).map(a=>({...a}));sequence=(s.arrows||[]).map(a=>({...a}));opps.forEach(o=>o.el.remove());opps=[];
+ if(Array.isArray(s.opps))s.opps.slice(0,20).forEach(o=>{if(Number.isFinite(o.x)&&Number.isFinite(o.y))addOppAt(clamp(o.x,1,99),clamp(o.y,1,99),true)});
  setBall(s.ball[0],s.ball[1]);notes.value=s.notes||"";draw();persist();
  document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===formation));
  document.getElementById("modal").classList.add("hidden");msg(s.title+" • LOADED");
@@ -459,7 +465,7 @@ function loadTraining(id){
 function library(){
  const m=document.getElementById("modal");m.classList.remove("hidden");
  m.innerHTML='<h2>📚 Professional Tactic Library</h2><p>Ready-made coaching templates based on widely documented elite tactical principles. These are training templates, not official club playbooks.</p>'+
- '<h3>⚽ Build-Up Plays</h3>'+
+ '<h3>⚽ Build-Up Plays</h3>'+ '<button data-preset="build-v-press" style="background:#5b2228;border-color:#ff6b73">🔥 Build-Up vs High Press</button> '+
  '<button data-preset="playing-back">⚽ Playing From The Back</button> '+
  '<button data-preset="goal-kick">🧤 Goal-Kick Build-Up</button> '+
  '<button data-preset="build-3rd-man">🔺 Third-Man Build-Up</button> '+
