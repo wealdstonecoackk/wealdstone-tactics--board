@@ -34,7 +34,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 <button data-tool="select" class="active">👆 Select</button><button data-tool="pass">➜ Pass</button><button data-tool="run">↗ Run</button><button data-tool="ball">⚽ Ball</button><button data-tool="opp">🔴 Opp</button>
 </div>
 <div class="view-switch"><button id="coachView" class="active" onclick="setViewMode('coach')">🧠 Coach View</button><button id="playerView" onclick="setViewMode('player')">👤 Player View</button></div><div class="timeline-controls"><span>🎬 SPEED</span><button data-speed="0.5">0.5×</button><button data-speed="1" class="active">1×</button><button data-speed="1.5">1.5×</button><button data-speed="2">2×</button></div><div id="timeline" class="timeline">Sequence ready • 0 actions</div><div class="menu-label">1 • PLAN</div><div class="actions primary-menu">
-<button id="newSession" class="primary-action">🆕 New Session</button><button id="library" class="library-action">📚 Play Library</button><button id="training" class="training-action">🏋️ Training</button><button id="more" class="coach-action">🧠 Coach Hub</button>
+<button id="newSession" class="primary-action">🆕 New Session</button><button id="library" class="library-action">📚 Play Library</button><button id="training" class="training-action">🏋️ Training</button><button id="pressMenu" class="coach-action">🔴 Opp Press</button><button id="more" class="coach-action">🧠 Coach Hub</button>
 </div><div class="menu-label">2 • CREATE & REHEARSE</div><div class="actions">
 <button id="record" class="primary-action" title="Record player movement and passes">⏺ Record Play</button><button id="play" class="primary-action" title="Rehearse the recorded sequence">▶ Rehearse</button><button id="stop" class="primary-action">⏹ Stop</button><button id="clear" title="Clear arrows and recorded actions">🧹 Clear Play</button>
 </div><div class="menu-label">3 • EDIT</div><div class="actions compact-menu">
@@ -572,6 +572,32 @@ function loadTraining(id){
  document.querySelectorAll("[data-formation]").forEach(b=>b.classList.toggle("active",b.dataset.formation===formation));
  document.getElementById("modal").classList.add("hidden");msg(s.title+" • LOADED");
 }
+function pressMenu(){
+ const m=document.getElementById("modal");m.classList.remove("hidden");
+ m.innerHTML='<h2>🔴 Opposition Press</h2><p>Choose a realistic defensive problem, then load it onto the board. Drag any opponent to fine-tune the shape.</p>'+
+ '<div class="preview-card"><strong>HIGH PRESS</strong><p>Front line starts high, midfield squeezes behind and the back line holds a compact high position.</p><button data-press="high">🔥 Load High Press</button></div>'+
+ '<div class="preview-card"><strong>MID BLOCK</strong><p>Compact midfield line invites the first pass before stepping together.</p><button data-press="mid">🧱 Load Mid Block</button></div>'+
+ '<div class="preview-card"><strong>LOW BLOCK</strong><p>Deep compact block protects the central and penalty areas.</p><button data-press="low">🛡️ Load Low Block</button></div>'+
+ '<div class="preview-card"><strong>PRESS TRAP</strong><p>Force play towards one side, then trigger the nearest players to press and cover the inside pass.</p><button data-press="trap">🎯 Load Press Trap</button></div>'+
+ '<hr><button id="pClear">✕ Clear Opposition</button> <button id="pClose">Close</button>';
+ m.querySelectorAll("[data-press]").forEach(b=>b.onclick=()=>loadPress(b.dataset.press));
+ m.querySelector("#pClear").onclick=()=>{clearOpp();m.classList.add("hidden")};
+ m.querySelector("#pClose").onclick=()=>m.classList.add("hidden");
+}
+function loadPress(type){
+ const shapes={
+  high:[[50,10],[28,17],[50,15],[72,17],[20,29],[40,27],[60,27],[80,29],[30,40],[50,38]],
+  mid:[[50,24],[28,30],[50,28],[72,30],[22,40],[40,38],[60,38],[78,40],[35,50],[65,50]],
+  low:[[50,43],[27,49],[50,47],[73,49],[20,60],[38,58],[62,58],[80,60],[32,70],[68,70]],
+  trap:[[58,18],[38,24],[70,23],[82,34],[67,38],[78,48],[60,44],[48,50],[74,56],[54,34]]
+ };
+ pushHistory();opps.forEach(o=>o.el.remove());opps=[];
+ (shapes[type]||shapes.high).forEach((q,i)=>addOppAt(q[0],q[1],true));
+ opps.forEach((o,i)=>{o.el.dataset.label=type==="trap"?(i<3?"TRIGGER":"COVER"):(type==="high"?"PRESS":"BLOCK");o.el.classList.toggle("press-trigger",type==="trap"&&i<3);o.el.classList.toggle("cover",type==="trap"&&i>=3);renderOpp(o)});
+ persist();draw();document.getElementById("modal").classList.add("hidden");
+ const names={high:"HIGH PRESS",mid:"MID BLOCK",low:"LOW BLOCK",trap:"PRESS TRAP"};
+ msg("OPPOSITION • "+(names[type]||"PRESS")+" LOADED");
+}
 function library(){
  const m=document.getElementById("modal");m.classList.remove("hidden");
  m.innerHTML='<h2>📚 Professional Tactic Library</h2><p>Build, rehearse and present coaching ideas quickly. Templates are coaching patterns, not official club playbooks.</p>'+
@@ -620,7 +646,7 @@ document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{setTool(b.dat
 document.getElementById("record").onclick=()=>{stopPlayback();clearSelection();startRec()};
 document.getElementById("newSession").onclick=newSession;
 document.getElementById("stop").onclick=stopRec;document.getElementById("play").onclick=play;document.getElementById("clear").onclick=()=>{stopPlayback();clearSelection();clear()};
-document.getElementById("undo").onclick=()=>{stopPlayback();clearSelection();undo()};document.getElementById("redo").onclick=()=>{stopPlayback();clearSelection();redo()};document.getElementById("save").onclick=save;document.getElementById("library").onclick=library;document.getElementById("training").onclick=training;document.getElementById("more").onclick=hub;
+document.getElementById("undo").onclick=()=>{stopPlayback();clearSelection();undo()};document.getElementById("redo").onclick=()=>{stopPlayback();clearSelection();redo()};document.getElementById("save").onclick=save;document.getElementById("library").onclick=library;document.getElementById("training").onclick=training;document.getElementById("pressMenu").onclick=pressMenu;document.getElementById("more").onclick=hub;
 document.getElementById("notes").setAttribute("aria-label","Coach notes");
 
 document.getElementById("reset").onclick=()=>{stopPlayback();clearSelection();reset()};
@@ -647,7 +673,7 @@ if(saved){
   }
 }
 msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V17");
-window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
+window.setViewMode=setViewMode;window.jumpToStep=jumpToStep;window.pressMenu=pressMenu;window.loadPress=loadPress;window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
 })();
