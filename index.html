@@ -253,15 +253,30 @@ function runStep(){
  if(!playing)return;
  if(playIndex>=sequence.length){playing=false;persist();msg("PLAY COMPLETE • "+sequence.length+" actions");return}
  const a=sequence[playIndex];
+ msg("PLAYING • "+(playIndex+1)+"/"+sequence.length);
  if(a.type==="run"){
   const p=players[a.i];
-  if(p){p.x=a.x1;p.y=a.y1;renderPlayer(p);animate(650,t=>{p.x=a.x1+(a.x2-a.x1)*t;p.y=a.y1+(a.y2-a.y1)*t;renderPlayer(p)})}else next()
+  if(p){
+   const homeX=a.x1,homeY=a.y1;
+   p.x=homeX;p.y=homeY;renderPlayer(p);
+   animate(650,t=>{
+    p.x=homeX+(a.x2-homeX)*t;
+    p.y=homeY+(a.y2-homeY)*t;
+    renderPlayer(p);
+   },()=>{
+    animate(350,t=>{
+     p.x=a.x2+(homeX-a.x2)*t;
+     p.y=a.y2+(homeY-a.y2)*t;
+     renderPlayer(p);
+    },next);
+   });
+  }else next();
  }else if(a.type==="pass"){
   setBall(a.x1,a.y1);
-  animate(550,t=>setBall(a.x1+(a.x2-a.x1)*t,a.y1+(a.y2-a.y1)*t))
+  animate(550,t=>setBall(a.x1+(a.x2-a.x1)*t,a.y1+(a.y2-a.y1)*t));
  }else if(a.type==="ball"){
   const sx=ballPos.x,sy=ballPos.y;
-  animate(450,t=>setBall(sx+(a.x-sx)*t,sy+(a.y-sy)*t))
+  animate(450,t=>setBall(sx+(a.x-sx)*t,sy+(a.y-sy)*t));
  }else next()
 }
 function animate(ms,fn,done){
