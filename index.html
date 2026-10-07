@@ -102,13 +102,24 @@ function settleReceiver(x,y){
  receiver.p.el.dataset.state="RECEIVE • SCAN";
  clearTimeout(receiver.p.el.__stateTimer);
  receiver.p.el.__stateTimer=setTimeout(()=>{receiver.p.el.classList.remove("receiving");delete receiver.p.el.dataset.state},650);
- // Give the nearest supporting teammate a small automatic outlet movement.
- const support=players.filter(p=>p!==receiver.p).map(p=>({p,d:Math.hypot(p.x-receiver.p.x,p.y-receiver.p.y)})).sort((a,b)=>a.d-b.d)[0];
- if(support&&support.d<28){
+ const candidates=players.filter(p=>p!==receiver.p).map(p=>({p,d:Math.hypot(p.x-receiver.p.x,p.y-receiver.p.y)})).sort((a,b)=>a.d-b.d);
+ const support=candidates[0];
+ const third=candidates[1];
+ if(support&&support.d<30){
   const side=support.p.x<receiver.p.x?-1:1;
-  const tx=clamp(support.p.x+side*5,4,96);
-  const ty=clamp(support.p.y+(support.p.y<receiver.p.y?-3:3),4,96);
-  support.p.x=tx;support.p.y=ty;renderPlayer(support.p);
+  support.p.x=clamp(support.p.x+side*5,4,96);
+  support.p.y=clamp(support.p.y+(support.p.y<receiver.p.y?-3:3),4,96);
+  renderPlayer(support.p);
+ }
+ // Third-man movement: the next closest outlet attacks space beyond the receiver.
+ if(third&&third.d<42){
+  const dir=third.p.x<receiver.p.x?-1:1;
+  third.p.x=clamp(third.p.x+dir*6,4,96);
+  third.p.y=clamp(third.p.y-5,4,96);
+  renderPlayer(third.p);
+  third.p.el.dataset.state="THIRD MAN";
+  clearTimeout(third.p.el.__thirdTimer);
+  third.p.el.__thirdTimer=setTimeout(()=>delete third.p.el.dataset.state,850);
  }
 }
 function renderPlayer(p){if(!p||!p.el)return; p.el.classList.add("player");p.el.style.position="absolute";p.el.style.display="flex";p.el.style.visibility="visible";p.el.style.opacity="1";p.el.style.pointerEvents="auto";p.el.style.left=p.x+"%";p.el.style.top=p.y+"%";p.el.style.zIndex="20";const nm=p.el.querySelector(".nm");if(nm)nm.textContent=p.name}
@@ -354,7 +365,7 @@ function runStep(){
    setBall(ex,ey);
    settleReceiver(ex,ey);
    reactPress(ex,ey);
-   msg("RECEIVE • SCAN • OUTLET • PRESS REACTION");
+   msg("RECEIVE • SCAN • THIRD MAN • PRESS REACTION");
    finishQueuedReturns(next);
   });
  }else if(a.type==="ball"){
@@ -565,7 +576,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V10");
+msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V11");
 window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
