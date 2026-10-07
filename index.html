@@ -35,8 +35,8 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 </div>
 <div class="view-switch"><button id="coachView" class="active" onclick="setViewMode('coach')">🧠 Coach View</button><button id="playerView" onclick="setViewMode('player')">👤 Player View</button></div><div class="timeline-controls"><span>🎬 SPEED</span><button data-speed="0.5">0.5×</button><button data-speed="1" class="active">1×</button><button data-speed="1.5">1.5×</button><button data-speed="2">2×</button></div><div id="timeline" class="timeline">Sequence ready • 0 actions</div><div class="menu-label">1 • PLAN</div><div class="actions primary-menu">
 <button id="newSession" class="primary-action">🆕 New Session</button><button id="library" class="library-action">📚 Play Library</button><button id="training" class="training-action">🏋️ Training</button><button id="more" class="coach-action">🧠 Coach Hub</button>
-</div><div class="menu-label">2 • BUILD & TEST</div><div class="actions">
-<button id="record" class="primary-action">⏺ Record</button><button id="play" class="primary-action">▶ Play</button><button id="stop" class="primary-action">⏹ Stop</button><button id="clear">🧹 Clear</button>
+</div><div class="menu-label">2 • CREATE & REHEARSE</div><div class="actions">
+<button id="record" class="primary-action" title="Record player movement and passes">⏺ Record Play</button><button id="play" class="primary-action" title="Rehearse the recorded sequence">▶ Rehearse</button><button id="stop" class="primary-action">⏹ Stop</button><button id="clear" title="Clear arrows and recorded actions">🧹 Clear Play</button>
 </div><div class="menu-label">3 • EDIT</div><div class="actions compact-menu">
 <button id="undo">↶ Undo</button><button id="redo">↷ Redo</button><button id="save" class="save-action">💾 Save</button>
 </div>
@@ -62,7 +62,7 @@ const formations={
 "4231":[[50,88],[18,72],[38,76],[62,76],[82,72],[35,58],[65,58],[18,36],[50,42],[82,36],[50,25]],
 "4141":[[50,88],[18,72],[38,76],[62,76],[82,72],[50,63],[18,43],[38,48],[62,48],[82,43],[50,25]]
 };
-let formation="433",tool="select",players=[],opps=[],arrows=[],history=[],redoStack=[],sequence=[],recording=false,playing=false,playIndex=0,raf=0,ballPos={x:50,y:50},frozen=false,returnQueue=[];
+let formation="433",tool="select",players=[],opps=[],arrows=[],history=[],redoStack=[],sequence=[],recording=false,playing=false,playIndex=0,raf=0,ballPos={x:50,y:50},frozen=false,returnQueue=[],playbackSpeed=1;
 let names=Array.from({length:11},(_,i)=>"Player "+(i+1));
 const key="wealdstone_pro_coach_v7";
 function msg(t){status.textContent=t;status.setAttribute("aria-live","polite")}
@@ -322,7 +322,8 @@ function play(){
  if(playIndex>=sequence.length){playIndex=0}
  playing=true;
  if(playIndex===0){returnQueue=[];const b=firstPlaybackBall();setBall(b.x,b.y)}
- msg("COACH SEQUENCE • "+(playIndex+1)+"/"+sequence.length+" • "+(a.type==="pass"?"PASS & PRESS":a.type==="run"?"MOVEMENT":"BALL");
+ const firstStep=sequence[playIndex];
+ msg("COACH SEQUENCE • "+(playIndex+1)+"/"+sequence.length+" • "+(firstStep.type==="pass"?"PASS & PRESS":firstStep.type==="run"?"MOVEMENT":"BALL");
  runStep()
 }
 function finishQueuedReturns(done){
