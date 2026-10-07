@@ -556,23 +556,16 @@ function loadTraining(id){
 }
 function library(){
  const m=document.getElementById("modal");m.classList.remove("hidden");
- m.innerHTML='<h2>📚 Professional Tactic Library</h2><p>Ready-made coaching templates based on widely documented elite tactical principles. These are training templates, not official club playbooks.</p>'+
- '<h3>⚽ Build-Up Plays</h3>'+ '<button data-preset="build-v-press" style="background:#5b2228;border-color:#ff6b73">🔥 Build-Up vs High Press</button> '+
- '<button data-preset="playing-back">⚽ Playing From The Back</button> '+
- '<button data-preset="goal-kick">🧤 Goal-Kick Build-Up</button> '+
- '<button data-preset="build-3rd-man">🔺 Third-Man Build-Up</button> '+
- '<button data-preset="build-wide">↔️ Wide Build-Up</button> '+
- '<button data-preset="build-switch">🔄 Switch & Progress</button> '+
+ m.innerHTML='<h2>📚 Professional Tactic Library</h2><p>Build, rehearse and present coaching ideas quickly. Templates are coaching patterns, not official club playbooks.</p>'+
+ '<h3>🟦 BUILD & PROGRESS</h3>'+
+ '<button data-preset="build-v-press" style="background:#5b2228;border-color:#ff6b73">🔥 Build-Up vs High Press</button> '+
+ '<button data-preset="playing-back">⚽ Playing From The Back</button> <button data-preset="goal-kick">🧤 Goal-Kick Build-Up</button> '+
+ '<button data-preset="build-3rd-man">🔺 Third-Man Build-Up</button> <button data-preset="build-wide">↔️ Wide Build-Up</button> <button data-preset="build-switch">🔄 Switch & Progress</button> '+
  '<button data-preset="build-underlap">↗️ Full-Back Underlap</button> <button data-preset="build-overlap">↗️ Full-Back Overlap</button> <button data-preset="build-overload">🔺 Central Overload</button> <button data-preset="build-diagonal">↔️ Diagonal Switch</button> <button data-preset="build-wall-pass">🤝 Wall Pass & Break</button> '+
- '<h3>🚩 Short Corners</h3>'+
- '<button data-preset="short-corner-2v1">2️⃣ Short Corner 2v1</button> '+
- '<button data-preset="short-corner-recycle">♻️ Short Corner Recycle</button> '+
- '<button data-preset="short-corner-third">🔺 Short Corner Third-Man</button> '+
- '<button data-preset="short-corner-cross">🎯 Short Corner Cross</button> <button data-preset="short-corner-overlap">↗️ Short Corner Overlap</button> <button data-preset="short-corner-cutback">🎯 Short Corner Cutback</button> <button data-preset="short-corner-decoy">🎭 Short Corner Decoy</button> <button data-preset="short-corner-edge">♻️ Short Corner Edge Recycle</button> '+
- '<h3>📋 Existing Templates</h3>'+
- '<button data-preset="set-piece">🚩 Attacking Corner</button> '+
- '<button data-preset="def-corner">🛡️ Defending Corner</button> '+
- '<button data-preset="press">🔥 High Press</button> '+
+ '<h3>🟥 PRESS & DEFENDING</h3><button data-preset="press">🔥 High Press</button> <button data-preset="def-corner">🛡️ Defending Corner</button> '+
+ '<h3>🚩 SET PIECES</h3><button data-preset="set-piece">🚩 Attacking Corner</button> '+
+ '<h3>🟨 SHORT CORNERS</h3>'+
+ '<button data-preset="short-corner-2v1">2️⃣ 2v1</button> <button data-preset="short-corner-recycle">♻️ Recycle</button> <button data-preset="short-corner-third">🔺 Third-Man</button> <button data-preset="short-corner-cross">🎯 Cross</button> <button data-preset="short-corner-overlap">↗️ Overlap</button> <button data-preset="short-corner-cutback">🎯 Cutback</button> <button data-preset="short-corner-decoy">🎭 Decoy</button> <button data-preset="short-corner-edge">♻️ Edge Recycle</button> '+
  '<hr><button id="mSave">💾 Save Current</button> <button id="mLoad">📂 Load Saved</button> <button id="mClose">Close</button>';
  m.querySelectorAll("[data-preset]").forEach(b=>b.onclick=()=>loadPreset(b.dataset.preset));
  m.querySelector("#mSave").onclick=save;m.querySelector("#mLoad").onclick=load;m.querySelector("#mClose").onclick=()=>m.classList.add("hidden")
