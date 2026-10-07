@@ -287,7 +287,7 @@ function play(){
  if(playIndex>=sequence.length){playIndex=0}
  playing=true;
  if(playIndex===0){returnQueue=[];const b=firstPlaybackBall();setBall(b.x,b.y)}
- msg("PLAYING • "+(playIndex+1)+"/"+sequence.length);
+ msg("COACH SEQUENCE • "+(playIndex+1)+"/"+sequence.length+" • "+(a.type==="pass"?"PASS & PRESS":a.type==="run"?"MOVEMENT":"BALL");
  runStep()
 }
 function finishQueuedReturns(done){
@@ -378,7 +378,7 @@ function runStep(){
    setBall(ex,ey);
    settleReceiver(ex,ey);
    reactPress(ex,ey);
-   msg("RECEIVE • SCAN • THIRD MAN • PRESS REACTION");
+   msg("PASS COMPLETE • RECEIVE • SCAN • THIRD MAN • PRESS • RECOVERY");
    finishQueuedReturns(next);
   });
  }else if(a.type==="ball"){
@@ -589,7 +589,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V12");
+msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V13");
 window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
