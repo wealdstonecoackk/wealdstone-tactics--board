@@ -94,7 +94,23 @@ function posFromEvent(e){const r=pitch.getBoundingClientRect();return{x:clamp((e
 function pushHistory(){history.push(JSON.stringify(snapshot()));redoStack=[];if(history.length>30)history.shift()}
 function snapshot(){return{formation,names:names.slice(),players:players.map(p=>({x:p.x,y:p.y})),opps:opps.map(o=>({x:o.x,y:o.y})),arrows:arrows.map(a=>({...a})),ball:{...ballPos},sequence:sequence.map(a=>({...a})),notes:notes.value}}
 function flashReceiver(x,y){const p=players.reduce((best,q)=>{const d=Math.hypot(q.x-x,q.y-y);return !best||d<best.d?{p:q,d}:best},null);if(!p||p.d>4)return;const el=p.p.el;el.classList.add("receiving");clearTimeout(el.__receiveTimer);el.__receiveTimer=setTimeout(()=>el.classList.remove("receiving"),500)}
-function settleReceiver(x,y){flashReceiver(x,y);}
+function settleReceiver(x,y){
+ flashReceiver(x,y);
+ const receiver=players.reduce((best,p)=>{const d=Math.hypot(p.x-x,p.y-y);return !best||d<best.d?{p,d}:best},null);
+ if(!receiver||receiver.d>5)return;
+ receiver.p.el.classList.add("receiving");
+ receiver.p.el.dataset.state="RECEIVE • SCAN";
+ clearTimeout(receiver.p.el.__stateTimer);
+ receiver.p.el.__stateTimer=setTimeout(()=>{receiver.p.el.classList.remove("receiving");delete receiver.p.el.dataset.state},650);
+ // Give the nearest supporting teammate a small automatic outlet movement.
+ const support=players.filter(p=>p!==receiver.p).map(p=>({p,d:Math.hypot(p.x-receiver.p.x,p.y-receiver.p.y)})).sort((a,b)=>a.d-b.d)[0];
+ if(support&&support.d<28){
+  const side=support.p.x<receiver.p.x?-1:1;
+  const tx=clamp(support.p.x+side*5,4,96);
+  const ty=clamp(support.p.y+(support.p.y<receiver.p.y?-3:3),4,96);
+  support.p.x=tx;support.p.y=ty;renderPlayer(support.p);
+ }
+}
 function renderPlayer(p){if(!p||!p.el)return; p.el.classList.add("player");p.el.style.position="absolute";p.el.style.display="flex";p.el.style.visibility="visible";p.el.style.opacity="1";p.el.style.pointerEvents="auto";p.el.style.left=p.x+"%";p.el.style.top=p.y+"%";p.el.style.zIndex="20";const nm=p.el.querySelector(".nm");if(nm)nm.textContent=p.name}
 function createPlayer(i){
  const layer=document.getElementById("playersLayer");
@@ -338,7 +354,7 @@ function runStep(){
    setBall(ex,ey);
    settleReceiver(ex,ey);
    reactPress(ex,ey);
-   msg("PRESS REACTION • trigger + cover + squeeze");
+   msg("RECEIVE • SCAN • OUTLET • PRESS REACTION");
    finishQueuedReturns(next);
   });
  }else if(a.type==="ball"){
@@ -549,7 +565,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO PRESS ENGINE • V9");
+msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V10");
 window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
