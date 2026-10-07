@@ -315,6 +315,7 @@ function runStep(){
   setBall(sx,sy);
   animate(550,t=>setBall(sx+(ex-sx)*t,sy+(ey-sy)*t),()=>{
    setBall(ex,ey);
+   settleReceiver(ex,ey);
    finishQueuedReturns(next);
   });
  }else if(a.type==="ball"){
@@ -323,6 +324,7 @@ function runStep(){
   const ey=Number.isFinite(a.y)?a.y:sy;
   animate(450,t=>setBall(sx+(ex-sx)*t,sy+(ey-sy)*t),()=>{
    setBall(ex,ey);
+   settleReceiver(ex,ey);
    finishQueuedReturns(next);
   });
  }else next()
