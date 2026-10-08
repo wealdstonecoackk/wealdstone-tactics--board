@@ -402,7 +402,7 @@ function play(){
  playing=true;
  if(playIndex===0){returnQueue=[];const b=firstPlaybackBall();setBall(b.x,b.y)}
  const firstStep=sequence[playIndex];
- msg("COACH SEQUENCE • "+(playIndex+1)+"/"+sequence.length+" • "+(firstStep.type==="pass"?"PASS & PRESS":firstStep.type==="run"?"MOVEMENT":"BALL"));
+ msg("▶ PLAY • "+(playIndex+1)+"/"+sequence.length+" • "+(firstStep.type==="pass"?"PASS → RECEIVE":firstStep.type==="run"?"RUN → SUPPORT":"BALL"));
  runStep()
 }
 function finishQueuedReturns(done){
@@ -672,18 +672,26 @@ function runStep(){
     p.x=homeX+(targetX-homeX)*t;
     p.y=homeY+(targetY-homeY)*t;
     renderPlayer(p);
+    // Give the receiver a small visual cue as the run enters the passing lane.
     if(paired&&t>.55)p.el.classList.add("receiving");
    },()=>{
     p.el.classList.remove("running");
-    if(paired){
-     p.el.classList.add("receiving");
-     p.el.dataset.state="READY TO RECEIVE";
-     clearTimeout(p.el.__receiveHoldTimer);
-     p.el.__receiveHoldTimer=setTimeout(()=>p.el.classList.remove("receiving"),650);
+    p.el.classList.remove("receiving");
+    const nextPass=following&&following.type==="pass";
+    const holdsForNext=nextPass&&Math.hypot((following.x1||0)-p.x,(following.y1||0)-p.y)<6;
+    if(holdsForNext){
+     returnQueue.push({p,homeX,homeY,targetX,targetY});
+     next();
+    }else{
+     animate(350,t=>{
+      p.x=targetX+(homeX-targetX)*t;
+      p.y=targetY+(homeY-targetY)*t;
+      renderPlayer(p);
+     },next);
     }
-    next();
    });
-  }else if(a.type==="pass"){
+  }else next();
+ }else if(a.type==="pass"){
   const sx=Number.isFinite(a.x1)?a.x1:ballPos.x;
   const sy=Number.isFinite(a.y1)?a.y1:ballPos.y;
   const receiver=(Number.isInteger(a.receiver)?players[a.receiver]:null)||players.reduce((best,p)=>{
@@ -981,51 +989,35 @@ function createSmartPattern(p){
  if(frozen||!p)return;
  pushHistory();
  sequence=[];arrows=[];
- const bx=ballPos.x,by=ballPos.y;
- const dir=by<50?1:-1;
- const receiveTarget={x:clamp(p.x+(bx<p.x?-6:6),6,94),y:clamp(by+dir*8,6,94)};
+ const bx=ballPos.x,by=ballPos.y,dir=by<50?1:-1;
  const ai=window.__wealdstoneAIDecision?.plan||null;
  const byId=i=>Number.isInteger(i)&&players[i]&&players[i]!==p?players[i]:null;
  const support=byId(ai?.mover)||players.filter(q=>q!==p).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
  const runner=byId(ai?.runner)||players.filter(q=>q!==p&&q!==support).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
- const targetFor=(q,dx,dy)=>({x:clamp(q.x+dx,6,94),y:clamp(q.y+dy,6,94)});
- const addRun=(q,t)=>{if(!q||!t)return;arrows.push({type:"run",i:q.i,x1:q.x,y1:q.y,x2:t.x,y2:t.y});sequence.push({type:"run",i:q.i,x1:q.x,y1:q.y,x2:t.x,y2:t.y});};
- const addPass=(from,t,to)=>{if(!to||!t)return;arrows.push({type:"pass",x1:from.x,y1:from.y,x2:t.x,y2:t.y,receiver:to.i});sequence.push({type:"pass",x1:from.x,y1:from.y,x2:t.x,y2:t.y,receiver:to.i});};
- addRun(p,receiveTarget);
- addPass({x:bx,y:by},receiveTarget,p);
+ const targetFor=(q,dx,dy)=>q?{x:clamp(q.x+dx,6,94),y:clamp(q.y+dy,6,94)}:null;
+ const addRun=(q,t)=>{if(!q||!t)return;const a={type:"run",i:q.i,x1:q.x,y1:q.y,x2:t.x,y2:t.y};arrows.push(a);sequence.push({...a})};
+ const addPass=(from,t,to)=>{if(!from||!t||!to)return;const a={type:"pass",x1:from.x,y1:from.y,x2:t.x,y2:t.y,receiver:to.i};arrows.push(a);sequence.push({...a})};
+ const receiveTarget={x:clamp(p.x+(bx<p.x?-6:6),6,94),y:clamp(by+dir*8,6,94)};
+ addRun(p,receiveTarget); addPass({x:bx,y:by},receiveTarget,p);
  const action=ai?.action||"BOUNCE";
  if(action==="SWITCH"){
-   const free=byId(ai?.mover)||support;
-   const freeTarget=targetFor(free,free.x<50?-12:12,dir*2);
-   addRun(free,freeTarget);
-   addPass(receiveTarget,freeTarget,free);
-   const support2=runner&&runner!==free?runner:support;
-   if(support2){
-     const supportTarget=targetFor(support2,support2.x<50?7:-7,dir*3);
-     addRun(support2,supportTarget);
-     addPass(freeTarget,supportTarget,support2);
-   }
+  const free=byId(ai?.mover)||support, freeTarget=targetFor(free,free?.x<50?-12:12,dir*2);
+  addRun(free,freeTarget); addPass(receiveTarget,freeTarget,free);
+  const support2=runner&&runner!==free?runner:support, supportTarget=targetFor(support2,support2?.x<50?7:-7,dir*3);
+  addRun(support2,supportTarget); addPass(freeTarget,supportTarget,support2);
  }else if(action==="THIRD"||action==="THROUGH"){
-   if(runner){
-     const runTarget=targetFor(runner,runner.x<50?10:-10,action==="THROUGH"?-14:-10);
-     addRun(runner,runTarget);
-     addPass(receiveTarget,runTarget,runner);
-   }
- }else if(support){
-   const supportTarget=targetFor(support,support.x<50?7:-7,dir*4);
-   addRun(support,supportTarget);
-   addPass(receiveTarget,supportTarget,support);
-   if(runner){
-     const runTarget=targetFor(runner,runner.x<50?11:-11,-12);
-     addRun(runner,runTarget);
-     addPass(supportTarget,runTarget,runner);
-   }
+  const runTarget=targetFor(runner,runner?.x<50?10:-10,action==="THROUGH"?-14:-10);
+  addRun(runner,runTarget); addPass(receiveTarget,runTarget,runner);
+ }else{
+  const supportTarget=targetFor(support,support?.x<50?7:-7,dir*4);
+  addRun(support,supportTarget); addPass(receiveTarget,supportTarget,support);
+  const runTarget=targetFor(runner,runner?.x<50?11:-11,-12);
+  addRun(runner,runTarget); addPass(supportTarget,runTarget,runner);
  }
  draw();persist();
  const label=ai?.action?("AI "+(ai.action==="BOUNCE"?"BOUNCE → THIRD-MAN":ai.action==="SWITCH"?"SWITCH → FREE PLAYER":ai.action==="THIRD"?"THIRD-MAN":"PLAY THROUGH")):"SMART PLAY";
  msg(label+" • "+sequence.length+" ACTIONS READY");
 }
-
 pitch.addEventListener("pointerdown",e=>{if(tool==="opp"&&!frozen&&e.target===pitch){const q=posFromEvent(e);addOppAt(q.x,q.y)}});
 pitch.addEventListener("pointerdown",e=>{if(tool==="smart"&&!frozen){const hit=e.target.closest&&e.target.closest(".player:not(.opp)");if(hit){const p=players.find(q=>q.el===hit);if(p){createSmartPattern(p);return}}}});
 function addOppAt(x,y,silent=false){if(frozen)return;if(!silent)pushHistory();const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x,y,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();pushHistory();const startX=o.x,startY=o.y;let moved=false;try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;if(Math.abs(o.x-startX)+Math.abs(o.y-startY)>0.5)moved=true;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);if(!moved)history.pop();persist();msg(moved?"OPPONENT POSITIONED":"OPPONENT SELECTED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
