@@ -17,7 +17,7 @@
       .ai-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:7px}
       .ai-fact{padding:6px;border-radius:7px;background:#171f27;text-align:center;font-size:8px;color:#aeb8c4}
       .ai-fact b{display:block;color:#fff;font-size:10px;margin-bottom:2px}
-      .ai-decision button{width:100%;margin-top:7px;min-height:34px;font-size:9px}
+      .ai-decision button{width:100%;margin-top:7px;min-height:36px;font-size:9px;font-weight:900}.ai-decision button+button{margin-top:5px;border-color:#69d391;background:#18271f}
     `;
     document.head.appendChild(style);
 
@@ -26,7 +26,7 @@
     const card=document.createElement("div");
     card.id="aiDecisionCard";
     card.className="ai-decision";
-    card.innerHTML='<div class="ai-decision-head"><strong>⚡ NEXT-ACTION INTELLIGENCE</strong><span id="aiConfidence">SCANNING</span></div><div id="aiChoice" class="ai-choice">READING THE PICTURE…</div><div id="aiReason" class="ai-reason">Position the ball and opposition to let the engine identify the best next action.</div><div class="ai-facts"><div class="ai-fact"><b id="aiPressure">—</b>PRESSURE</div><div class="ai-fact"><b id="aiSupport">—</b>SUPPORT</div><div class="ai-fact"><b id="aiFree">—</b>FREE PLAYER</div></div><button id="aiScan">🔄 Scan Tactics</button>';
+    card.innerHTML='<div class="ai-decision-head"><strong>⚡ AI COACH • NEXT ACTION</strong><span id="aiConfidence">SCANNING</span></div><div id="aiChoice" class="ai-choice">READING THE PICTURE…</div><div id="aiReason" class="ai-reason">Position the ball and opposition to let the engine identify the best next action.</div><div class="ai-facts"><div class="ai-fact"><b id="aiPressure">—</b>PRESSURE</div><div class="ai-fact"><b id="aiSupport">—</b>SUPPORT</div><div class="ai-fact"><b id="aiFree">—</b>FREE PLAYER</div></div><button id="aiScan">🔄 SCAN</button><button id="aiPlay">▶ PLAY AI PLAN</button>';
     panel.appendChild(card);
 
     const centre=el=>{const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2};};
@@ -129,6 +129,7 @@
     }
 
     document.getElementById("aiScan").onclick=scan;
+    document.getElementById("aiPlay").onclick=()=>{ scan(); const p=window.__wealdstoneAIDecision?.receiver!=null?players[window.__wealdstoneAIDecision.receiver]:null; if(!p){return} stopPlayback(); sequence=[]; arrows=[]; createSmartPattern(p); msg("AI PLAN READY • PRESS PLAY"); setTimeout(()=>play(),60); };
     shell.addEventListener("click",e=>{
       const b=e.target.closest("[data-pro='ai']");
       if(b)setTimeout(scan,30);
