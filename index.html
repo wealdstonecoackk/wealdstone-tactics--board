@@ -579,9 +579,23 @@ function reactPress(x,y,done){
  const level=triggerDist<14?"HIGH":triggerDist<25?"MEDIUM":"LOW";
  const pressBias=level==="HIGH"?.72:level==="MEDIUM"?.48:.24;
  window.__pressIntel={level,trigger,cover,shift:[]};
+ const targets=new Map();
  const move=(o,nx,ny,state,cls)=>{
   if(!o)return;
-  o.x=clamp(nx,3,97);o.y=clamp(ny,3,97);o.el.dataset.state=state;o.el.classList.add(cls);renderOpp(o);
+  const target={x:clamp(nx,3,97),y:clamp(ny,3,97)};
+  targets.set(o,target);
+  o.el.dataset.state=state;o.el.classList.add(cls);
+ };
+ const animatePress=(ms,done)=>{
+  animate(ms,t=>{
+   opps.forEach(o=>{
+    const h=homes.get(o),target=targets.get(o);
+    if(!h||!target)return;
+    o.x=h.x+(target.x-h.x)*t;
+    o.y=h.y+(target.y-h.y)*t;
+    renderOpp(o);
+   });
+  },done);
  };
  if(trigger){
   // Press on the ball-carrier's line while keeping the presser goal-side.
@@ -607,12 +621,13 @@ function reactPress(x,y,done){
  const trapSide=x<50?"RIGHT":x>50?"LEFT":"CENTRAL";
  const next=level==="HIGH"?"TRAP "+trapSide+" • FORCE BOUNCE":level==="MEDIUM"?"DENY INSIDE • THIRD MAN":"HOLD SHAPE • ALLOW TURN";
  msg("AI PRESS • "+level+" • PRESS → COVER → "+(runner?"TRACK RUNNER":"SHIFT LINE")+" • "+next);
- animate(600,()=>opps.forEach(renderOpp),()=>{
+ animatePress(600,()=>{
   setTimeout(()=>{
+   const recoveryStart=new Map(opps.map(o=>[o,{x:o.x,y:o.y}]));
    animate(520,t=>{
     opps.forEach(o=>{
-     const h=homes.get(o);
-     if(h){o.x=o.x+(h.x-o.x)*t;o.y=o.y+(h.y-o.y)*t;renderOpp(o)}
+     const h=homes.get(o),s=recoveryStart.get(o);
+     if(h&&s){o.x=s.x+(h.x-s.x)*t;o.y=s.y+(h.y-s.y)*t;renderOpp(o)}
     });
    },()=>{
     opps.forEach(o=>{o.el.classList.remove("press-trigger","cover","tracking","shift","squeeze","recovery");delete o.el.dataset.state});
