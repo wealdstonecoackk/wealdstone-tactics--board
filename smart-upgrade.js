@@ -94,7 +94,7 @@
         mover=support?support.i:(free?free.i:null);runner=forward?forward.i:null;confidence=82;
       }
 
-      const plan={action,mover,runner,receiver:receiver.i,trapSide:receiver.x<W*.5?"RIGHT":"LEFT"};
+      const plan={action,mover,runner,receiver:receiver.i,trapSide:(receiver.x-pitchRect.left)<W*.5?"RIGHT":"LEFT"};
       window.__wealdstoneAIDecision={
         ...(window.__wealdstoneAIDecision||{}),choice,confidence,pressurePct,
         receiver:receiver.i,support:support?support.i:null,free:free?free.i:null,plan
