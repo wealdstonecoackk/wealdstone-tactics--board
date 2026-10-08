@@ -991,24 +991,49 @@ function createSmartPattern(p){
  const dir=by<50?1:-1;
  const receiveX=clamp(p.x+(bx<p.x?-6:6),6,94);
  const receiveY=clamp(by+dir*8,6,94);
- const support=players.filter(q=>q!==p).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
- const third=players.filter(q=>q!==p&&q!==support).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
- const target={x:receiveX,y:receiveY};
- arrows.push({type:"run",i:p.i,x1:p.x,y1:p.y,x2:target.x,y2:target.y});
- sequence.push({type:"run",i:p.i,x1:p.x,y1:p.y,x2:target.x,y2:target.y});
- arrows.push({type:"pass",x1:bx,y1:by,x2:target.x,y2:target.y,receiver:p.i});
- sequence.push({type:"pass",x1:bx,y1:by,x2:target.x,y2:target.y,receiver:p.i});
- if(support){
-  const sx=clamp(p.x+(p.x<50?7:-7),6,94), sy=clamp(p.y+dir*4,6,94);
-  arrows.push({type:"run",i:support.i,x1:support.x,y1:support.y,x2:sx,y2:sy});
-  sequence.push({type:"run",i:support.i,x1:support.x,y1:support.y,x2:sx,y2:sy});
+ const ai=window.__wealdstoneAIDecision?.plan||null;
+ const byId=i=>Number.isInteger(i)&&players[i]&&players[i]!==p?players[i]:null;
+ const support=byId(ai?.mover)||players.filter(q=>q!==p).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
+ const runner=byId(ai?.runner)||players.filter(q=>q!==p&&q!==support).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
+ const targetFor=(q,dx,dy)=>({x:clamp(q.x+dx,6,94),y:clamp(q.y+dy,6,94)});
+ const addRun=(q,t)=>{if(!q||!t)return;arrows.push({type:"run",i:q.i,x1:q.x,y1:q.y,x2:t.x,y2:t.y});sequence.push({type:"run",i:q.i,x1:q.x,y1:q.y,x2:t.x,y2:t.y});};
+ const addPass=(from,to)=>{if(!to)return;arrows.push({type:"pass",x1:from.x,y1:from.y,x2:to.x,y2:to.y,receiver:to.i});sequence.push({type:"pass",x1:from.x,y1:from.y,x2:to.x,y2:to.y,receiver:to.i});};
+ const receiveTarget={x:receiveX,y:receiveY};
+ addRun(p,receiveTarget);
+ addPass({x:bx,y:by},receiveTarget);
+ const action=ai?.action||"BOUNCE";
+ if(action==="SWITCH"){
+   const free=byId(ai?.mover)||support;
+   const freeTarget=targetFor(free,free.x<50?-12:12,dir*2);
+   addRun(free,freeTarget);
+   addPass({x:freeTarget.x,y:freeTarget.y},freeTarget);
+   const support2=runner&&runner!==free?runner:support;
+   if(support2){
+     const supportTarget=targetFor(support2,support2.x<50?7:-7,dir*3);
+     addRun(support2,supportTarget);
+     addPass({x:freeTarget.x,y:freeTarget.y},supportTarget);
+   }
+ }else if(action==="THIRD"||action==="THROUGH"){
+   if(runner){
+     const runTarget=targetFor(runner,runner.x<50?10:-10,action==="THROUGH"?-14:-10);
+     addRun(runner,runTarget);
+     addPass({x:receiveTarget.x,y:receiveTarget.y},runTarget);
+   }
+ }else{
+   if(support){
+     const supportTarget=targetFor(support,support.x<50?7:-7,dir*4);
+     addRun(support,supportTarget);
+     addPass({x:receiveTarget.x,y:receiveTarget.y},supportTarget);
+     if(runner){
+       const runTarget=targetFor(runner,runner.x<50?11:-11,-12);
+       addRun(runner,runTarget);
+       addPass({x:supportTarget.x,y:supportTarget.y},runTarget);
+     }
+   }
  }
- if(third){
-  const tx=clamp(target.x+(target.x<50?10:-10),6,94), ty=clamp(target.y-dir*12,6,94);
-  arrows.push({type:"run",i:third.i,x1:third.x,y1:third.y,x2:tx,y2:ty});
-  sequence.push({type:"run",i:third.i,x1:third.x,y1:third.y,x2:tx,y2:ty});
- }
- draw();persist();msg("SMART PLAY CREATED • RECEIVE → SUPPORT → THIRD-MAN RUN");
+ draw();persist();
+ const label=ai?.action?("AI "+(ai.action==="BOUNCE"?"BOUNCE → THIRD-MAN":ai.action==="SWITCH"?"SWITCH → FREE PLAYER":ai.action==="THIRD"?"THIRD-MAN":"PLAY THROUGH")):"SMART PLAY";
+ msg(label+" • "+sequence.length+" ACTIONS READY");
 }
 pitch.addEventListener("pointerdown",e=>{if(tool==="opp"&&!frozen&&e.target===pitch){const q=posFromEvent(e);addOppAt(q.x,q.y)}});
 pitch.addEventListener("pointerdown",e=>{if(tool==="smart"&&!frozen){const hit=e.target.closest&&e.target.closest(".player:not(.opp)");if(hit){const p=players.find(q=>q.el===hit);if(p){createSmartPattern(p);return}}}});
