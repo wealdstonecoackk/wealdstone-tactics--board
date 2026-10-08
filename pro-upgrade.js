@@ -11,10 +11,11 @@
       .pro-title strong{font-size:13px;letter-spacing:.4px}.pro-title span{font-size:9px;color:#9da7b3}
       .pro-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.pro-nav button{min-height:44px;background:#202730;border-color:#394452;font-size:10px;font-weight:800}
       .pro-sub{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}.pro-sub button{min-height:38px;font-size:9px}
+      .pro-tools{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:7px}.pro-tools button{min-height:34px;padding:5px 3px;font-size:8px;background:#171d24;border-color:#303944}.pro-tools button.primary{border-color:#5d8fe8;background:#1b2838}.pro-tools button.save{border-color:#e5c85c;background:#332d19}
       .pro-progress{display:flex;gap:5px;margin-top:7px;overflow:auto}.pro-progress span{flex:1;min-width:62px;padding:6px;border-radius:8px;background:#151a20;border:1px solid #2c333c;text-align:center;font-size:8px;font-weight:800;color:#c8d0d9}.pro-progress span.on{border-color:#69d391;color:#fff}
       .pro-ai{margin-top:7px;padding:9px;border-radius:10px;background:#0e141a;border:1px solid #33404c}.pro-ai-head{display:flex;justify-content:space-between;gap:8px;font-size:10px;margin-bottom:6px}.pro-ai-head span{font-size:9px;color:#69d391}.pro-ai-note{padding:7px 8px;margin-top:5px;border-radius:8px;background:#171f27;font-size:10px;line-height:1.35}.pro-ai-note b{color:#fff}
       .legacy-controls{display:none!important}
-      @media(max-width:600px){.pro-nav{grid-template-columns:repeat(2,1fr)}.pro-sub{grid-template-columns:repeat(2,1fr)}}
+      @media(max-width:600px){.pro-nav{grid-template-columns:repeat(2,1fr)}.pro-sub{grid-template-columns:repeat(2,1fr)}.pro-tools{grid-template-columns:repeat(3,1fr)}}
       @media(max-width:380px){.pro-title span{display:none}.pro-nav button{min-height:42px}.pro-sub button{min-height:36px}}
     `;
     document.head.appendChild(style);
@@ -32,11 +33,16 @@
         <button data-pro="library">📚 LIBRARY</button><button data-pro="training">🏋️ TRAINING</button>
         <button data-pro="press">🔴 OPPOSITION</button><button data-pro="ai">🧠 AI COACH</button>
       </div>
+      <div class="pro-tools">
+        <button data-pro-id="record" class="primary">⏺ RECORD</button><button data-pro-id="play" class="primary">▶ PLAY</button><button data-pro-id="stop">⏹ STOP</button>
+        <button data-pro-id="clear">🧹 CLEAR</button><button data-pro-id="undo">↶ UNDO</button><button data-pro-id="redo">↷ REDO</button>
+      </div>
       <div class="pro-ai" id="proAiPanel" hidden><div class="pro-ai-head"><strong>🧠 COACH INTELLIGENCE</strong><span id="proAiScore">SCAN</span></div><div id="proAiAdvice"></div></div>
       <div class="pro-progress"><span class="on">✓ SETUP</span><span class="on">✓ MOVEMENT</span><span>● REHEARSE</span><span>● SAVE</span><span>● SHARE</span></div>`;
     wrap.insertBefore(shell,anchor);
 
     const click=id=>{const el=document.getElementById(id);if(el)el.click();};
+    shell.querySelectorAll("[data-pro-id]").forEach(b=>b.addEventListener("click",()=>{click(b.dataset.proId);}));
     shell.querySelectorAll("[data-pro]").forEach(b=>b.addEventListener("click",()=>{
       const a=b.dataset.pro;
       if(a==="plan"){click("newSession");window.scrollTo({top:0,behavior:"smooth"});}
