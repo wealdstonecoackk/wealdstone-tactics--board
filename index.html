@@ -348,9 +348,10 @@ function clearSolutionVisuals(){
 }
 function showSolution(label,playersToShow,points){
  clearSolutionVisuals();
+ const kind=label.startsWith("THIRD-MAN")?"third":label.startsWith("SWITCH")?"switch":label.startsWith("BOUNCE")?"bounce":"through";
  playersToShow.filter(Boolean).forEach(p=>{
   p.el.classList.add("solution");
-  p.el.classList.add(label==="THIRD-MAN"?"solution-third":label==="SWITCH"?"solution-switch":label==="BOUNCE"?"solution-bounce":"solution-through");
+  p.el.classList.add(kind==="third"?"solution-third":kind==="switch"?"solution-switch":kind==="bounce"?"solution-bounce":"solution-through");
  });
  (points||[]).forEach(pt=>{
   if(!pt)return;
@@ -361,9 +362,10 @@ function showSolution(label,playersToShow,points){
   l.style.color="#7fe7ff";l.style.strokeDasharray="6 6";l.style.strokeWidth="4";
   svg.appendChild(l);
  });
- msg("COACH SOLUTION • "+label+" • "+(label==="BOUNCE"?"ONE-TWO / BOUNCE":label==="THIRD-MAN"?"THIRD PLAYER ATTACKS SPACE":label==="SWITCH"?"CHANGE THE POINT OF ATTACK":"PLAY THROUGH THE PRESS"));
+ const hint=kind==="bounce"?"ONE-TWO / ESCAPE":kind==="third"?"THIRD PLAYER ATTACKS SPACE":kind==="switch"?"CHANGE THE POINT OF ATTACK":"PLAY THROUGH THE PRESS";
+ msg("COACH SOLUTION • "+label+" • "+hint);
  clearTimeout(window.__solutionTimer);
- window.__solutionTimer=setTimeout(clearSolutionVisuals,2200);
+ window.__solutionTimer=setTimeout(clearSolutionVisuals,2600);
 }
 function coachDecision(receiver,x,y){
  const nearOpp=opps.map(o=>({o,d:Math.hypot(o.x-x,o.y-y)})).sort((a,b)=>a.d-b.d);
@@ -794,7 +796,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V21");
+msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V22");
 window.setViewMode=setViewMode;window.jumpToStep=jumpToStep;window.pressMenu=pressMenu;window.loadPress=loadPress;window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
