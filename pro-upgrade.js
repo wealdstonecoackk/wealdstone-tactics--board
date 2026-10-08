@@ -25,9 +25,29 @@
       .tools button{min-height:44px}
       .status{font-weight:800;letter-spacing:.2px}
       .press-key{opacity:.9}
-      @media(max-width:600px){#pitch:after{font-size:7px;top:7px;left:7px}.tools button{min-height:46px}}
-      @media(max-width:600px){.pro-nav{grid-template-columns:repeat(2,1fr)}.pro-sub{grid-template-columns:repeat(2,1fr)}.pro-tools{grid-template-columns:repeat(3,1fr)}}
-      @media(max-width:380px){.pro-title span{display:none}.pro-nav button{min-height:42px}.pro-sub button{min-height:36px}}
+      /* BOARD UTILITIES: keep the real engine controls visible, compact and touch-safe */
+      .actions.bottom{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:8px;padding:7px;border:1px solid #303943;border-radius:12px;background:#11171e;box-shadow:inset 0 1px 0 #ffffff08}
+      .actions.bottom button{min-height:38px;padding:6px 4px;font-size:9px;border-color:#343e49;background:#171e26}
+      .actions.bottom button.active{border-color:#6d9ee8;background:#203047}
+      .actions.bottom #rebuild{border-color:#536273}
+      .actions.bottom #reset{border-color:#4b6f99}
+      .actions.bottom #oppClear{border-color:#78464c}
+      .actions.bottom #freeze{border-color:#65704b}
+      @media(max-width:600px){
+        #pitch:after{font-size:7px;top:7px;left:7px}
+        .tools button{min-height:46px}
+        .pro-nav{grid-template-columns:repeat(2,1fr)}
+        .pro-sub{grid-template-columns:repeat(2,1fr)}
+        .pro-tools{grid-template-columns:repeat(3,1fr)}
+        .actions.bottom{grid-template-columns:repeat(3,1fr)}
+        .actions.bottom button{min-height:40px;font-size:9px}
+      }
+      @media(max-width:380px){
+        .pro-title span{display:none}
+        .pro-nav button{min-height:42px}
+        .pro-sub button{min-height:36px}
+        .actions.bottom{grid-template-columns:repeat(2,1fr)}
+      }
     `;
     document.head.appendChild(style);
 
