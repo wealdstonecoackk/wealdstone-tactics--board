@@ -61,35 +61,63 @@
       let choice="PLAY THROUGH";
       let reason="The receiver has time and the next forward action remains available.";
       let confidence=70;
+      const forward=own.filter(p=>p.i!==receiver.i&&p.y<receiver.y-18).sort((a,b)=>Math.hypot(a.x-receiver.x,a.y-receiver.y)-Math.hypot(b.x-receiver.x,b.y-receiver.y))[0];
+      const far=free&&Math.abs(free.x-receiver.x)>pitchW*.18;
+      const insideLane=opp.length&&forward?Math.min(...opp.map(o=>Math.abs(o.x-forward.x)+Math.abs(o.y-forward.y))):999;
+      const trapSide=receiver.x<pitchW*.5?"RIGHT":"LEFT";
+      let action="PLAY THROUGH",mover=support?.i??null,runner=forward?.i??null;
       if(!opp.length){
         choice="PLAY THROUGH";
         reason="No opposition shape is loaded. The engine is preserving the attacking picture without inventing pressure.";
         confidence=64;
       }else if(pressurePct>=72){
-        if(support&&support.free>pitchW*.16){
+        if(support&&support.free>pitchW*.16&&forward&&insideLane>pitchW*.18){
           choice="BOUNCE → THIRD MAN";
-          reason="Pressure is tight, so the safest progression is a bounce pass that releases the third player beyond the first press.";
-          confidence=88;
+          action="BOUNCE";
+          reason="Tight pressure plus a protected forward lane favours a bounce pass followed by a timed third-man run.";
+          confidence=92;
+          runner=forward.i;
         }else{
           choice="BOUNCE → SUPPORT";
-          reason="The first presser is tight and the cleanest response is to secure the ball with the nearest safe support.";
-          confidence=84;
+          action="BOUNCE";
+          reason="The press is closing quickly, so secure the ball first and use the safest support angle before progressing.";
+          confidence=88;
+          runner=support?.i??runner;
         }
       }else if(pressurePct>=42){
-        if(free&&free.space>pitchW*.24){
+        if(far&&free.space>pitchW*.24){
           choice="SWITCH → FREE PLAYER";
-          reason="Medium pressure has opened space away from the ball; move the block before attacking the next line.";
-          confidence=82;
-        }else{
+          action="SWITCH";
+          reason="The block is engaged on the ball side and a genuine far-side outlet is available.";
+          confidence=89;
+          mover=free.i;
+          runner=support?.i??runner;
+        }else if(forward&&insideLane>pitchW*.16){
           choice="THIRD-MAN";
-          reason="Pressure is developing but central support is available, so a timed third-man run offers the best progression.";
-          confidence=79;
+          action="THIRD";
+          reason="Medium pressure leaves a forward lane: fix the presser, set the ball and release the third player on the blind side.";
+          confidence=86;
+          runner=forward.i;
+        }else{
+          choice="BOUNCE → SUPPORT";
+          action="BOUNCE";
+          reason="No clean forward lane is available yet, so the intelligent choice is to recycle and move the press.";
+          confidence=83;
         }
-      }else if(free&&free.space>pitchW*.28){
+      }else if(far&&free.space>pitchW*.28){
         choice="SWITCH → FREE PLAYER";
-        reason="Immediate pressure is low and a clear free player is available on the far side.";
-        confidence=86;
+        action="SWITCH";
+        reason="Pressure is low and the far-side player has clear space to receive facing forward.";
+        confidence=88;
+        mover=free.i;
+      }else if(forward){
+        choice="PLAY THROUGH";
+        action="THROUGH";
+        reason="The receiver has time and a forward player can receive beyond the first line.";
+        confidence=82;
+        runner=forward.i;
       }
+      const plan={action,mover,runner,receiver:receiver.i,trapSide};
 
       document.getElementById("aiChoice").textContent=choice;
       document.getElementById("aiReason").textContent=reason;
@@ -97,7 +125,7 @@
       document.getElementById("aiPressure").textContent=opp.length?pressurePct+"%":"OPEN";
       document.getElementById("aiSupport").textContent=support?"#"+(support.i+1):"—";
       document.getElementById("aiFree").textContent=free&&(!opp.length||free.space>pitchW*.2)?"#"+(free.i+1):"—";
-      window.__wealdstoneAIDecision={choice,confidence,pressurePct,receiver:receiver.i,support:support?.i??null,free:free?.i??null};
+      window.__wealdstoneAIDecision={choice,confidence,pressurePct,receiver:receiver.i,support:support?.i??null,free:free?.i??null,plan};
     }
 
     document.getElementById("aiScan").onclick=scan;
