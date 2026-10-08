@@ -519,7 +519,14 @@ function coachDecision(receiver,x,y){
    aiFocus=[supportPlayer,third].filter(Boolean);
    if(supportPlayer) aiPts.push({x1:x,y1:y,x2:supportPlayer.x,y2:supportPlayer.y});
   }
-  if(aiFocus.length||aiPts.length){showSolution(ai.choice+" • "+ai.confidence+"% AI",aiFocus,aiPts);return ai.choice;}
+  if(aiFocus.length||aiPts.length){
+   const action=ai.choice.includes("BOUNCE")?"BOUNCE":ai.choice.includes("SWITCH")?"SWITCH":ai.choice.includes("THIRD")?"THIRD":"THROUGH";
+   const mover=action==="SWITCH"?(ai.free??ai.support):ai.support;
+   const runner=action==="THIRD"?(third?.i??ai.free):action==="BOUNCE"?(third?.i??ai.support):(third?.i??ai.free);
+   window.__wealdstoneAIDecision.plan={action,mover:Number.isInteger(mover)?mover:null,runner:Number.isInteger(runner)?runner:null,receiver:receiver?.i??null,trapSide:x<50?"RIGHT":"LEFT"};
+   showSolution(ai.choice+" • "+ai.confidence+"% AI",aiFocus,aiPts);
+   return ai.choice;
+  }
  }
  const nearOpp=opps.map(o=>({o,d:Math.hypot(o.x-x,o.y-y)})).sort((a,b)=>a.d-b.d);
  const pressure=nearOpp[0]?.d||99;
