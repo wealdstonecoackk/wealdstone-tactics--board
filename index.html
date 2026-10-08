@@ -1002,7 +1002,7 @@ function hub(){
 }
 document.querySelectorAll("[data-formation]").forEach(b=>b.onclick=()=>setFormation(b.dataset.formation));
 document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>{setTool(b.dataset.tool)});
-document.getElementById("record").onclick=()=>{stopPlayback();clearSelection();startRec()};document.getElementById("smartMenu").onclick=()=>setTool("smart");
+document.getElementById("record").onclick=()=>{stopPlayback();clearSelection();startRec()};document.getElementById("smartMenu").onclick=()=>{stopPlayback();clearSelection();if(window.WealdstoneAIDecision?.scan)window.WealdstoneAIDecision.scan();if(typeof window.WealdstoneAIPlay==="function"){window.WealdstoneAIPlay()}else{setTool("smart")}};
 document.getElementById("newSession").onclick=newSession;
 document.getElementById("stop").onclick=stopRec;document.getElementById("play").onclick=play;document.getElementById("clear").onclick=()=>{stopPlayback();clearSelection();clear()};
 document.getElementById("undo").onclick=()=>{stopPlayback();clearSelection();undo()};document.getElementById("redo").onclick=()=>{stopPlayback();clearSelection();redo()};document.getElementById("save").onclick=save;document.getElementById("library").onclick=library;document.getElementById("training").onclick=training;document.getElementById("pressMenu").onclick=pressMenu;document.getElementById("more").onclick=hub;
