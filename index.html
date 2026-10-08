@@ -76,6 +76,24 @@ function elDown(el,fn){el.addEventListener("pointerdown",fn,{passive:false})}
 function stopPlayback(){if(playing){playing=false;cancelAnimationFrame(raf);playing=false;msg("PLAYBACK STOPPED")}}
 function clearSelection(){window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))}
 function commitMove(startX,startY,endX,endY,label){const moved=Math.abs(endX-startX)+Math.abs(endY-startY)>0.5;if(!moved){history.pop();return false}persist();msg(label);return true}
+function boardLooksCollapsed(){
+  if(players.length!==11)return false;
+  const nearest=players.map(p=>Math.min(...players.filter(q=>q!==p).map(q=>Math.hypot(p.x-q.x,p.y-q.y))));
+  const tight=nearest.filter(d=>d<4).length;
+  const xs=players.map(p=>p.x),ys=players.map(p=>p.y);
+  const spread=Math.max(...xs)-Math.min(...xs)+Math.max(...ys)-Math.min(...ys);
+  return tight>=8 || spread<45;
+}
+function resetPlayersToFormation(){
+  formation=formations[formation]?formation:"433";
+  players.forEach((p,i)=>{
+    p.x=formations[formation][i][0];
+    p.y=formations[formation][i][1];
+    p.name=names[i]||("Player "+(i+1));
+    renderPlayer(p);
+  });
+  persist();
+}
 function ensureBoardIntegrity(){
   pitch.style.position="relative";
   playersLayer.querySelectorAll(".player").forEach(el=>{el.style.display="flex";el.style.visibility="visible";el.style.opacity="1";el.style.pointerEvents="auto";el.style.zIndex=el.classList.contains("opp")?"19":"20"});
@@ -94,6 +112,7 @@ function ensureBoardIntegrity(){
     if(!p.name)p.name=names[i]||("Player "+(i+1));
     renderPlayer(p);
   });
+  if(boardLooksCollapsed()) resetPlayersToFormation();
   if(!Number.isFinite(ballPos.x)||!Number.isFinite(ballPos.y)){ballPos={x:50,y:50}}
   setBall(ballPos.x,ballPos.y);
   ball.style.display="flex";
