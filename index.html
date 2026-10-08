@@ -599,6 +599,40 @@ function reactPress(x,y,done){
   },560);
  });
 }
+function replanContinuation(receiver,rx,ry){
+ const ai=window.__wealdstoneAIDecision?.plan;
+ if(!receiver||!ai)return;
+ const valid=i=>Number.isInteger(i)&&players[i]&&players[i]!==receiver;
+ const mover=valid(ai.mover)?players[ai.mover]:players.filter(p=>p!==receiver).sort((a,b)=>Math.hypot(a.x-rx,a.y-ry)-Math.hypot(b.x-rx,b.y-ry))[0];
+ const runner=valid(ai.runner)&&players[ai.runner]!==mover?players[ai.runner]:players.filter(p=>p!==receiver&&p!==mover).sort((a,b)=>Math.hypot(a.x-rx,a.y-ry)-Math.hypot(b.x-rx,b.y-ry))[0];
+ const dir=ry<50?1:-1;
+ const targetFor=(p,dx,dy)=>p?{x:clamp(p.x+dx,6,94),y:clamp(p.y+dy,6,94)}:null;
+ const tail=[];
+ const addRun=(p,t)=>{if(!p||!t)return;tail.push({type:"run",i:p.i,x1:p.x,y1:p.y,x2:t.x,y2:t.y})};
+ const addPass=(from,t,p)=>{if(!from||!t||!p)return;tail.push({type:"pass",x1:from.x,y1:from.y,x2:t.x,y2:t.y,receiver:p.i})};
+ const action=ai.action||"BOUNCE";
+ if(action==="SWITCH"){
+  const free=mover,freeTarget=targetFor(free,free&&free.x<50?-12:12,dir*2);
+  addRun(free,freeTarget);addPass({x:rx,y:ry},freeTarget,free);
+  const next=runner||mover,nextTarget=targetFor(next,next&&next.x<50?7:-7,dir*3);
+  addRun(next,nextTarget);addPass(freeTarget,nextTarget,next);
+ }else if(action==="THIRD"||action==="THROUGH"){
+  const target=targetFor(runner,runner&&runner.x<50?10:-10,action==="THROUGH"?-14:-10);
+  addRun(runner,target);addPass({x:rx,y:ry},target,runner);
+ }else{
+  const supportTarget=targetFor(mover,mover&&mover.x<50?7:-7,dir*4);
+  addRun(mover,supportTarget);addPass({x:rx,y:ry},supportTarget,mover);
+  const runTarget=targetFor(runner,runner&&runner.x<50?11:-11,-12);
+  addRun(runner,runTarget);addPass(supportTarget,runTarget,runner);
+ }
+ if(!tail.length)return;
+ sequence.splice(playIndex+1);
+ sequence.push(...tail);
+ arrows=sequence.slice(0,playIndex+1).map(a=>({...a}));
+ arrows.push(...tail.map(a=>({...a})));
+ draw();updateTimeline();
+ msg("AI REPLAN • "+action+" • "+tail.length+" NEXT ACTIONS");
+}
 function runStep(){
  if(!playing)return;
  if(playIndex>=sequence.length){
@@ -689,6 +723,7 @@ function runStep(){
     const fallback=intel==="HIGH"?"BOUNCE":intel==="MEDIUM"&&players.some(p=>p!==receiver&&p.y<ry-7)?"THIRD-MAN":pressureNow>28&&players.some(p=>p!==receiver&&(p.x<22||p.x>78))?"SWITCH":"PLAY THROUGH";
     const solution=aiSolution||fallback;
     msg("RECEIVE • SCAN • "+solution+" • CONTINUE");
+    replanContinuation(receiver,rx,ry);
     executeCoachSolution(solution,receiver,rx,ry,next);
    });
   });
