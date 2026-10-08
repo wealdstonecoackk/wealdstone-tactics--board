@@ -75,7 +75,7 @@
       if(a==="save") click("save");
       if(a==="session") click("play");
       if(a==="tactics") document.getElementById("pitch")?.scrollIntoView({behavior:"smooth",block:"center"});
-      if(a==="ai") runCoachIntelligence();
+      if(a==="ai"){ runCoachIntelligence(); runOppositionIntelligence(); }
       if(a==="share") {
         if(navigator.share) navigator.share({title:"Wealdstone Coach Plan",text:"Wealdstone coaching plan"}).catch(()=>{});
         else if(navigator.clipboard) navigator.clipboard.writeText("Wealdstone coaching plan").then(()=>alert("Plan link/text ready to share"));
@@ -106,6 +106,32 @@
       const raw=Math.max(0,Math.min(100,Math.round(100-(nearest<width*.12?28:nearest<width*.22?12:0)-(spread<height*.18?15:0))));
       score.textContent=raw+"% READINESS";
       advice.innerHTML=adviceList.map(x=>'<div class="pro-ai-note">'+x+'</div>').join("");
+      panel.hidden=false;
+    }
+
+    // AI opposition layer: creates a tactical press response without changing the core engine.
+    function runOppositionIntelligence(){
+      const pitch=document.getElementById("pitch"), panel=document.getElementById("proAiPanel"), advice=document.getElementById("proAiAdvice"), score=document.getElementById("proAiScore");
+      if(!pitch||!panel||!advice)return;
+      const own=[...pitch.querySelectorAll(".player:not(.opp)")], opp=[...pitch.querySelectorAll(".player.opp")];
+      if(!opp.length){
+        panel.hidden=false; score.textContent="PRESS SHAPE";
+        advice.innerHTML='<div class="pro-ai-note"><b>AI Press:</b> Add opposition players, then the coach can identify the first presser, cover shadow, second defender and defensive-line shift.</div>';
+        return;
+      }
+      const centre=(el)=>{const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};};
+      const O=own.map(centre), D=opp.map(centre);
+      const nearest=(p)=>D.map((d,i)=>({i,d:Math.hypot(p.x-d.x,p.y-d.y)})).sort((a,b)=>a.d-b.d)[0];
+      const targets=O.map((p,i)=>({i,p,n:nearest(p)})).sort((a,b)=>a.n.d-b.n.d);
+      const first=targets[0], second=targets[1], third=targets[2];
+      const notes=[];
+      if(first) notes.push('<b>1st Presser:</b> Defender '+(first.n.i+1)+' attacks the ball-side player and closes the inside lane.');
+      if(second) notes.push('<b>Cover:</b> Defender '+(second.n.i+1)+' protects the next pass and stays connected to the first presser.');
+      if(third) notes.push('<b>Shift:</b> Defender '+(third.n.i+1)+' squeezes across while the rest of the line narrows.');
+      const compact=second&&first?Math.abs(second.n.d-first.n.d)<Math.max(45,(pitch.clientWidth||400)*.16):false;
+      notes.push(compact?'<b>Press trigger:</b> Strong compactness detected — force play toward the touchline and lock the escape route.':'<b>Press trigger:</b> Adjust distances before jumping; avoid leaving a free central outlet.');
+      score.textContent=(first&&first.n.d<(pitch.clientWidth||400)*.18)?"HIGH PRESS":"MID BLOCK";
+      advice.innerHTML=notes.map(x=>'<div class="pro-ai-note">'+x+'</div>').join("");
       panel.hidden=false;
     }
 
