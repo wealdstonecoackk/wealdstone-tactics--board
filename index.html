@@ -370,19 +370,60 @@ function showSolution(label,playersToShow,points){
 function executeCoachSolution(label,receiver,x,y,done){
  const pressure=opps.map(o=>Math.hypot(o.x-x,o.y-y)).sort((a,b)=>a-b)[0]||99;
  const candidates=players.filter(p=>p!==receiver).map(p=>({p,d:Math.hypot(p.x-x,p.y-y)})).sort((a,b)=>a.d-b.d);
- let mover=null,target=null;
- if(label.startsWith("THIRD-MAN")){mover=candidates.find(q=>q.p.y<y-5)?.p;target=mover?{x:clamp(mover.x+(mover.x<50?10:-10),6,94),y:clamp(mover.y-(pressure<18?14:9),6,94)}:null}
- else if(label.startsWith("SWITCH")){mover=candidates.find(q=>q.p.x<22||q.p.x>78)?.p;target=mover?{x:clamp(mover.x+(mover.x<50?-10:10),6,94),y:clamp(mover.y+(y<50?3:-3),6,94)}:null}
- else if(label.startsWith("BOUNCE")){mover=candidates[1]?.p;target=mover?{x:clamp(mover.x+(mover.x<50?8:-8),6,94),y:clamp(mover.y+6,6,94)}:null}
- else {mover=candidates[0]?.p;target=mover?{x:clamp(mover.x+(mover.x<50?5:-5),6,94),y:clamp(mover.y-4,6,94)}:null}
- if(!mover||!target){if(done)done();return}
- const hx=mover.x,hy=mover.y;
- mover.el.classList.add("running");
- animate(420,t=>{mover.x=hx+(target.x-hx)*t;mover.y=hy+(target.y-hy)*t;renderPlayer(mover)},()=>{
-  mover.el.classList.remove("running");
-  mover.el.dataset.state=label.split(" • ")[0];
-  clearTimeout(mover.el.__coachTimer);
-  mover.el.__coachTimer=setTimeout(()=>delete mover.el.dataset.state,900);
+ if(!receiver||!candidates.length){if(done)done();return}
+
+ // Build a small coaching pattern from the actual pressure picture:
+ // one player becomes the next option while another creates the next space.
+ let mover=null,runner=null,moverTarget=null,runnerTarget=null;
+ if(label.startsWith("THIRD-MAN")){
+  mover=candidates.find(q=>q.p.y<y-5)?.p||candidates[0]?.p;
+  runner=candidates.find(q=>q.p!==mover&&q.p.y<y)?.p;
+  moverTarget=mover?{x:clamp(mover.x+(mover.x<50?8:-8),6,94),y:clamp(mover.y-(pressure<18?8:5),6,94)}:null;
+  runnerTarget=runner?{x:clamp(runner.x+(runner.x<50?12:-12),6,94),y:clamp(runner.y-(pressure<18?15:10),6,94)}:null;
+ }else if(label.startsWith("SWITCH")){
+  mover=candidates.find(q=>q.p.x<22||q.p.x>78)?.p||candidates[0]?.p;
+  runner=candidates.find(q=>q.p!==mover&&Math.abs(q.p.x-x)>18)?.p;
+  moverTarget=mover?{x:clamp(mover.x+(mover.x<50?-10:10),6,94),y:clamp(mover.y+(y<50?3:-3),6,94)}:null;
+  runnerTarget=runner?{x:clamp(runner.x+(runner.x<50?-6:6),6,94),y:clamp(runner.y,6,94)}:null;
+ }else if(label.startsWith("BOUNCE")){
+  mover=candidates[0]?.p;
+  runner=candidates[1]?.p;
+  moverTarget=mover?{x:clamp(mover.x+(mover.x<50?7:-7),6,94),y:clamp(mover.y+5,6,94)}:null;
+  runnerTarget=runner?{x:clamp(runner.x+(runner.x<50?10:-10),6,94),y:clamp(runner.y-(pressure<18?10:6),6,94)}:null;
+ }else{
+  mover=candidates[0]?.p;
+  runner=candidates[1]?.p;
+  moverTarget=mover?{x:clamp(mover.x+(mover.x<50?5:-5),6,94),y:clamp(mover.y-4,6,94)}:null;
+  runnerTarget=runner?{x:clamp(runner.x+(runner.x<50?6:-6),6,94),y:clamp(runner.y-3,6,94)}:null;
+ }
+ if(!mover||!moverTarget){if(done)done();return}
+
+ const movers=[{p:mover,target:moverTarget,state:label.split(" • ")[0]}];
+ if(runner&&runnerTarget)movers.push({p:runner,target:runnerTarget,state:label.startsWith("THIRD-MAN")?"RUN BEHIND":label.startsWith("SWITCH")?"WIDTH":"SUPPORT"});
+ const homes=movers.map(q=>({x:q.p.x,y:q.p.y}));
+ movers.forEach(q=>{q.p.el.classList.add("running");q.p.el.dataset.state=q.state});
+ animate(520,t=>{
+  movers.forEach((q,i)=>{
+   q.p.x=homes[i].x+(q.target.x-homes[i].x)*t;
+   q.p.y=homes[i].y+(q.target.y-homes[i].y)*t;
+   renderPlayer(q.p);
+  });
+ },()=>{
+  movers.forEach(q=>{
+   q.p.el.classList.remove("running");
+   clearTimeout(q.p.el.__coachTimer);
+   q.p.el.__coachTimer=setTimeout(()=>delete q.p.el.dataset.state,1050);
+  });
+  // Keep the receiver as the visual pivot: the next action starts from the
+  // actual receiving point, while the supporting movements remain visible.
+  receiver.el.classList.add("receiving");
+  receiver.el.dataset.state=label.split(" • ")[0];
+  clearTimeout(receiver.el.__decisionTimer);
+  receiver.el.__decisionTimer=setTimeout(()=>{
+   receiver.el.classList.remove("receiving");
+   delete receiver.el.dataset.state;
+  },900);
+  msg(label+" • NEXT ACTION READY");
   if(done)done();
  });
 }
