@@ -15,7 +15,12 @@
       .pro-progress{display:flex;gap:5px;margin-top:7px;overflow:auto}.pro-progress span{flex:1;min-width:62px;padding:6px;border-radius:8px;background:#151a20;border:1px solid #2c333c;text-align:center;font-size:8px;font-weight:800;color:#c8d0d9}.pro-progress span.on{border-color:#69d391;color:#fff}
       .pro-ai{margin-top:7px;padding:9px;border-radius:10px;background:#0e141a;border:1px solid #33404c}.pro-ai-head{display:flex;justify-content:space-between;gap:8px;font-size:10px;margin-bottom:6px}.pro-ai-head span{font-size:9px;color:#69d391}.pro-ai-note{padding:7px 8px;margin-top:5px;border-radius:8px;background:#171f27;font-size:10px;line-height:1.35}.pro-ai-note b{color:#fff}
       .legacy-controls{display:none!important}
-      #pitch{box-shadow:0 12px 30px #0007,inset 0 0 0 1px #ffffff22}
+      /* BOARD STABILITY: never allow menu/polish rules to reflow the player layer */
+      #pitch{position:relative!important;box-shadow:0 12px 30px #0007,inset 0 0 0 1px #ffffff22}
+      #playersLayer{position:absolute!important;inset:0!important;z-index:20!important;display:block!important;pointer-events:none!important}
+      #playersLayer>.player{position:absolute!important;display:flex!important;visibility:visible!important;opacity:1!important}
+      #pitch>#svg{position:absolute!important;inset:0!important;z-index:10!important;pointer-events:none!important}
+      #pitch>#ball{position:absolute!important;z-index:30!important}
       #pitch:after{content:"WEALDSTONE • COACH BOARD";position:absolute;left:10px;top:10px;z-index:4;padding:5px 8px;border-radius:7px;background:#07130bcc;border:1px solid #ffffff33;font-size:8px;font-weight:900;letter-spacing:1px;pointer-events:none}
       #timeline{border-color:#394553;background:#111820;box-shadow:inset 0 1px 0 #ffffff08}
       .tools button{min-height:44px}
@@ -45,7 +50,8 @@
         <button data-pro-id="clear">🧹 CLEAR</button><button data-pro-id="undo">↶ UNDO</button><button data-pro-id="redo">↷ REDO</button>
       </div>
       <div class="pro-ai" id="proAiPanel" hidden><div class="pro-ai-head"><strong>🧠 COACH INTELLIGENCE</strong><span id="proAiScore">SCAN</span></div><div id="proAiAdvice"></div></div>
-      <div class="pro-progress"><span class="on">✓ SETUP</span><span class="on">✓ MOVEMENT</span><span>● REHEARSE</span><span>● SAVE</span><span>● SHARE</span></div>`;
+      <div class="pro-progress"><span class="on">✓ SETUP</span><span class="on">✓ BUILD</span><span>● REHEARSE</span><span>● SAVE</span><span>● SHARE</span></div>
+      <div class="pro-ai-note" style="margin-top:7px"><b>WORKFLOW:</b> Plan → Build → Rehearse → Save → Share</div>`;
     wrap.insertBefore(shell,anchor);
 
     const click=id=>{const el=document.getElementById(id);if(el)el.click();};
@@ -93,7 +99,29 @@
       score.textContent=t[0]&&t[0].n.d<(pitch.clientWidth||400)*.18?"HIGH PRESS":"MID BLOCK";advice.innerHTML=notes.map(x=>'<div class="pro-ai-note">'+x+"</div>").join("");panel.hidden=false;
     }
 
-    document.querySelectorAll(".menu-label").forEach(label=>{label.classList.add("legacy-controls");if(label.nextElementSibling)label.nextElementSibling.classList.add("legacy-controls");});
+    /* Keep the old engine controls alive, but remove duplicate menu chrome from view. */
+    document.querySelectorAll(".menu-label").forEach(label=>{
+      label.classList.add("legacy-controls");
+      let n=label.nextElementSibling;
+      if(n) n.classList.add("legacy-controls");
+    });
+    /* Final safety pass after every UI mutation. */
+    const stabiliseBoard=()=>{
+      const pitch=document.getElementById("pitch"), layer=document.getElementById("playersLayer");
+      if(!pitch||!layer)return;
+      pitch.style.position="relative";
+      layer.style.position="absolute";
+      layer.style.inset="0";
+      layer.style.zIndex="20";
+      layer.querySelectorAll(".player").forEach(el=>{
+        el.style.position="absolute";
+        el.style.display="flex";
+        el.style.visibility="visible";
+        el.style.opacity="1";
+      });
+    };
+    stabiliseBoard();
+    window.addEventListener("resize",stabiliseBoard,{passive:true});
     const status=document.getElementById("status");if(status){const obs=new MutationObserver(()=>{if(status.textContent&&!status.textContent.includes("• ENGINE"))status.textContent+=" • ENGINE READY";});obs.observe(status,{childList:true});}
     const toolLabels={select:"👆 Select",pass:"➜ Pass",run:"↗ Run",ball:"⚽ Ball",opp:"🔴 Opp",smart:"⚡ Smart Play"};
     document.querySelectorAll("[data-tool]").forEach(b=>{if(toolLabels[b.dataset.tool])b.textContent=toolLabels[b.dataset.tool];});
