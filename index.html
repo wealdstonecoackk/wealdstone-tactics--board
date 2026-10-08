@@ -623,12 +623,20 @@ function runStep(){
    const paired=following&&following.type==="pass"&&following.receiver===p.i;
    const duration=paired?760:650;
    p.el.classList.add("running");
+   // Football movement: accelerate into space, curve off the defender's line,
+   // then decelerate into the receiving position instead of sliding robotically.
+   const dx=targetX-homeX,dy=targetY-homeY;
+   const len=Math.hypot(dx,dy)||1;
+   const nx=-dy/len,ny=dx/len;
+   const curve=Math.min(4.5,len*.14)*(p.x<50?-1:1);
    animate(duration,t=>{
-    p.x=homeX+(targetX-homeX)*t;
-    p.y=homeY+(targetY-homeY)*t;
+    const e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+    const bend=Math.sin(Math.PI*t)*curve;
+    p.x=homeX+dx*e+nx*bend;
+    p.y=homeY+dy*e+ny*bend;
     renderPlayer(p);
-    // Give the receiver a small visual cue as the run enters the passing lane.
-    if(paired&&t>.55)p.el.classList.add("receiving");
+    // Receiver shows intent before the ball arrives, then settles naturally.
+    if(paired&&t>.45)p.el.classList.add("receiving");
    },()=>{
     p.el.classList.remove("running");
     p.el.classList.remove("receiving");
@@ -657,9 +665,10 @@ function runStep(){
   if(receiver)receiver.el.classList.add("receiving");
   // Slightly slower long passes, quicker short combinations.
   const distance=Math.hypot(receiveX-sx,receiveY-sy);
-  const duration=clamp(360+distance*8,420,760);
+  const duration=clamp(330+distance*7.2,400,720);
   animate(duration,t=>{
-   setBall(sx+(receiveX-sx)*t,sy+(receiveY-sy)*t);
+   const e=1-Math.pow(1-t,2);
+   setBall(sx+(receiveX-sx)*e,sy+(receiveY-sy)*e);
    if(receiver){
     // If the receiver is moving, let the ball lead the player rather than
     // making the player wait at a static coordinate.
