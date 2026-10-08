@@ -440,24 +440,27 @@ function executeCoachSolution(label,receiver,x,y,done){
  // Build a small coaching pattern from the actual pressure picture:
  // one player becomes the next option while another creates the next space.
  let mover=null,runner=null,moverTarget=null,runnerTarget=null;
+ const aiPlan=window.__wealdstoneAIDecision?.plan;
+ const aiMover=aiPlan&&Number.isInteger(aiPlan.mover)?players[aiPlan.mover]:null;
+ const aiRunner=aiPlan&&Number.isInteger(aiPlan.runner)?players[aiPlan.runner]:null;
  if(label.startsWith("THIRD-MAN")){
-  mover=candidates.find(q=>q.p.y<y-5)?.p||candidates[0]?.p;
-  runner=candidates.find(q=>q.p!==mover&&q.p.y<y)?.p;
+  mover=aiMover||candidates.find(q=>q.p.y<y-5)?.p||candidates[0]?.p;
+  runner=aiRunner&&aiRunner!==mover?aiRunner:candidates.find(q=>q.p!==mover&&q.p.y<y)?.p;
   moverTarget=mover?{x:clamp(mover.x+(mover.x<50?8:-8),6,94),y:clamp(mover.y-(pressure<18?8:5),6,94)}:null;
   runnerTarget=runner?{x:clamp(runner.x+(runner.x<50?12:-12),6,94),y:clamp(runner.y-(pressure<18?15:10),6,94)}:null;
  }else if(label.startsWith("SWITCH")){
-  mover=candidates.find(q=>q.p.x<22||q.p.x>78)?.p||candidates[0]?.p;
-  runner=candidates.find(q=>q.p!==mover&&Math.abs(q.p.x-x)>18)?.p;
+  mover=aiMover||candidates.find(q=>q.p.x<22||q.p.x>78)?.p||candidates[0]?.p;
+  runner=aiRunner&&aiRunner!==mover?aiRunner:candidates.find(q=>q.p!==mover&&Math.abs(q.p.x-x)>18)?.p;
   moverTarget=mover?{x:clamp(mover.x+(mover.x<50?-10:10),6,94),y:clamp(mover.y+(y<50?3:-3),6,94)}:null;
   runnerTarget=runner?{x:clamp(runner.x+(runner.x<50?-6:6),6,94),y:clamp(runner.y,6,94)}:null;
  }else if(label.startsWith("BOUNCE")){
-  mover=candidates[0]?.p;
-  runner=candidates[1]?.p;
+  mover=aiMover||candidates[0]?.p;
+  runner=aiRunner&&aiRunner!==mover?aiRunner:candidates.find(q=>q.p!==mover)?.p;
   moverTarget=mover?{x:clamp(mover.x+(mover.x<50?7:-7),6,94),y:clamp(mover.y+5,6,94)}:null;
   runnerTarget=runner?{x:clamp(runner.x+(runner.x<50?10:-10),6,94),y:clamp(runner.y-(pressure<18?10:6),6,94)}:null;
  }else{
-  mover=candidates[0]?.p;
-  runner=candidates[1]?.p;
+  mover=aiMover||candidates[0]?.p;
+  runner=aiRunner&&aiRunner!==mover?aiRunner:candidates.find(q=>q.p!==mover)?.p;
   moverTarget=mover?{x:clamp(mover.x+(mover.x<50?5:-5),6,94),y:clamp(mover.y-4,6,94)}:null;
   runnerTarget=runner?{x:clamp(runner.x+(runner.x<50?6:-6),6,94),y:clamp(runner.y-3,6,94)}:null;
  }
