@@ -437,57 +437,10 @@ function showSolution(label,playersToShow,points){
  window.__solutionTimer=setTimeout(clearSolutionVisuals,2600);
 }
 function executeCoachSolution(label,receiver,x,y,done){
- const pressure=opps.map(o=>Math.hypot(o.x-x,o.y-y)).sort((a,b)=>a-b)[0]||99;
- const candidates=players.filter(p=>p!==receiver).map(p=>({p,d:Math.hypot(p.x-x,p.y-y)})).sort((a,b)=>a.d-b.d);
- if(!receiver||!candidates.length){if(done)done();return}
-
- // Build a small coaching pattern from the actual pressure picture:
- // one player becomes the next option while another creates the next space.
- let mover=null,runner=null,moverTarget=null,runnerTarget=null;
- const aiPlan=window.__wealdstoneAIDecision?.plan;
- const aiMover=aiPlan&&Number.isInteger(aiPlan.mover)?players[aiPlan.mover]:null;
- const aiRunner=aiPlan&&Number.isInteger(aiPlan.runner)?players[aiPlan.runner]:null;
- if(label.startsWith("THIRD-MAN")){
-  mover=aiMover||candidates.find(q=>q.p.y<y-5)?.p||candidates[0]?.p;
-  runner=aiRunner&&aiRunner!==mover?aiRunner:candidates.find(q=>q.p!==mover&&q.p.y<y)?.p;
-  moverTarget=mover?{x:clamp(mover.x+(mover.x<50?8:-8),6,94),y:clamp(mover.y-(pressure<18?8:5),6,94)}:null;
-  runnerTarget=runner?{x:clamp(runner.x+(runner.x<50?12:-12),6,94),y:clamp(runner.y-(pressure<18?15:10),6,94)}:null;
- }else if(label.startsWith("SWITCH")){
-  mover=aiMover||candidates.find(q=>q.p.x<22||q.p.x>78)?.p||candidates[0]?.p;
-  runner=aiRunner&&aiRunner!==mover?aiRunner:candidates.find(q=>q.p!==mover&&Math.abs(q.p.x-x)>18)?.p;
-  moverTarget=mover?{x:clamp(mover.x+(mover.x<50?-10:10),6,94),y:clamp(mover.y+(y<50?3:-3),6,94)}:null;
-  runnerTarget=runner?{x:clamp(runner.x+(runner.x<50?-6:6),6,94),y:clamp(runner.y,6,94)}:null;
- }else if(label.startsWith("BOUNCE")){
-  mover=aiMover||candidates[0]?.p;
-  runner=aiRunner&&aiRunner!==mover?aiRunner:candidates.find(q=>q.p!==mover)?.p;
-  moverTarget=mover?{x:clamp(mover.x+(mover.x<50?7:-7),6,94),y:clamp(mover.y+5,6,94)}:null;
-  runnerTarget=runner?{x:clamp(runner.x+(runner.x<50?10:-10),6,94),y:clamp(runner.y-(pressure<18?10:6),6,94)}:null;
- }else{
-  mover=aiMover||candidates[0]?.p;
-  runner=aiRunner&&aiRunner!==mover?aiRunner:candidates.find(q=>q.p!==mover)?.p;
-  moverTarget=mover?{x:clamp(mover.x+(mover.x<50?5:-5),6,94),y:clamp(mover.y-4,6,94)}:null;
-  runnerTarget=runner?{x:clamp(runner.x+(runner.x<50?6:-6),6,94),y:clamp(runner.y-3,6,94)}:null;
- }
- if(!mover||!moverTarget){if(done)done();return}
-
- const movers=[{p:mover,target:moverTarget,state:label.split(" • ")[0]}];
- if(runner&&runnerTarget)movers.push({p:runner,target:runnerTarget,state:label.startsWith("THIRD-MAN")?"RUN BEHIND":label.startsWith("SWITCH")?"WIDTH":"SUPPORT"});
- const homes=movers.map(q=>({x:q.p.x,y:q.p.y}));
- movers.forEach(q=>{q.p.el.classList.add("running");q.p.el.dataset.state=q.state});
- animate(520,t=>{
-  movers.forEach((q,i)=>{
-   q.p.x=homes[i].x+(q.target.x-homes[i].x)*t;
-   q.p.y=homes[i].y+(q.target.y-homes[i].y)*t;
-   renderPlayer(q.p);
-  });
- },()=>{
-  movers.forEach(q=>{
-   q.p.el.classList.remove("running");
-   clearTimeout(q.p.el.__coachTimer);
-   q.p.el.__coachTimer=setTimeout(()=>delete q.p.el.dataset.state,1050);
-  });
-  // Keep the receiver as the visual pivot: the next action starts from the
-  // actual receiving point, while the supporting movements remain visible.
+ // The planned sequence owns player movement. AI coaching is the decision/
+ // visual layer, so it must never fight the rehearsal engine with a second
+ // competing animation.
+ if(receiver){
   receiver.el.classList.add("receiving");
   receiver.el.dataset.state=label.split(" • ")[0];
   clearTimeout(receiver.el.__decisionTimer);
@@ -495,11 +448,16 @@ function executeCoachSolution(label,receiver,x,y,done){
    receiver.el.classList.remove("receiving");
    delete receiver.el.dataset.state;
   },900);
-  msg(label+" • NEXT ACTION READY");
-  if(done)done();
- });
+ }
+ const aiPlan=window.__wealdstoneAIDecision?.plan;
+ const focus=aiPlan
+  ? [Number.isInteger(aiPlan.mover)?players[aiPlan.mover]:null,
+     Number.isInteger(aiPlan.runner)?players[aiPlan.runner]:null].filter(Boolean)
+  : [];
+ focus.forEach(p=>p.el.classList.add("solution"));
+ msg(label+" • NEXT ACTION READY");
+ if(done)done();
 }
-
 function coachDecision(receiver,x,y){
  if(window.WealdstoneAIDecision?.scan) window.WealdstoneAIDecision.scan();
  const ai=window.__wealdstoneAIDecision;
@@ -722,7 +680,7 @@ function runStep(){
     const fallback=intel==="HIGH"?"BOUNCE":intel==="MEDIUM"&&players.some(p=>p!==receiver&&p.y<ry-7)?"THIRD-MAN":pressureNow>28&&players.some(p=>p!==receiver&&(p.x<22||p.x>78))?"SWITCH":"PLAY THROUGH";
     const solution=aiSolution||fallback;
     msg("RECEIVE • SCAN • "+solution+" • CONTINUE");
-    executeCoachSolution(solution,receiver,rx,ry,()=>finishQueuedReturns(next));
+    executeCoachSolution(solution,receiver,rx,ry,next);
    });
   });
  }else if(a.type==="ball"){
