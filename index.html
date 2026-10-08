@@ -366,18 +366,20 @@ function coachDecision(receiver,x,y){
  const wide=players.filter(p=>p!==receiver&&(p.x<22||p.x>78)).sort((a,b)=>Math.abs(b.x-x)-Math.abs(a.x-x));
  const support=outlets[0]?.p;
  const third=ahead.find(p=>p!==support)||ahead[0];
+ const escape=outlets.find(q=>q.p!==support&&q.d<42)?.p;
  let label="PLAY THROUGH",focus=[support||third],pts=[];
- if(pressure<16&&support){
-  label="BOUNCE";focus=[support,receiver];
+ if(pressure<14&&support){
+  label="BOUNCE • ESCAPE";focus=[support,escape||third].filter(Boolean);
   pts=[{x1:x,y1:y,x2:support.x,y2:support.y}];
+  if(escape)pts.push({x1:support.x,y1:support.y,x2:escape.x,y2:escape.y});
  }else if(third&&Math.hypot(third.x-x,third.y-y)<48){
-  label="THIRD-MAN";focus=[third,support];
+  label="THIRD-MAN • RUN BEHIND";focus=[third,support].filter(Boolean);
   pts=[{x1:x,y1:y,x2:third.x,y2:third.y}];
  }else if(wide.length){
-  const w=wide[0];label="SWITCH";focus=[w,support];
+  const w=wide[0];label="SWITCH • FIND WIDTH";focus=[w,support].filter(Boolean);
   pts=[{x1:x,y1:y,x2:w.x,y2:w.y}];
  }else if(support){
-  label="PLAY THROUGH";focus=[support,third];
+  label="PLAY THROUGH • SUPPORT";focus=[support,third].filter(Boolean);
   pts=[{x1:x,y1:y,x2:support.x,y2:support.y}];
  }
  showSolution(label,focus,pts);
@@ -785,7 +787,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V19");
+msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V20");
 window.setViewMode=setViewMode;window.jumpToStep=jumpToStep;window.pressMenu=pressMenu;window.loadPress=loadPress;window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
