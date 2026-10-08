@@ -48,6 +48,8 @@ jobs:
           node --check pro-upgrade.js
           test -s ai-decision.js
           node --check ai-decision.js
+          test -s smart-upgrade.js
+          node --check smart-upgrade.js
       - name: Inject Coach Hub and AI upgrades
         shell: bash
         run: |
@@ -57,7 +59,8 @@ jobs:
           html = Path("index.html").read_text(encoding="utf-8")
           tags = [
               '<script src="pro-upgrade.js"></script>',
-              '<script src="ai-decision.js"></script>'
+              '<script src="ai-decision.js"></script>',
+              '<script src="smart-upgrade.js"></script>'
           ]
           for tag in tags:
               assert tag not in html
