@@ -406,13 +406,10 @@ function play(){
  runStep()
 }
 function finishQueuedReturns(done){
- if(!returnQueue.length){done();return}
- const q=returnQueue.shift();
- animate(300,t=>{
-  q.p.x=q.targetX+(q.homeX-q.targetX)*t;
-  q.p.y=q.targetY+(q.homeY-q.targetY)*t;
-  renderPlayer(q.p);
- },()=>finishQueuedReturns(done));
+ // Playback is a rehearsal, not a reset. Keep players at their coached
+ // end positions so the next action remains visible after PLAY completes.
+ returnQueue=[];
+ if(done)done();
 }
 function clearSolutionVisuals(){
  players.forEach(p=>p.el.classList.remove("solution","solution-third","solution-switch","solution-bounce","solution-through"));
@@ -680,14 +677,12 @@ function runStep(){
     const nextPass=following&&following.type==="pass";
     const holdsForNext=nextPass&&Math.hypot((following.x1||0)-p.x,(following.y1||0)-p.y)<6;
     if(holdsForNext){
-     returnQueue.push({p,homeX,homeY,targetX,targetY});
+     // Hold the player at the coached receiving position for the next action.
+     // Do not queue an automatic return; PLAY must never reset the rehearsal.
      next();
     }else{
-     animate(350,t=>{
-      p.x=targetX+(homeX-targetX)*t;
-      p.y=targetY+(homeY-targetY)*t;
-      renderPlayer(p);
-     },next);
+     // Keep deliberate movement visible rather than snapping the player home.
+     next();
     }
    });
   }else next();
