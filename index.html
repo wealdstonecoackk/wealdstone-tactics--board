@@ -21,7 +21,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 @media(max-width:600px){.tabs{grid-template-columns:repeat(3,1fr)}.tools{grid-template-columns:repeat(3,1fr)}.actions{grid-template-columns:repeat(2,1fr)}#pitch{height:66vh;min-height:500px}.player{width:45px;height:45px}.player .nm{top:43px;font-size:9px}}
 .menu-label{margin:10px 0 5px;font-size:10px;letter-spacing:1.4px;font-weight:900;opacity:.7}.primary-menu button{min-height:48px}.compact-menu button{min-height:40px}.view-switch{display:flex;gap:8px;margin:10px 0}.view-switch button{flex:1}.view-switch button.active{outline:2px solid #fff}.timeline{padding:10px;border-radius:10px;background:rgba(0,0,0,.25);font-size:13px;overflow:auto;white-space:nowrap}.player-view .arrow,.player-view .opp.press-trigger:after,.player-view .opp.cover:after{opacity:0}.player-view .notes{display:none}
 .preview-card{padding:12px;margin:10px 0;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}.preview-card strong{display:block;font-size:11px;letter-spacing:1px;margin-top:8px}.preview-card p{margin:5px 0 10px;line-height:1.4}.preview-card ul{margin:6px 0 4px;padding-left:20px;line-height:1.5}.timeline-controls{display:flex;gap:6px;align-items:center;margin:7px 0}.timeline-controls span{font-size:11px;font-weight:800;opacity:.75;margin-right:2px}.timeline-controls button{border:1px solid #3a424c;background:#20262e;color:#fff;border-radius:7px;padding:6px 9px;font-weight:800}.timeline-controls button.active{outline:2px solid #fff}.timeline-step{border:0;border-radius:8px;padding:7px 9px;background:rgba(255,255,255,.12);color:inherit;font-weight:700}.timeline-step.active{outline:2px solid #fff}.timeline-arrow{margin:0 5px;opacity:.65}
-.pitch-zones{position:absolute;inset:0;pointer-events:none;display:flex;z-index:0}.zone{flex:1;display:flex;align-items:flex-start;justify-content:center;padding-top:8px;font-size:9px;letter-spacing:1.4px;font-weight:800;opacity:.28}.zone-def{background:rgba(255,255,255,.025)}.zone-mid{background:rgba(255,255,255,.045)}.zone-final{background:rgba(255,255,255,.065)}#pitch>*:not(.pitch-zones){position:relative;z-index:2}.player,.opp,.ball{transition:left .18s ease,top .18s ease,transform .18s ease,box-shadow .18s ease}.player.receiving{transform:scale(1.14)}
+.pitch-zones{position:absolute;inset:0;pointer-events:none;display:flex;z-index:0}.zone{flex:1;display:flex;align-items:flex-start;justify-content:center;padding-top:8px;font-size:9px;letter-spacing:1.4px;font-weight:800;opacity:.28}.zone-def{background:rgba(255,255,255,.025)}.zone-mid{background:rgba(255,255,255,.045)}.zone-final{background:rgba(255,255,255,.065)}#pitch>*:not(.pitch-zones){position:relative;z-index:2}.player,.opp,.ball{transition:left .18s ease,top .18s ease,transform .18s ease,box-shadow .18s ease}.player.receiving{transform:scale(1.14)}.player.running{filter:drop-shadow(0 0 7px rgba(255,255,255,.65))}
 </style>
 </head>
 <body>
@@ -377,24 +377,32 @@ function runStep(){
   return;
  }
  const a=sequence[playIndex];
- msg("PLAYING • "+(playIndex+1)+"/"+sequence.length);
+ msg("PLAYING • "+(playIndex+1)+"/"+sequence.length+" • "+(a.type==="pass"?"PASS & RECEIVE":a.type==="run"?"TIMED RUN":"BALL"));
+
+ // A run immediately before a pass to the same player is treated as a coached
+ // timed receiving action: the player attacks the space, then the ball arrives.
  if(a.type==="run"){
   const p=players[a.i];
+  const following=sequence[playIndex+1];
   if(p){
    const homeX=Number.isFinite(p.x)?p.x:a.x1;
    const homeY=Number.isFinite(p.y)?p.y:a.y1;
    const targetX=Number.isFinite(a.x2)?a.x2:homeX;
    const targetY=Number.isFinite(a.y2)?a.y2:homeY;
-   const following=sequence[playIndex+1];
-   const nextPass=following&&following.type==="pass";
-   const holdsForNext=nextPass&&Math.hypot((following.x1||0)-targetX,(following.y1||0)-targetY)<4.5;
-   const runIntoPass=nextPass&&following.i===p.i;
-   const runTiming=runIntoPass?760:650;
-   animate(runTiming,t=>{
+   const paired=following&&following.type==="pass"&&following.receiver===p.i;
+   const duration=paired?760:650;
+   p.el.classList.add("running");
+   animate(duration,t=>{
     p.x=homeX+(targetX-homeX)*t;
     p.y=homeY+(targetY-homeY)*t;
     renderPlayer(p);
+    // Give the receiver a small visual cue as the run enters the passing lane.
+    if(paired&&t>.55)p.el.classList.add("receiving");
    },()=>{
+    p.el.classList.remove("running");
+    p.el.classList.remove("receiving");
+    const nextPass=following&&following.type==="pass";
+    const holdsForNext=nextPass&&Math.hypot((following.x1||0)-p.x,(following.y1||0)-p.y)<6;
     if(holdsForNext){
      returnQueue.push({p,homeX,homeY,targetX,targetY});
      next();
@@ -410,18 +418,33 @@ function runStep(){
  }else if(a.type==="pass"){
   const sx=Number.isFinite(a.x1)?a.x1:ballPos.x;
   const sy=Number.isFinite(a.y1)?a.y1:ballPos.y;
-  const ex=Number.isFinite(a.x2)?a.x2:sx;
-  const ey=Number.isFinite(a.y2)?a.y2:sy;
-  const receiver=players.find(p=>p.i===a.receiver)||players.reduce((best,p)=>{
-   const d=Math.hypot(p.x-ex,p.y-ey); return !best||d<best.d?{p,d}:best
+  const receiver=(Number.isInteger(a.receiver)?players[a.receiver]:null)||players.reduce((best,p)=>{
+   const d=Math.hypot(p.x-(Number.isFinite(a.x2)?a.x2:sx),p.y-(Number.isFinite(a.y2)?a.y2:sy));
+   return !best||d<best.d?{p,d}:best
   },null)?.p;
-  const receiveX=receiver?receiver.x:ex, receiveY=receiver?receiver.y:ey;
+  const receiveX=receiver?receiver.x:(Number.isFinite(a.x2)?a.x2:sx);
+  const receiveY=receiver?receiver.y:(Number.isFinite(a.y2)?a.y2:sy);
   setBall(sx,sy);
-  animate(550,t=>setBall(sx+(receiveX-sx)*t,sy+(receiveY-sy)*t),()=>{
-   setBall(receiveX,receiveY);
-   settleReceiver(receiveX,receiveY);
-   reactPress(ex,ey);
-   msg("PASS COMPLETE • RECEIVE • SCAN • THIRD MAN • PRESS • RECOVERY");
+  if(receiver)receiver.el.classList.add("receiving");
+  // Slightly slower long passes, quicker short combinations.
+  const distance=Math.hypot(receiveX-sx,receiveY-sy);
+  const duration=clamp(360+distance*8,420,760);
+  animate(duration,t=>{
+   setBall(sx+(receiveX-sx)*t,sy+(receiveY-sy)*t);
+   if(receiver){
+    // If the receiver is moving, let the ball lead the player rather than
+    // making the player wait at a static coordinate.
+    const lead=.12*(1-t);
+    const lx=receiver.x+(receiveX-receiver.x)*lead;
+    const ly=receiver.y+(receiveY-receiver.y)*lead;
+    if(t>.72){setBall(lx,ly)}
+   }
+  },()=>{
+   setBall(receiver?receiver.x:receiveX,receiver?receiver.y:receiveY);
+   if(receiver)receiver.el.classList.remove("receiving");
+   settleReceiver(receiver?receiver.x:receiveX,receiver?receiver.y:receiveY);
+   reactPress(receiver?receiver.x:receiveX,receiver?receiver.y:receiveY);
+   msg("RECEIVE • SCAN • SUPPORT • PRESS RESPONSE");
    finishQueuedReturns(next);
   });
  }else if(a.type==="ball"){
