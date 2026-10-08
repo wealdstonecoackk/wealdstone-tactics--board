@@ -115,8 +115,13 @@
       if(t[1])notes.push("<b>Cover:</b> Defender "+(t[1].n.i+1)+" protects the next pass.");
       if(t[2])notes.push("<b>Shift:</b> Defender "+(t[2].n.i+1)+" squeezes across.");
       notes.push("<b>Press trigger:</b> Keep distances connected and force play toward the least dangerous lane.");
-      score.textContent=t[0]&&t[0].n.d<(pitch.clientWidth||400)*.18?"HIGH PRESS":"MID BLOCK";advice.innerHTML=notes.map(x=>'<div class="pro-ai-note">'+x+"</div>").join("");panel.hidden=false;
+      score.textContent=t[0]&&t[0].n.d<(pitch.clientWidth||400)*.18?"HIGH PRESS":"MID BLOCK";advice.innerHTML=notes.map(x=>'<div class="pro-ai-note">'+x+"</div>").join("")+'<div class="pro-ai-note"><button id="aiPressScenario" style="width:100%;margin-top:2px">🎯 REHEARSE AI PRESS TRAP</button></div>';panel.hidden=false;const pb=panel.querySelector("#aiPressScenario");if(pb)pb.onclick=()=>{if(window.loadPress)window.loadPress("trap");};
     }
+
+    function addAiBuildControl(){const panel=document.getElementById("proAiPanel"),advice=document.getElementById("proAiAdvice");if(!panel||!advice||advice.querySelector("#aiBuildPlay"))return;const box=document.createElement("div");box.className="pro-ai-note";box.innerHTML='<button id="aiBuildPlay" style="width:100%;margin-top:2px">⚡ BUILD AI COACHED PLAY</button>';advice.appendChild(box);const b=box.querySelector("#aiBuildPlay");b.onclick=()=>{const own=[...document.querySelectorAll("#pitch .player:not(.opp)")];if(!own.length)return;const ball=document.getElementById("ball"),br=ball?.getBoundingClientRect();const pc=document.getElementById("pitch")?.getBoundingClientRect();const bx=br?br.left+br.width/2:(pc?pc.left+pc.width/2:0),by=br?br.top+br.height/2:(pc?pc.top+pc.height/2:0);const target=own.map(el=>{const r=el.getBoundingClientRect();return{el,d:Math.hypot(r.left+r.width/2-bx,r.top+r.height/2-by)}}).sort((a,z)=>a.d-z.d)[0];if(target){document.querySelector('[data-tool="smart"]')?.click();target.el.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,clientX:bx,clientY:by,pointerId:1,pointerType:"touch"}));}};}
+    const oldRunCoach=runCoachIntelligence,oldRunOpp=runOppositionIntelligence;
+    runCoachIntelligence=()=>{oldRunCoach();addAiBuildControl();};
+    runOppositionIntelligence=()=>{oldRunOpp();addAiBuildControl();};
 
     /* Keep the old engine controls alive, but remove duplicate menu chrome from view. */
     document.querySelectorAll(".menu-label").forEach(label=>{
