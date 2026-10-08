@@ -113,7 +113,7 @@ function ensureBoardIntegrity(){
     if(!p.name)p.name=names[i]||("Player "+(i+1));
     renderPlayer(p);
   });
-  if(boardLooksCollapsed()) resetPlayersToFormation();
+  // Do not auto-reset compact tactical shapes: close rotations and overloads are valid coaching positions.
   if(!Number.isFinite(ballPos.x)||!Number.isFinite(ballPos.y)){ballPos={x:50,y:50}}
   setBall(ballPos.x,ballPos.y);
   ball.style.display="flex";
