@@ -576,8 +576,14 @@ function reactPress(x,y,done){
    opps.forEach(o=>{
     const h=homes.get(o),target=targets.get(o);
     if(!h||!target)return;
-    o.x=h.x+(target.x-h.x)*t;
-    o.y=h.y+(target.y-h.y)*t;
+    // Defenders react in football order rather than all moving at once:
+    // trigger first, cover closes second, then the rest of the block shifts.
+    const role=o===trigger?"trigger":o===cover?"cover":o===tracker?"tracker":"shift";
+    const delay=role==="trigger"?0:role==="cover"?.10:role==="tracker"?.16:.22;
+    const local=Math.max(0,Math.min(1,(t-delay)/(1-delay)));
+    const e=local<.5?2*local*local:1-Math.pow(-2*local+2,2)/2;
+    o.x=h.x+(target.x-h.x)*e;
+    o.y=h.y+(target.y-h.y)*e;
     renderOpp(o);
    });
   },done);
