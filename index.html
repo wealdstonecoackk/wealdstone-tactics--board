@@ -662,7 +662,16 @@ function runStep(){
    const dx=targetX-homeX,dy=targetY-homeY;
    const len=Math.hypot(dx,dy)||1;
    const nx=-dy/len,ny=dx/len;
-   const curve=Math.min(4.5,len*.14)*(p.x<50?-1:1);
+   // Practical movement: curve away from the nearest defender rather than using
+   // the same canned bend for every run. This makes the run react to the live press.
+   const nearestOpp=opps.map(o=>({o,d:Math.hypot(o.x-p.x,o.y-p.y)})).sort((a,b)=>a.d-b.d)[0];
+   let curve=Math.min(4.5,len*.14)*(p.x<50?-1:1);
+   if(nearestOpp&&nearestOpp.d<22){
+    const awayX=p.x-nearestOpp.o.x,awayY=p.y-nearestOpp.o.y;
+    const cross=dx*awayY-dy*awayX;
+    const liveSide=cross>=0?1:-1;
+    curve=Math.min(6.5,len*.2)*liveSide;
+   }
    animate(duration,t=>{
     const e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
     const bend=Math.sin(Math.PI*t)*curve;
