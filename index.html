@@ -773,19 +773,33 @@ function loadPress(type){
 }
 function library(){
  const m=document.getElementById("modal");m.classList.remove("hidden");
- m.innerHTML='<h2>📚 Professional Tactic Library</h2><p>Build, rehearse and present coaching ideas quickly. Templates are coaching patterns, not official club playbooks.</p>'+
- '<h3>🟦 BUILD & PROGRESS</h3>'+
- '<button data-preset="build-v-press" style="background:#5b2228;border-color:#ff6b73">🔥 Build-Up vs High Press</button> '+
- '<button data-preset="playing-back">⚽ Playing From The Back</button> <button data-preset="goal-kick">🧤 Goal-Kick Build-Up</button> '+
- '<button data-preset="build-3rd-man">🔺 Third-Man Build-Up</button> <button data-preset="build-wide">↔️ Wide Build-Up</button> <button data-preset="build-switch">🔄 Switch & Progress</button> '+
- '<button data-preset="build-underlap">↗️ Full-Back Underlap</button> <button data-preset="build-overlap">↗️ Full-Back Overlap</button> <button data-preset="build-overload">🔺 Central Overload</button> <button data-preset="build-diagonal">↔️ Diagonal Switch</button> <button data-preset="build-wall-pass">🤝 Wall Pass & Break</button> '+
- '<h3>🟥 PRESS & DEFENDING</h3><button data-preset="press">🔥 High Press</button> <button data-preset="def-corner">🛡️ Defending Corner</button> '+
- '<h3>🚩 SET PIECES</h3><button data-preset="set-piece">🚩 Attacking Corner</button> '+
- '<h3>🟨 SHORT CORNERS</h3>'+
- '<button data-preset="short-corner-2v1">2️⃣ 2v1</button> <button data-preset="short-corner-recycle">♻️ Recycle</button> <button data-preset="short-corner-third">🔺 Third-Man</button> <button data-preset="short-corner-cross">🎯 Cross</button> <button data-preset="short-corner-overlap">↗️ Overlap</button> <button data-preset="short-corner-cutback">🎯 Cutback</button> <button data-preset="short-corner-decoy">🎭 Decoy</button> <button data-preset="short-corner-edge">♻️ Edge Recycle</button> '+
+ m.innerHTML='<h2>📚 Play Library</h2><p>Ready-to-use coaching patterns. Pick a category, preview the idea, then load it onto the board.</p>'+
+ '<div class="row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">'+
+ '<button data-libfilter="build" class="active">🟦 Build</button><button data-libfilter="press">🔴 Press</button><button data-libfilter="set">🚩 Set Pieces</button></div>'+
+ '<div class="row" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px">'+
+ '<button data-libfilter="short">🟨 Short Corners</button><button data-libfilter="all">📚 All Plays</button></div>'+
+ '<div id="libraryCards" style="margin-top:8px"></div>'+
  '<hr><button id="mSave">💾 Save Current</button> <button id="mLoad">📂 Load Saved</button> <button id="mClose">Close</button>';
- m.querySelectorAll("[data-preset]").forEach(b=>b.onclick=()=>previewPreset(b.dataset.preset));
- m.querySelector("#mSave").onclick=save;m.querySelector("#mLoad").onclick=load;m.querySelector("#mClose").onclick=()=>m.classList.add("hidden")
+ const groups={
+  build:[
+   ["build-v-press","🔥 Build-Up vs High Press"],["playing-back","⚽ Playing From The Back"],["goal-kick","🧤 Goal-Kick Build-Up"],["build-3rd-man","🔺 Third-Man Build-Up"],["build-wide","↔️ Wide Build-Up"],["build-switch","🔄 Switch & Progress"],["build-underlap","↗️ Full-Back Underlap"],["build-overlap","↗️ Full-Back Overlap"],["build-overload","🔺 Central Overload"],["build-diagonal","↔️ Diagonal Switch"],["build-wall-pass","🤝 Wall Pass & Break"]
+  ],
+  press:[["press","🔥 High Press"],["def-corner","🛡️ Defending Corner"]],
+  set:[["set-piece","🚩 Attacking Corner"]],
+  short:[["short-corner-2v1","2️⃣ 2v1"],["short-corner-recycle","♻️ Recycle"],["short-corner-third","🔺 Third-Man"],["short-corner-cross","🎯 Cross"],["short-corner-overlap","↗️ Overlap"],["short-corner-cutback","🎯 Cutback"],["short-corner-decoy","🎭 Decoy"],["short-corner-edge","♻️ Edge Recycle"]]
+ };
+ groups.all=[...groups.build,...groups.press,...groups.set,...groups.short];
+ const renderGroup=(key)=>{
+  const box=m.querySelector("#libraryCards");box.innerHTML="";
+  const title=document.createElement("h3");title.textContent=key==="all"?"📚 All Plays":key==="build"?"🟦 Build & Progress":key==="press"?"🔴 Press & Defending":key==="set"?"🚩 Set Pieces":"🟨 Short Corners";box.appendChild(title);
+  groups[key].forEach(([id,label])=>{
+   const b=document.createElement("button");b.dataset.preset=id;b.textContent=label;b.style.width="100%";b.style.marginBottom="6px";b.onclick=()=>previewPreset(id);box.appendChild(b);
+  });
+  m.querySelectorAll("[data-libfilter]").forEach(b=>b.classList.toggle("active",b.dataset.libfilter===key));
+ };
+ m.querySelectorAll("[data-libfilter]").forEach(b=>b.onclick=()=>renderGroup(b.dataset.libfilter));
+ m.querySelector("#mSave").onclick=save;m.querySelector("#mLoad").onclick=load;m.querySelector("#mClose").onclick=()=>m.classList.add("hidden");
+ renderGroup("build");
 }
 function hub(){
  const formationName=(formations[formation]&&formations[formation].name)||formation||"4-3-3";
