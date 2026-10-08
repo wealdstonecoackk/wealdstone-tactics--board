@@ -672,26 +672,18 @@ function runStep(){
     p.x=homeX+(targetX-homeX)*t;
     p.y=homeY+(targetY-homeY)*t;
     renderPlayer(p);
-    // Give the receiver a small visual cue as the run enters the passing lane.
     if(paired&&t>.55)p.el.classList.add("receiving");
    },()=>{
     p.el.classList.remove("running");
-    p.el.classList.remove("receiving");
-    const nextPass=following&&following.type==="pass";
-    const holdsForNext=nextPass&&Math.hypot((following.x1||0)-p.x,(following.y1||0)-p.y)<6;
-    if(holdsForNext){
-     returnQueue.push({p,homeX,homeY,targetX,targetY});
-     next();
-    }else{
-     animate(350,t=>{
-      p.x=targetX+(homeX-targetX)*t;
-      p.y=targetY+(homeY-targetY)*t;
-      renderPlayer(p);
-     },next);
+    if(paired){
+     p.el.classList.add("receiving");
+     p.el.dataset.state="READY TO RECEIVE";
+     clearTimeout(p.el.__receiveHoldTimer);
+     p.el.__receiveHoldTimer=setTimeout(()=>p.el.classList.remove("receiving"),650);
     }
+    next();
    });
-  }else next();
- }else if(a.type==="pass"){
+  }else if(a.type==="pass"){
   const sx=Number.isFinite(a.x1)?a.x1:ballPos.x;
   const sy=Number.isFinite(a.y1)?a.y1:ballPos.y;
   const receiver=(Number.isInteger(a.receiver)?players[a.receiver]:null)||players.reduce((best,p)=>{
