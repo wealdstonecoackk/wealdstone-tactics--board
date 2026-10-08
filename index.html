@@ -391,6 +391,7 @@ function play(){
  ensureBoardIntegrity();
  if(playing){playing=false;cancelAnimationFrame(raf);msg("PLAY PAUSED • tap PLAY to resume");return}
  if(!sequence.length){
+  if(window.WealdstoneAIDecision?.scan) window.WealdstoneAIDecision.scan();
   const receiver=players.reduce((best,p)=>{const d=Math.hypot(p.x-ballPos.x,p.y-ballPos.y);return !best||d<best.d?{p,d}:best},null)?.p;
   if(!receiver){msg("ADD A PLAYER TO START");return}
   createSmartPattern(receiver);
