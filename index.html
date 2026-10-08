@@ -980,54 +980,52 @@ notes.addEventListener("input",()=>{clearTimeout(window.__noteTimer);window.__no
 function createSmartPattern(p){
  if(frozen||!p)return;
  pushHistory();
+ sequence=[];arrows=[];
  const bx=ballPos.x,by=ballPos.y;
  const dir=by<50?1:-1;
- const receiveX=clamp(p.x+(bx<p.x?-6:6),6,94);
- const receiveY=clamp(by+dir*8,6,94);
+ const receiveTarget={x:clamp(p.x+(bx<p.x?-6:6),6,94),y:clamp(by+dir*8,6,94)};
  const ai=window.__wealdstoneAIDecision?.plan||null;
  const byId=i=>Number.isInteger(i)&&players[i]&&players[i]!==p?players[i]:null;
  const support=byId(ai?.mover)||players.filter(q=>q!==p).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
  const runner=byId(ai?.runner)||players.filter(q=>q!==p&&q!==support).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
  const targetFor=(q,dx,dy)=>({x:clamp(q.x+dx,6,94),y:clamp(q.y+dy,6,94)});
  const addRun=(q,t)=>{if(!q||!t)return;arrows.push({type:"run",i:q.i,x1:q.x,y1:q.y,x2:t.x,y2:t.y});sequence.push({type:"run",i:q.i,x1:q.x,y1:q.y,x2:t.x,y2:t.y});};
- const addPass=(from,to)=>{if(!to)return;arrows.push({type:"pass",x1:from.x,y1:from.y,x2:to.x,y2:to.y,receiver:to.i});sequence.push({type:"pass",x1:from.x,y1:from.y,x2:to.x,y2:to.y,receiver:to.i});};
- const receiveTarget={x:receiveX,y:receiveY};
+ const addPass=(from,t,to)=>{if(!to||!t)return;arrows.push({type:"pass",x1:from.x,y1:from.y,x2:t.x,y2:t.y,receiver:to.i});sequence.push({type:"pass",x1:from.x,y1:from.y,x2:t.x,y2:t.y,receiver:to.i});};
  addRun(p,receiveTarget);
- addPass({x:bx,y:by},receiveTarget);
+ addPass({x:bx,y:by},receiveTarget,p);
  const action=ai?.action||"BOUNCE";
  if(action==="SWITCH"){
    const free=byId(ai?.mover)||support;
    const freeTarget=targetFor(free,free.x<50?-12:12,dir*2);
    addRun(free,freeTarget);
-   addPass({x:freeTarget.x,y:freeTarget.y},freeTarget);
+   addPass(receiveTarget,freeTarget,free);
    const support2=runner&&runner!==free?runner:support;
    if(support2){
      const supportTarget=targetFor(support2,support2.x<50?7:-7,dir*3);
      addRun(support2,supportTarget);
-     addPass({x:freeTarget.x,y:freeTarget.y},supportTarget);
+     addPass(freeTarget,supportTarget,support2);
    }
  }else if(action==="THIRD"||action==="THROUGH"){
    if(runner){
      const runTarget=targetFor(runner,runner.x<50?10:-10,action==="THROUGH"?-14:-10);
      addRun(runner,runTarget);
-     addPass({x:receiveTarget.x,y:receiveTarget.y},runTarget);
+     addPass(receiveTarget,runTarget,runner);
    }
- }else{
-   if(support){
-     const supportTarget=targetFor(support,support.x<50?7:-7,dir*4);
-     addRun(support,supportTarget);
-     addPass({x:receiveTarget.x,y:receiveTarget.y},supportTarget);
-     if(runner){
-       const runTarget=targetFor(runner,runner.x<50?11:-11,-12);
-       addRun(runner,runTarget);
-       addPass({x:supportTarget.x,y:supportTarget.y},runTarget);
-     }
+ }else if(support){
+   const supportTarget=targetFor(support,support.x<50?7:-7,dir*4);
+   addRun(support,supportTarget);
+   addPass(receiveTarget,supportTarget,support);
+   if(runner){
+     const runTarget=targetFor(runner,runner.x<50?11:-11,-12);
+     addRun(runner,runTarget);
+     addPass(supportTarget,runTarget,runner);
    }
  }
  draw();persist();
  const label=ai?.action?("AI "+(ai.action==="BOUNCE"?"BOUNCE → THIRD-MAN":ai.action==="SWITCH"?"SWITCH → FREE PLAYER":ai.action==="THIRD"?"THIRD-MAN":"PLAY THROUGH")):"SMART PLAY";
  msg(label+" • "+sequence.length+" ACTIONS READY");
 }
+
 pitch.addEventListener("pointerdown",e=>{if(tool==="opp"&&!frozen&&e.target===pitch){const q=posFromEvent(e);addOppAt(q.x,q.y)}});
 pitch.addEventListener("pointerdown",e=>{if(tool==="smart"&&!frozen){const hit=e.target.closest&&e.target.closest(".player:not(.opp)");if(hit){const p=players.find(q=>q.el===hit);if(p){createSmartPattern(p);return}}}});
 function addOppAt(x,y,silent=false){if(frozen)return;if(!silent)pushHistory();const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x,y,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();pushHistory();const startX=o.x,startY=o.y;let moved=false;try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;if(Math.abs(o.x-startX)+Math.abs(o.y-startY)>0.5)moved=true;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);if(!moved)history.pop();persist();msg(moved?"OPPONENT POSITIONED":"OPPONENT SELECTED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
