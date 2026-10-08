@@ -454,6 +454,29 @@ function executeCoachSolution(label,receiver,x,y,done){
 }
 
 function coachDecision(receiver,x,y){
+ const ai=window.__wealdstoneAIDecision;
+ if(ai&&ai.choice){
+  const supportPlayer=ai.support!=null?players[ai.support]:null;
+  const freePlayer=ai.free!=null?players[ai.free]:null;
+  const ahead=players.filter(p=>p!==receiver&&p.y<y-7).sort((a,b)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y));
+  const third=ahead[0];
+  let aiFocus=[],aiPts=[];
+  if(ai.choice.includes("BOUNCE")){
+   aiFocus=[supportPlayer,third].filter(Boolean);
+   if(supportPlayer) aiPts.push({x1:x,y1:y,x2:supportPlayer.x,y2:supportPlayer.y});
+   if(supportPlayer&&third) aiPts.push({x1:supportPlayer.x,y1:supportPlayer.y,x2:third.x,y2:third.y});
+  }else if(ai.choice.includes("SWITCH")){
+   aiFocus=[freePlayer,supportPlayer].filter(Boolean);
+   if(freePlayer) aiPts.push({x1:x,y1:y,x2:freePlayer.x,y2:freePlayer.y});
+  }else if(ai.choice.includes("THIRD")){
+   aiFocus=[third,supportPlayer].filter(Boolean);
+   if(third) aiPts.push({x1:x,y1:y,x2:third.x,y2:third.y});
+  }else{
+   aiFocus=[supportPlayer,third].filter(Boolean);
+   if(supportPlayer) aiPts.push({x1:x,y1:y,x2:supportPlayer.x,y2:supportPlayer.y});
+  }
+  if(aiFocus.length||aiPts.length){showSolution(ai.choice+" • "+ai.confidence+"% AI",aiFocus,aiPts);return;}
+ }
  const nearOpp=opps.map(o=>({o,d:Math.hypot(o.x-x,o.y-y)})).sort((a,b)=>a.d-b.d);
  const pressure=nearOpp[0]?.d||99;
  const outlets=players.filter(p=>p!==receiver).map(p=>({p,d:Math.hypot(p.x-x,p.y-y)})).sort((a,b)=>a.d-b.d);
