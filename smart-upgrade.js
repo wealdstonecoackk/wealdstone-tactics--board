@@ -106,7 +106,9 @@
       set("aiFree",free&&(!opp.length||free.space>W*.2)?"#"+(free.i+1):"—");
     }
 
-    window.WealdstoneAIDecision={scan:refine};
+    // Preserve the existing AI API. Smart Upgrade owns only the scan decision.
+    const api=window.WealdstoneAIDecision;
+    api.scan=refine;
     refine();
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});
