@@ -114,6 +114,19 @@ function settleReceiver(x,y){
  receiver.p.el.__stateTimer=setTimeout(()=>{receiver.p.el.classList.remove("receiving");delete receiver.p.el.dataset.state},800);
  const press=opps.map(o=>({o,d:Math.hypot(o.x-receiver.p.x,o.y-receiver.p.y)})).sort((a,b)=>a.d-b.d)[0];
  const pressure=press?.d||99;
+ // Receiver takes the first touch into the safe side rather than waiting flat-footed.
+ if(pressure<22&&press){
+  const awayX=receiver.p.x+(receiver.p.x-press.o.x)*0.18;
+  const awayY=receiver.p.y+(receiver.p.y-press.o.y)*0.12;
+  receiver.p.x=clamp(awayX,5,95);
+  receiver.p.y=clamp(awayY,5,95);
+  renderPlayer(receiver.p);
+  receiver.p.el.dataset.state="RECEIVE ON MOVE • OPEN BODY";
+  clearTimeout(receiver.p.el.__openBodyTimer);
+  receiver.p.el.__openBodyTimer=setTimeout(()=>delete receiver.p.el.dataset.state,950);
+ }else{
+  receiver.p.el.dataset.state="RECEIVE • SCAN • OPEN BODY";
+ }
  const candidates=players.filter(p=>p!==receiver.p).map(p=>({p,d:Math.hypot(p.x-receiver.p.x,p.y-receiver.p.y)})).sort((a,b)=>a.d-b.d);
  const support=candidates[0];
  const third=candidates[1];
@@ -883,7 +896,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V24");
+msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V25");
 window.setViewMode=setViewMode;window.jumpToStep=jumpToStep;window.pressMenu=pressMenu;window.loadPress=loadPress;window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
