@@ -21,7 +21,6 @@
       #playersLayer>.player{position:absolute!important;display:flex!important;visibility:visible!important;opacity:1!important}
       #pitch>#svg{position:absolute!important;inset:0!important;z-index:10!important;pointer-events:none!important}
       #pitch>#ball{position:absolute!important;z-index:30!important}
-      #pitch:after{content:"WEALDSTONE • COACH BOARD";position:absolute;left:10px;top:10px;z-index:4;padding:5px 8px;border-radius:7px;background:#07130bcc;border:1px solid #ffffff33;font-size:8px;font-weight:900;letter-spacing:1px;pointer-events:none}
       #timeline{border-color:#394553;background:#111820;box-shadow:inset 0 1px 0 #ffffff08}
       .tools button{min-height:44px}
       .status{font-weight:800;letter-spacing:.2px}
@@ -39,7 +38,7 @@
       <div class="pro-title"><strong>🧠 COACH HUB</strong><span>WEALDSTONE • PROFESSIONAL WORKFLOW</span></div>
       <div class="pro-nav">
         <button data-pro="plan">🗺️ PLAN</button><button data-pro="build">✏️ BUILD</button>
-        <button data-pro="rehearse">▶ REHEARSE</button><button data-pro="organise">💾 SAVE</button>
+        <button data-pro="rehearse">▶ REHEARSE</button><button data-pro="organise">💾 SAVE & SHARE</button>
       </div>
       <div class="pro-sub">
         <button data-pro="library">📚 LIBRARY</button><button data-pro="training">🏋️ TRAINING</button>
