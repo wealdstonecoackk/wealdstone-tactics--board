@@ -717,6 +717,9 @@ function runStep(){
    settleReceiver(receiver?receiver.x:receiveX,receiver?receiver.y:receiveY);
    reactPress(receiver?receiver.x:receiveX,receiver?receiver.y:receiveY,()=>{
     const rx=receiver?receiver.x:receiveX, ry=receiver?receiver.y:receiveY;
+    // Refresh the AI from the live board after the press/recovery has settled.
+    // This prevents the play engine from acting on a stale recommendation.
+    if(window.WealdstoneAIDecision?.scan) window.WealdstoneAIDecision.scan();
     const aiSolution=coachDecision(receiver,rx,ry);
     const pressureNow=opps.map(o=>Math.hypot(o.x-rx,o.y-ry)).sort((a,b)=>a-b)[0]||99;
     const intel=window.__pressIntel?.level||"LOW";
