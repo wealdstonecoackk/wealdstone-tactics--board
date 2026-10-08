@@ -993,7 +993,7 @@ if(saved){
 }
 boardBooted=true;
 msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V26");
-window.setViewMode=setViewMode;window.jumpToStep=jumpToStep;window.pressMenu=pressMenu;window.loadPress=loadPress;window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
+window.setViewMode=setViewMode;window.jumpToStep=jumpToStep;window.pressMenu=pressMenu;window.loadPress=loadPress;window.WealdstoneAIPlay=function(){stopPlayback();const plan=window.__wealdstoneAIDecision?.plan;const receiver=Number.isInteger(plan?.receiver)?players[plan.receiver]:null;if(!receiver){msg("AI PLAN • ADD A PLAYER TO START");return}sequence=[];arrows=[];createSmartPattern(receiver);if(sequence.length){msg("AI PLAN • PLAYING "+sequence.length+" ACTIONS");setTimeout(()=>play(),60)}else{msg("AI PLAN • BUILD FAILED")}};window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 window.addEventListener("resize",()=>{if(boardBooted){ensureBoardIntegrity();players.forEach(renderPlayer);draw()}});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
