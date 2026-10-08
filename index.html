@@ -127,7 +127,17 @@ function settleReceiver(x,y){
  }else{
   receiver.p.el.dataset.state="RECEIVE • SCAN • OPEN BODY";
  }
- const candidates=players.filter(p=>p!==receiver.p).map(p=>({p,d:Math.hypot(p.x-receiver.p.x,p.y-receiver.p.y)})).sort((a,b)=>a.d-b.d);
+ // Smarter coaching choice: prefer a support player who gives the receiver an angle,
+ // rather than blindly choosing the nearest teammate.
+ const candidates=players.filter(p=>p!==receiver.p).map(p=>{
+  const d=Math.hypot(p.x-receiver.p.x,p.y-receiver.p.y);
+  const dx=p.x-receiver.p.x,dy=p.y-receiver.p.y;
+  const forward=dy<0?1:0;
+  const width=Math.abs(dx);
+  const pressureBias=pressure<18 && press ? Math.abs(p.x-press.o.x)>Math.abs(receiver.p.x-press.o.x) ? 2:0 : 0;
+  const score=d-(forward*7)-(Math.min(width,18)*0.12)-pressureBias;
+  return {p,d,score};
+ }).sort((a,b)=>a.score-b.score);
  const support=candidates[0];
  const third=candidates[1];
  // Receive away from pressure: open the nearest support outlet to the safe side.
@@ -151,6 +161,8 @@ function settleReceiver(x,y){
   third.p.el.__thirdTimer=setTimeout(()=>delete third.p.el.dataset.state,1000);
  }
  if(pressure<18) msg("RECEIVE AWAY • ESCAPE OUTLET • THIRD-MAN RUN");
+ else if(pressure<26) msg("RECEIVE • SCAN • SUPPORT ANGLE • THIRD MAN");
+ else msg("RECEIVE • SCAN • OPEN BODY • SUPPORT");
 }
 function renderPlayer(p){if(!p||!p.el)return; p.el.classList.add("player");p.el.style.position="absolute";p.el.style.display="flex";p.el.style.visibility="visible";p.el.style.opacity="1";p.el.style.pointerEvents="auto";p.el.style.left=p.x+"%";p.el.style.top=p.y+"%";p.el.style.zIndex="20";const nm=p.el.querySelector(".nm");if(nm)nm.textContent=p.name}
 function createPlayer(i){
