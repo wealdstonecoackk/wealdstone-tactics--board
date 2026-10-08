@@ -483,15 +483,27 @@ function reactPress(x,y,done){
    renderOpp(q.o);
   });
  },()=>{
+  // The press is a temporary coaching picture: defenders recover to their
+  // original positions instead of staying displaced for the rest of the play.
+  const reset=()=>{
+   const current=targets.filter(t=>t.o).map(t=>({o:t.o,x:t.o.x,y:t.o.y}));
+   animate(420,t=>{
+    current.forEach(q=>{
+     q.o.x=q.x+(homes[targets.indexOf(targets.find(z=>z.o===q.o))].x-q.x)*t;
+     q.o.y=q.y+(homes[targets.indexOf(targets.find(z=>z.o===q.o))].y-q.y)*t;
+     renderOpp(q.o);
+    });
+   },()=>{if(done)done()});
+  };
   targets.forEach(t=>{
    clearTimeout(t.o.el.__pressTimer);
    t.o.el.__pressTimer=setTimeout(()=>{
     t.o.el.classList.remove("press-trigger","cover","squeeze","recovery");
     delete t.o.dataset.state;
-   },1100);
+   },650);
   });
   msg("COORDINATED PRESS • TRIGGER • COVER • SQUEEZE • RECOVER");
-  if(done)done();
+  setTimeout(reset,700);
  });
 }
 function runStep(){
