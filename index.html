@@ -338,35 +338,48 @@ function finishQueuedReturns(done){
 function reactPress(x,y){
  const ranked=opps.map((o,i)=>({o,i,d:Math.hypot(o.x-x,o.y-y)})).sort((a,b)=>a.d-b.d);
  if(!ranked.length)return;
- const trigger=ranked[0];
- trigger.o.x=clamp(trigger.o.x+(x-trigger.o.x)*.18,4,96);
- trigger.o.y=clamp(trigger.o.y+(y-trigger.o.y)*.18,4,96);
- trigger.o.el.classList.add("press-trigger");
- trigger.o.el.dataset.state="PRESS TRIGGER";
- const cover=ranked[1];
+ const trigger=ranked[0]?.o;
+ const cover=ranked[1]?.o;
+ const squeeze=ranked[2]?.o;
+ const support=ranked.slice(3,6).map(r=>r.o);
+ // Coordinated press: first defender attacks the ball, second covers the
+ // nearest escape lane, third squeezes space and the rest recover together.
+ if(trigger){
+  trigger.x=clamp(trigger.x+(x-trigger.x)*.28,4,96);
+  trigger.y=clamp(trigger.y+(y-trigger.y)*.28,4,96);
+  trigger.el.classList.add("press-trigger");
+  trigger.el.dataset.state="PRESS";
+ }
  if(cover){
-  cover.o.x=clamp(cover.o.x+(x-cover.o.x)*.10,4,96);
-  cover.o.y=clamp(cover.o.y+(y-cover.o.y)*.10,4,96);
-  cover.o.el.classList.add("cover");
-  cover.o.el.dataset.state="COVER";
+  const laneX=x+(x-(trigger?.x||x))*.32;
+  const laneY=y+(y-(trigger?.y||y))*.32;
+  cover.x=clamp(cover.x+(laneX-cover.x)*.20,4,96);
+  cover.y=clamp(cover.y+(laneY-cover.y)*.20,4,96);
+  cover.el.classList.add("cover");
+  cover.el.dataset.state="COVER";
  }
- const squeeze=ranked[2];
  if(squeeze){
-  squeeze.o.x=clamp(squeeze.o.x+(x-squeeze.o.x)*.07,4,96);
-  squeeze.o.y=clamp(squeeze.o.y+(y-squeeze.o.y)*.07,4,96);
-  squeeze.o.el.dataset.state="SQUEEZE";
+  const squeezeX=x+(cover?cover.x-x:0)*.45;
+  const squeezeY=y+(cover?cover.y-y:0)*.45;
+  squeeze.x=clamp(squeeze.x+(squeezeX-squeeze.x)*.16,4,96);
+  squeeze.y=clamp(squeeze.y+(squeezeY-squeeze.y)*.16,4,96);
+  squeeze.el.classList.add("squeeze");
+  squeeze.el.dataset.state="SQUEEZE";
  }
- ranked.slice(3,6).forEach((r,n)=>{
-  const o=r.o;
-  o.x=clamp(o.x+(x-o.x)*(.035-.005*n),4,96);
-  o.y=clamp(o.y+(y-o.y)*(.025-.004*n),4,96);
+ support.forEach((o,n)=>{
+  const factor=.075-(n*.012);
+  o.x=clamp(o.x+(x-o.x)*factor,4,96);
+  o.y=clamp(o.y+(y-o.y)*factor,4,96);
   o.el.classList.add("recovery");
-  o.el.dataset.state="RECOVERY";
+  o.el.dataset.state=n<2?"RECOVER":"BALANCE";
   clearTimeout(o.el.__recoveryTimer);
-  o.el.__recoveryTimer=setTimeout(()=>{o.el.classList.remove("recovery");delete o.el.dataset.state},900);
+  o.el.__recoveryTimer=setTimeout(()=>{
+   o.el.classList.remove("recovery");
+   delete o.el.dataset.state;
+  },1000);
  });
- opps.forEach(o=>renderPlayer(o));
- msg("PRESS TRIGGER • COVER • SQUEEZE • RECOVERY");
+ opps.forEach(o=>renderOpp(o));
+ msg("COORDINATED PRESS • TRIGGER • COVER • SQUEEZE • RECOVER");
 }
 function runStep(){
  if(!playing)return;
