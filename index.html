@@ -382,51 +382,21 @@ function coachDecision(receiver,x,y){
  }
  showSolution(label,focus,pts);
 }
-function reactPress(x,y){
- const ranked=opps.map((o,i)=>({o,i,d:Math.hypot(o.x-x,o.y-y)})).sort((a,b)=>a.d-b.d);
- if(!ranked.length)return;
- const trigger=ranked[0]?.o;
- const cover=ranked[1]?.o;
- const squeeze=ranked[2]?.o;
- const support=ranked.slice(3,6).map(r=>r.o);
- // Coordinated press: first defender attacks the ball, second covers the
- // nearest escape lane, third squeezes space and the rest recover together.
- if(trigger){
-  trigger.x=clamp(trigger.x+(x-trigger.x)*.28,4,96);
-  trigger.y=clamp(trigger.y+(y-trigger.y)*.28,4,96);
-  trigger.el.classList.add("press-trigger");
-  trigger.el.dataset.state="PRESS";
- }
- if(cover){
-  const laneX=x+(x-(trigger?.x||x))*.32;
-  const laneY=y+(y-(trigger?.y||y))*.32;
-  cover.x=clamp(cover.x+(laneX-cover.x)*.20,4,96);
-  cover.y=clamp(cover.y+(laneY-cover.y)*.20,4,96);
-  cover.el.classList.add("cover");
-  cover.el.dataset.state="COVER";
- }
- if(squeeze){
-  const squeezeX=x+(cover?cover.x-x:0)*.45;
-  const squeezeY=y+(cover?cover.y-y:0)*.45;
-  squeeze.x=clamp(squeeze.x+(squeezeX-squeeze.x)*.16,4,96);
-  squeeze.y=clamp(squeeze.y+(squeezeY-squeeze.y)*.16,4,96);
-  squeeze.el.classList.add("squeeze");
-  squeeze.el.dataset.state="SQUEEZE";
- }
- support.forEach((o,n)=>{
-  const factor=.075-(n*.012);
-  o.x=clamp(o.x+(x-o.x)*factor,4,96);
-  o.y=clamp(o.y+(y-o.y)*factor,4,96);
-  o.el.classList.add("recovery");
-  o.el.dataset.state=n<2?"RECOVER":"BALANCE";
-  clearTimeout(o.el.__recoveryTimer);
-  o.el.__recoveryTimer=setTimeout(()=>{
-   o.el.classList.remove("recovery");
-   delete o.el.dataset.state;
-  },1000);
+function reactPress(x,y,done){
+ const ranked=opps.map(o=>({o,d:Math.hypot(o.x-x,o.y-y)})).sort((a,b)=>a.d-b.d);
+ if(!ranked.length){if(done)done();return}
+ const trigger=ranked[0]?.o,cover=ranked[1]?.o,squeeze=ranked[2]?.o;
+ const support=ranked.slice(3,6).map(r=>r.o),targets=[];
+ if(trigger){targets.push({o:trigger,x:clamp(trigger.x+(x-trigger.x)*.28,4,96),y:clamp(trigger.y+(y-trigger.y)*.28,4,96),state:"PRESS",cls:"press-trigger"})}
+ if(cover){const lx=x+(x-(trigger?.x||x))*.32,ly=y+(y-(trigger?.y||y))*.32;targets.push({o:cover,x:clamp(cover.x+(lx-cover.x)*.20,4,96),y:clamp(cover.y+(ly-cover.y)*.20,4,96),state:"COVER",cls:"cover"})}
+ if(squeeze){const sx=x+(cover?cover.x-x:0)*.45,sy=y+(cover?cover.y-y:0)*.45;targets.push({o:squeeze,x:clamp(squeeze.x+(sx-squeeze.x)*.16,4,96),y:clamp(squeeze.y+(sy-squeeze.y)*.16,4,96),state:"SQUEEZE",cls:"squeeze"})}
+ support.forEach((o,n)=>{const f=.075-(n*.012);targets.push({o,x:clamp(o.x+(x-o.x)*f,4,96),y:clamp(o.y+(y-o.y)*f,4,96),state:n<2?"RECOVER":"BALANCE",cls:"recovery"})});
+ const homes=targets.map(t=>({x:t.o.x,y:t.o.y}));
+ targets.forEach(t=>{t.o.el.classList.add(t.cls);t.o.dataset.state=t.state});
+ animate(420,t=>targets.forEach((q,i)=>{q.o.x=homes[i].x+(q.x-homes[i].x)*t;q.o.y=homes[i].y+(q.y-homes[i].y)*t;renderOpp(q.o)}),()=>{
+  targets.forEach(t=>{clearTimeout(t.o.el.__pressTimer);t.o.el.__pressTimer=setTimeout(()=>{t.o.el.classList.remove("press-trigger","cover","squeeze","recovery");delete t.o.dataset.state},900)});
+  msg("COORDINATED PRESS • TRIGGER • COVER • SQUEEZE • RECOVER");if(done)done();
  });
- opps.forEach(o=>renderOpp(o));
- msg("COORDINATED PRESS • TRIGGER • COVER • SQUEEZE • RECOVER");
 }
 function runStep(){
  if(!playing)return;
@@ -503,9 +473,11 @@ function runStep(){
    setBall(receiver?receiver.x:receiveX,receiver?receiver.y:receiveY);
    if(receiver)receiver.el.classList.remove("receiving");
    settleReceiver(receiver?receiver.x:receiveX,receiver?receiver.y:receiveY);
-   reactPress(receiver?receiver.x:receiveX,receiver?receiver.y:receiveY);
-   msg("RECEIVE • SCAN • SUPPORT • PRESS RESPONSE");
-   finishQueuedReturns(next);
+   reactPress(receiver?receiver.x:receiveX,receiver?receiver.y:receiveY,()=>{
+    coachDecision(receiver,receiver?receiver.x:receiveX,receiver?receiver.y:receiveY);
+    msg("RECEIVE • SCAN • SUPPORT • PRESS RESPONSE");
+    finishQueuedReturns(next);
+   });
   });
  }else if(a.type==="ball"){
   const sx=ballPos.x,sy=ballPos.y;
