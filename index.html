@@ -70,6 +70,7 @@ const formations={
 let formation="433",tool="select",players=[],opps=[],arrows=[],history=[],redoStack=[],sequence=[],recording=false,playing=false,playIndex=0,raf=0,ballPos={x:50,y:50},frozen=false,returnQueue=[],playbackSpeed=1;
 let names=Array.from({length:11},(_,i)=>"Player "+(i+1));
 const key="wealdstone_pro_coach_v8";
+let boardBooted=false;
 function msg(t){status.textContent=t;status.setAttribute("aria-live","polite")}
 function elDown(el,fn){el.addEventListener("pointerdown",fn,{passive:false})}
 // ELITE COACHING UX + SAFE INTERACTION LAYER
@@ -976,6 +977,11 @@ pitch.addEventListener("pointerdown",e=>{if(tool==="smart"&&!frozen){const hit=e
 function addOppAt(x,y,silent=false){if(frozen)return;if(!silent)pushHistory();const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x,y,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();pushHistory();const startX=o.x,startY=o.y;let moved=false;try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;if(Math.abs(o.x-startX)+Math.abs(o.y-startY)>0.5)moved=true;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);if(!moved)history.pop();persist();msg(moved?"OPPONENT POSITIONED":"OPPONENT SELECTED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
 
 for(let i=0;i<11;i++)createPlayer(i);
+function hardResetBoard(){
+  formation="433"; names=Array.from({length:11},(_,i)=>"Player "+(i+1));
+  players.forEach((p,i)=>{p.x=formations[formation][i][0];p.y=formations[formation][i][1];p.name=names[i];renderPlayer(p)});
+  arrows=[];sequence=[];opps.forEach(o=>o.el.remove());opps=[];ballPos={x:50,y:50};setBall(50,50);draw();
+}
 ensureBoardIntegrity();
 const saved=localStorage.getItem(key);
 if(saved){
@@ -986,9 +992,11 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
+boardBooted=true;
 msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V26");
 window.setViewMode=setViewMode;window.jumpToStep=jumpToStep;window.pressMenu=pressMenu;window.loadPress=loadPress;window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
+window.addEventListener("resize",()=>{if(boardBooted){ensureBoardIntegrity();players.forEach(renderPlayer);draw()}});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
 })();
 </script>
