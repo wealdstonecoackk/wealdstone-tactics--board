@@ -459,6 +459,7 @@ function executeCoachSolution(label,receiver,x,y,done){
 }
 
 function coachDecision(receiver,x,y){
+ if(window.WealdstoneAIDecision?.scan) window.WealdstoneAIDecision.scan();
  const ai=window.__wealdstoneAIDecision;
  if(ai&&ai.choice){
   const supportPlayer=ai.support!=null?players[ai.support]:null;
@@ -480,7 +481,7 @@ function coachDecision(receiver,x,y){
    aiFocus=[supportPlayer,third].filter(Boolean);
    if(supportPlayer) aiPts.push({x1:x,y1:y,x2:supportPlayer.x,y2:supportPlayer.y});
   }
-  if(aiFocus.length||aiPts.length){showSolution(ai.choice+" • "+ai.confidence+"% AI",aiFocus,aiPts);return;}
+  if(aiFocus.length||aiPts.length){showSolution(ai.choice+" • "+ai.confidence+"% AI",aiFocus,aiPts);return ai.choice;}
  }
  const nearOpp=opps.map(o=>({o,d:Math.hypot(o.x-x,o.y-y)})).sort((a,b)=>a.d-b.d);
  const pressure=nearOpp[0]?.d||99;
@@ -506,6 +507,7 @@ function coachDecision(receiver,x,y){
   pts=[{x1:x,y1:y,x2:support.x,y2:support.y}];
  }
  showSolution(label,focus,pts);
+ return label;
 }
 function reactPress(x,y,done){
  const homes=new Map(opps.map(o=>[o,{x:o.x,y:o.y}]));
@@ -645,10 +647,11 @@ function runStep(){
    settleReceiver(receiver?receiver.x:receiveX,receiver?receiver.y:receiveY);
    reactPress(receiver?receiver.x:receiveX,receiver?receiver.y:receiveY,()=>{
     const rx=receiver?receiver.x:receiveX, ry=receiver?receiver.y:receiveY;
-    coachDecision(receiver,rx,ry);
+    const aiSolution=coachDecision(receiver,rx,ry);
     const pressureNow=opps.map(o=>Math.hypot(o.x-rx,o.y-ry)).sort((a,b)=>a-b)[0]||99;
     const intel=window.__pressIntel?.level||"LOW";
-    const solution=intel==="HIGH"?"BOUNCE":intel==="MEDIUM"&&players.some(p=>p!==receiver&&p.y<ry-7)?"THIRD-MAN":pressureNow>28&&players.some(p=>p!==receiver&&(p.x<22||p.x>78))?"SWITCH":"PLAY THROUGH";
+    const fallback=intel==="HIGH"?"BOUNCE":intel==="MEDIUM"&&players.some(p=>p!==receiver&&p.y<ry-7)?"THIRD-MAN":pressureNow>28&&players.some(p=>p!==receiver&&(p.x<22||p.x>78))?"SWITCH":"PLAY THROUGH";
+    const solution=aiSolution||fallback;
     msg("RECEIVE • SCAN • "+solution+" • CONTINUE");
     executeCoachSolution(solution,receiver,rx,ry,()=>finishQueuedReturns(next));
    });
