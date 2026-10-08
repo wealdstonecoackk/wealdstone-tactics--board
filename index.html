@@ -468,51 +468,48 @@ function coachDecision(receiver,x,y){
  showSolution(label,focus,pts);
 }
 function reactPress(x,y,done){
- const ranked=opps.map(o=>({o,d:Math.hypot(o.x-x,o.y-y)})).sort((a,b)=>a.d-b.d);
- if(!ranked.length){if(done)done();return}
- const trigger=ranked[0]?.o,cover=ranked[1]?.o,squeeze=ranked[2]?.o;
- const support=ranked.slice(3,6).map(r=>r.o),targets=[];
  const homes=new Map(opps.map(o=>[o,{x:o.x,y:o.y}]));
- if(trigger){
-  targets.push({o:trigger,x:clamp(trigger.x+(x-trigger.x)*.46,4,96),y:clamp(trigger.y+(y-trigger.y)*.46,4,96),state:"PRESS",cls:"press-trigger"});
- }
- if(cover){
-  const laneX=x+(x-(trigger?.x||x))*.55,laneY=y+(y-(trigger?.y||y))*.55;
-  targets.push({o:cover,x:clamp(cover.x+(laneX-cover.x)*.34,4,96),y:clamp(cover.y+(laneY-cover.y)*.34,4,96),state:"COVER",cls:"cover"});
- }
- if(squeeze){
-  const sx=x+(cover?cover.x-x:0)*.70,sy=y+(cover?cover.y-y:0)*.70;
-  targets.push({o:squeeze,x:clamp(squeeze.x+(sx-squeeze.x)*.28,4,96),y:clamp(squeeze.y+(sy-squeeze.y)*.28,4,96),state:"SQUEEZE",cls:"squeeze"});
- }
- support.forEach((o,n)=>{
-  const f=.15-(n*.02);
-  targets.push({o,x:clamp(o.x+(x-o.x)*f,4,96),y:clamp(o.y+(y-o.y)*f,4,96),state:n<2?"RECOVER":"BALANCE",cls:"recovery"});
+ if(!opps.length){if(done)done();return}
+ const receiver=players.reduce((best,p)=>{const d=Math.hypot(p.x-x,p.y-y);return !best||d<best.d?{p,d}:best},null)?.p||null;
+ const nextRun=sequence.slice(playIndex+1).find(a=>a.type==="run");
+ const runner=nextRun&&players[nextRun.i]?players[nextRun.i]:null;
+ const ranked=opps.map(o=>({o,d:Math.hypot(o.x-x,o.y-y)})).sort((a,b)=>a.d-b.d);
+ const trigger=ranked[0]?.o;
+ const cover=ranked.slice(1).sort((a,b)=>{
+  const da=receiver?Math.hypot(a.o.x-receiver.x,a.o.y-receiver.y):a.d;
+  const db=receiver?Math.hypot(b.o.x-receiver.x,b.o.y-receiver.y):b.d;
+  return da-db;
+ })[0]?.o;
+ const tracker=runner?ranked.filter(q=>q.o!==trigger&&q.o!==cover).sort((a,b)=>{
+  return Math.hypot(a.o.x-runner.x,a.o.y-runner.y)-Math.hypot(b.o.x-runner.x,b.o.y-runner.y);
+ })[0]?.o:null;
+ const occupied=new Set([trigger,cover,tracker].filter(Boolean));
+ const laneX=receiver?receiver.x:clamp(x+(x<50?-10:10),8,92);
+ const laneY=receiver?receiver.y:clamp(y+8,8,92);
+ const move=(o,nx,ny,state,cls)=>{
+  if(!o)return;
+  o.x=clamp(nx,3,97);o.y=clamp(ny,3,97);o.el.dataset.state=state;o.el.classList.add(cls);renderOpp(o);
+ };
+ if(trigger)move(trigger,trigger.x+(x-trigger.x)*.48,trigger.y+(y-trigger.y)*.48,"PRESS","press-trigger");
+ if(cover&&cover!==trigger)move(cover,cover.x+(laneX-cover.x)*.34,cover.y+(laneY-cover.y)*.34,"COVER","cover");
+ if(tracker&&runner&&tracker!==trigger&&tracker!==cover)move(tracker,tracker.x+(runner.x-tracker.x)*.46,tracker.y+(runner.y-tracker.y)*.46,"TRACK","tracking");
+ opps.filter(o=>!occupied.has(o)).forEach((o,i)=>{
+  const f=Math.max(.07,.13-i*.015);
+  move(o,o.x+(x-o.x)*f,o.y+(laneY-o.y)*.08,"SHIFT","shift");
  });
- targets.forEach(t=>{t.o.el.classList.add(t.cls);t.o.dataset.state=t.state});
- const moveTargets=targets.map(t=>({o:t.o,from:homes.get(t.o),to:{x:t.x,y:t.y}}));
- animate(600,t=>{
-  moveTargets.forEach(q=>{
-   q.o.x=q.from.x+(q.to.x-q.from.x)*t;
-   q.o.y=q.from.y+(q.to.y-q.from.y)*t;
-   renderOpp(q.o);
-  });
- },()=>{
-  msg("PRESS TRIGGERED • PRESS • COVER • SQUEEZE");
-  targets.forEach(t=>{
-   clearTimeout(t.o.el.__pressTimer);
-   t.o.el.__pressTimer=setTimeout(()=>{
-    t.o.el.classList.remove("press-trigger","cover","squeeze","recovery");
-    delete t.o.dataset.state;
-   },520);
-  });
+ msg("PRESS • BALL-SIDE TRIGGER • COVER • "+(runner?"TRACK RUNNER":"SHIFT SHAPE"));
+ animate(600,()=>opps.forEach(renderOpp),()=>{
   setTimeout(()=>{
    animate(520,t=>{
-    moveTargets.forEach(q=>{
-     q.o.x=q.to.x+(q.from.x-q.to.x)*t;
-     q.o.y=q.to.y+(q.from.y-q.to.y)*t;
-     renderOpp(q.o);
+    opps.forEach(o=>{
+     const h=homes.get(o);
+     if(h){o.x=o.x+(h.x-o.x)*t;o.y=o.y+(h.y-o.y)*t;renderOpp(o)}
     });
-   },()=>{msg("PRESS RECOVERY • RESET SHAPE");if(done)done()});
+   },()=>{
+    opps.forEach(o=>{o.el.classList.remove("press-trigger","cover","tracking","shift","squeeze","recovery");delete o.el.dataset.state});
+    msg("PRESS RECOVERY • RESET SHAPE");
+    if(done)done();
+   });
   },560);
  });
 }
@@ -896,7 +893,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V25");
+msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V26");
 window.setViewMode=setViewMode;window.jumpToStep=jumpToStep;window.pressMenu=pressMenu;window.loadPress=loadPress;window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
