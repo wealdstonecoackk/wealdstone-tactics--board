@@ -387,15 +387,39 @@ function reactPress(x,y,done){
  if(!ranked.length){if(done)done();return}
  const trigger=ranked[0]?.o,cover=ranked[1]?.o,squeeze=ranked[2]?.o;
  const support=ranked.slice(3,6).map(r=>r.o),targets=[];
- if(trigger){targets.push({o:trigger,x:clamp(trigger.x+(x-trigger.x)*.28,4,96),y:clamp(trigger.y+(y-trigger.y)*.28,4,96),state:"PRESS",cls:"press-trigger"})}
- if(cover){const lx=x+(x-(trigger?.x||x))*.32,ly=y+(y-(trigger?.y||y))*.32;targets.push({o:cover,x:clamp(cover.x+(lx-cover.x)*.20,4,96),y:clamp(cover.y+(ly-cover.y)*.20,4,96),state:"COVER",cls:"cover"})}
- if(squeeze){const sx=x+(cover?cover.x-x:0)*.45,sy=y+(cover?cover.y-y:0)*.45;targets.push({o:squeeze,x:clamp(squeeze.x+(sx-squeeze.x)*.16,4,96),y:clamp(squeeze.y+(sy-squeeze.y)*.16,4,96),state:"SQUEEZE",cls:"squeeze"})}
- support.forEach((o,n)=>{const f=.075-(n*.012);targets.push({o,x:clamp(o.x+(x-o.x)*f,4,96),y:clamp(o.y+(y-o.y)*f,4,96),state:n<2?"RECOVER":"BALANCE",cls:"recovery"})});
+ if(trigger){
+  targets.push({o:trigger,x:clamp(trigger.x+(x-trigger.x)*.42,4,96),y:clamp(trigger.y+(y-trigger.y)*.42,4,96),state:"PRESS",cls:"press-trigger"});
+ }
+ if(cover){
+  const laneX=x+(x-(trigger?.x||x))*.48,laneY=y+(y-(trigger?.y||y))*.48;
+  targets.push({o:cover,x:clamp(cover.x+(laneX-cover.x)*.30,4,96),y:clamp(cover.y+(laneY-cover.y)*.30,4,96),state:"COVER",cls:"cover"});
+ }
+ if(squeeze){
+  const sx=x+(cover?cover.x-x:0)*.62,sy=y+(cover?cover.y-y:0)*.62;
+  targets.push({o:squeeze,x:clamp(squeeze.x+(sx-squeeze.x)*.24,4,96),y:clamp(squeeze.y+(sy-squeeze.y)*.24,4,96),state:"SQUEEZE",cls:"squeeze"});
+ }
+ support.forEach((o,n)=>{
+  const f=.12-(n*.018);
+  targets.push({o,x:clamp(o.x+(x-o.x)*f,4,96),y:clamp(o.y+(y-o.y)*f,4,96),state:n<2?"RECOVER":"BALANCE",cls:"recovery"});
+ });
  const homes=targets.map(t=>({x:t.o.x,y:t.o.y}));
  targets.forEach(t=>{t.o.el.classList.add(t.cls);t.o.dataset.state=t.state});
- animate(420,t=>targets.forEach((q,i)=>{q.o.x=homes[i].x+(q.x-homes[i].x)*t;q.o.y=homes[i].y+(q.y-homes[i].y)*t;renderOpp(q.o)}),()=>{
-  targets.forEach(t=>{clearTimeout(t.o.el.__pressTimer);t.o.el.__pressTimer=setTimeout(()=>{t.o.el.classList.remove("press-trigger","cover","squeeze","recovery");delete t.o.dataset.state},900)});
-  msg("COORDINATED PRESS • TRIGGER • COVER • SQUEEZE • RECOVER");if(done)done();
+ animate(560,t=>{
+  targets.forEach((q,i)=>{
+   q.o.x=homes[i].x+(q.x-homes[i].x)*t;
+   q.o.y=homes[i].y+(q.y-homes[i].y)*t;
+   renderOpp(q.o);
+  });
+ },()=>{
+  targets.forEach(t=>{
+   clearTimeout(t.o.el.__pressTimer);
+   t.o.el.__pressTimer=setTimeout(()=>{
+    t.o.el.classList.remove("press-trigger","cover","squeeze","recovery");
+    delete t.o.dataset.state;
+   },1100);
+  });
+  msg("COORDINATED PRESS • TRIGGER • COVER • SQUEEZE • RECOVER");
+  if(done)done();
  });
 }
 function runStep(){
@@ -761,7 +785,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V18");
+msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V19");
 window.setViewMode=setViewMode;window.jumpToStep=jumpToStep;window.pressMenu=pressMenu;window.loadPress=loadPress;window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
