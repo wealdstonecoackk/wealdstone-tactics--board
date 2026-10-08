@@ -15,6 +15,13 @@
       .pro-progress{display:flex;gap:5px;margin-top:7px;overflow:auto}.pro-progress span{flex:1;min-width:62px;padding:6px;border-radius:8px;background:#151a20;border:1px solid #2c333c;text-align:center;font-size:8px;font-weight:800;color:#c8d0d9}.pro-progress span.on{border-color:#69d391;color:#fff}
       .pro-ai{margin-top:7px;padding:9px;border-radius:10px;background:#0e141a;border:1px solid #33404c}.pro-ai-head{display:flex;justify-content:space-between;gap:8px;font-size:10px;margin-bottom:6px}.pro-ai-head span{font-size:9px;color:#69d391}.pro-ai-note{padding:7px 8px;margin-top:5px;border-radius:8px;background:#171f27;font-size:10px;line-height:1.35}.pro-ai-note b{color:#fff}
       .legacy-controls{display:none!important}
+      #pitch{box-shadow:0 12px 30px #0007,inset 0 0 0 1px #ffffff22}
+      #pitch:after{content:"WEALDSTONE • COACH BOARD";position:absolute;left:10px;top:10px;z-index:4;padding:5px 8px;border-radius:7px;background:#07130bcc;border:1px solid #ffffff33;font-size:8px;font-weight:900;letter-spacing:1px;pointer-events:none}
+      #timeline{border-color:#394553;background:#111820;box-shadow:inset 0 1px 0 #ffffff08}
+      .tools button{min-height:44px}
+      .status{font-weight:800;letter-spacing:.2px}
+      .press-key{opacity:.9}
+      @media(max-width:600px){#pitch:after{font-size:7px;top:7px;left:7px}.tools button{min-height:46px}}
       @media(max-width:600px){.pro-nav{grid-template-columns:repeat(2,1fr)}.pro-sub{grid-template-columns:repeat(2,1fr)}.pro-tools{grid-template-columns:repeat(3,1fr)}}
       @media(max-width:380px){.pro-title span{display:none}.pro-nav button{min-height:42px}.pro-sub button{min-height:36px}}
     `;
