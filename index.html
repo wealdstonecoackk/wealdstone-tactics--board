@@ -169,9 +169,24 @@ function settleReceiver(x,y){
  else if(pressure<26) msg("RECEIVE • SCAN • SUPPORT ANGLE • THIRD MAN");
  else msg("RECEIVE • SCAN • OPEN BODY • SUPPORT");
 }
-function renderPlayer(p){if(!p||!p.el)return; p.el.classList.add("player");p.el.style.position="absolute";p.el.style.display="flex";p.el.style.visibility="visible";p.el.style.opacity="1";p.el.style.pointerEvents="auto";p.el.style.left=p.x+"%";p.el.style.top=p.y+"%";p.el.style.zIndex="20";const nm=p.el.querySelector(".nm");if(nm)nm.textContent=p.name}
+function renderPlayer(p){
+ if(!p||!p.el)return;
+ p.el.classList.add("player");
+ p.el.style.position="absolute";
+ p.el.style.display="flex";
+ p.el.style.visibility="visible";
+ p.el.style.opacity="1";
+ p.el.style.pointerEvents="auto";
+ p.el.style.left=p.x+"%";
+ p.el.style.top=p.y+"%";
+ p.el.style.zIndex="20";
+ p.el.style.touchAction="none";
+ p.el.setAttribute("aria-label",p.name||("Player "+(p.i+1)));
+ const nm=p.el.querySelector(".nm");if(nm)nm.textContent=p.name||("Player "+(p.i+1));
+}
 function createPlayer(i){
  const layer=document.getElementById("playersLayer");
+ if(!layer||!formations[formation]||!formations[formation][i])return;
  let el=layer.querySelector('.player[data-player="'+i+'"]');
  if(!el){
   el=document.createElement("div");
