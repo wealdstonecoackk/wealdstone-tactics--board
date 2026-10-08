@@ -1041,7 +1041,7 @@ function createSmartPattern(p){
   addRun(runner,runTarget); addPass(supportTarget,runTarget,runner);
  }
  draw();persist();
- const label=ai?.action?("AI "+(ai.action==="BOUNCE"?"BOUNCE → THIRD-MAN":ai.action==="SWITCH"?"SWITCH → FREE PLAYER":ai.action==="THIRD"?"THIRD-MAN":"PLAY THROUGH")):"SMART PLAY";
+ const label=ai?.choice?("AI "+ai.choice):ai?.action?("AI "+(ai.action==="BOUNCE"?"BOUNCE → THIRD-MAN":ai.action==="SWITCH"?"SWITCH → FREE PLAYER":ai.action==="THIRD"?"THIRD-MAN":"PLAY THROUGH")):"SMART PLAY";
  msg(label+" • "+sequence.length+" ACTIONS READY");
 }
 pitch.addEventListener("pointerdown",e=>{if(tool==="opp"&&!frozen&&e.target===pitch){const q=posFromEvent(e);addOppAt(q.x,q.y)}});
