@@ -129,7 +129,7 @@
     }
 
     document.getElementById("aiScan").onclick=scan;
-    document.getElementById("aiPlay").onclick=()=>{ scan(); const p=window.__wealdstoneAIDecision?.receiver!=null?players[window.__wealdstoneAIDecision.receiver]:null; if(!p){return} stopPlayback(); sequence=[]; arrows=[]; createSmartPattern(p); msg("AI PLAN READY • PRESS PLAY"); setTimeout(()=>play(),60); };
+    document.getElementById("aiPlay").onclick=()=>{ scan(); if(typeof window.WealdstoneAIPlay==="function") window.WealdstoneAIPlay(); };
     shell.addEventListener("click",e=>{
       const b=e.target.closest("[data-pro='ai']");
       if(b)setTimeout(scan,30);
