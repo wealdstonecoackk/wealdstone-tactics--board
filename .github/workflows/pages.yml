@@ -44,6 +44,21 @@ jobs:
           Path("/tmp/app.js").write_text(scripts[0], encoding="utf-8")
           PY
           node --check /tmp/app.js
+          test -s pro-upgrade.js
+          node --check pro-upgrade.js
+      - name: Inject Coach Hub upgrade
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          html = Path("index.html").read_text(encoding="utf-8")
+          tag = '<script src="pro-upgrade.js"></script>'
+          assert tag not in html
+          assert '</body>' in html
+          html = html.replace('</body>', tag + '\n</body>', 1)
+          Path("index.html").write_text(html, encoding="utf-8")
+          PY
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
