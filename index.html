@@ -727,22 +727,30 @@ function runStep(){
   },null)?.p;
   const receiveX=receiver?receiver.x:(Number.isFinite(a.x2)?a.x2:sx);
   const receiveY=receiver?receiver.y:(Number.isFinite(a.y2)?a.y2:sy);
+  const startRX=receiver?receiver.x:receiveX;
+  const startRY=receiver?receiver.y:receiveY;
   setBall(sx,sy);
   if(receiver)receiver.el.classList.add("receiving");
-  // Slightly slower long passes, quicker short combinations.
+  // A receiver should not stand and wait for the pass. In the final phase of
+  // the flight, move a small amount onto the ball's line so the pass feels
+  // received in stride rather than magnetised to a static player.
   const distance=Math.hypot(receiveX-sx,receiveY-sy);
   const duration=clamp(330+distance*7.2,400,720);
   animate(duration,t=>{
    const e=1-Math.pow(1-t,2);
-   setBall(sx+(receiveX-sx)*e,sy+(receiveY-sy)*e);
-   if(receiver){
-    // If the receiver is moving, let the ball lead the player rather than
-    // making the player wait at a static coordinate.
-    const lead=.12*(1-t);
-    const lx=receiver.x+(receiveX-receiver.x)*lead;
-    const ly=receiver.y+(receiveY-receiver.y)*lead;
-    if(t>.72){setBall(lx,ly)}
+   let bx=sx+(receiveX-sx)*e,by=sy+(receiveY-sy)*e;
+   if(receiver&&t>.48){
+    const approach=Math.min(1,(t-.48)/.52);
+    const ease=approach<.5?2*approach*approach:1-Math.pow(-2*approach+2,2)/2;
+    const ax=receiveX-sx,ay=receiveY-sy;
+    const len=Math.hypot(ax,ay)||1;
+    const move=Math.min(2.8,distance*.08)*ease;
+    receiver.x=clamp(startRX+(ax/len)*move,4,96);
+    receiver.y=clamp(startRY+(ay/len)*move,4,96);
+    renderPlayer(receiver);
+    bx=receiver.x;by=receiver.y;
    }
+   setBall(bx,by);
   },()=>{
    setBall(receiver?receiver.x:receiveX,receiver?receiver.y:receiveY);
    if(receiver)receiver.el.classList.remove("receiving");
