@@ -343,7 +343,7 @@ function play(){
  playing=true;
  if(playIndex===0){returnQueue=[];const b=firstPlaybackBall();setBall(b.x,b.y)}
  const firstStep=sequence[playIndex];
- msg("COACH SEQUENCE • "+(playIndex+1)+"/"+sequence.length+" • "+(firstStep.type==="pass"?"PASS & PRESS":firstStep.type==="run"?"MOVEMENT":"BALL");
+ msg("COACH SEQUENCE • "+(playIndex+1)+"/"+sequence.length+" • "+(firstStep.type==="pass"?"PASS & PRESS":firstStep.type==="run"?"MOVEMENT":"BALL"));
  runStep()
 }
 function finishQueuedReturns(done){
