@@ -31,7 +31,7 @@ button{border:1px solid #343b45;background:#1b2027;color:#fff;border-radius:9px;
 <button data-formation="433" class="active">4-3-3</button><button data-formation="442">4-4-2</button><button data-formation="352">3-5-2</button><button data-formation="4231">4-2-3-1</button><button data-formation="4141">4-1-4-1</button>
 </div>
 <div class="tools">
-<button data-tool="select" class="active">👆 Select</button><button data-tool="pass">➜ Pass</button><button data-tool="run">↗ Run</button><button data-tool="ball">⚽ Ball</button><button data-tool="opp">🔴 Opp</button>
+<button data-tool="select" class="active">👆 Select</button><button data-tool="pass">➜ Pass</button><button data-tool="run">↗ Run</button><button data-tool="ball">⚽ Ball</button><button data-tool="opp">🔴 Opp</button><button data-tool="smart">⚡ Smart Play</button>
 </div>
 <div class="view-switch"><button id="coachView" class="active" onclick="setViewMode('coach')">🧠 Coach View</button><button id="playerView" onclick="setViewMode('player')">👤 Player View</button></div><div class="timeline-controls"><span>🎬 SPEED</span><button data-speed="0.5">0.5×</button><button data-speed="1" class="active">1×</button><button data-speed="1.5">1.5×</button><button data-speed="2">2×</button></div><div id="timeline" class="timeline">Sequence ready • 0 actions</div><div class="menu-label">1 • PLAN</div><div class="actions primary-menu">
 <button id="newSession" class="primary-action">🆕 New Session</button><button id="library" class="library-action">📚 Play Library</button><button id="training" class="training-action">🏋️ Training</button><button id="pressMenu" class="coach-action">🔴 Opp Press</button><button id="more" class="coach-action">🧠 Coach Hub</button>
@@ -64,7 +64,7 @@ const formations={
 };
 let formation="433",tool="select",players=[],opps=[],arrows=[],history=[],redoStack=[],sequence=[],recording=false,playing=false,playIndex=0,raf=0,ballPos={x:50,y:50},frozen=false,returnQueue=[],playbackSpeed=1;
 let names=Array.from({length:11},(_,i)=>"Player "+(i+1));
-const key="wealdstone_pro_coach_v7";
+const key="wealdstone_pro_coach_v8";
 function msg(t){status.textContent=t;status.setAttribute("aria-live","polite")}
 function elDown(el,fn){el.addEventListener("pointerdown",fn,{passive:false})}
 // ELITE COACHING UX + SAFE INTERACTION LAYER
@@ -273,7 +273,7 @@ function updateTimeline(){
  const labels=sequence.map((a,i)=>((i+1)+". "+(a.type==="pass"?"PASS":a.type==="run"?"RUN":"BALL")));
  el.innerHTML=labels.length?labels.map((label,i)=>'<button class="timeline-step" onclick="jumpToStep('+i+')">'+label+'</button>').join('<span class="timeline-arrow">›</span>'):'Sequence ready • 0 actions';
 }
-function setTool(t){tool=t;window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"));document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===t));const status={select:"SELECT MODE • drag players",pass:"PASS MODE • tap passer then receiver",run:"RUN MODE • drag players • press Record to capture",ball:"BALL MODE • drag the ball",opp:"OPP MODE • tap pitch to add opponents"};msg(status[t]||status.select)}
+function setTool(t){tool=t;window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"));document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===t));const status={select:"SELECT MODE • drag players",pass:"PASS MODE • tap passer then receiver",run:"RUN MODE • drag players • press Record to capture",ball:"BALL MODE • drag the ball",opp:"OPP MODE • tap pitch to add opponents",smart:"SMART PLAY • tap a player to create a receive + support pattern"};msg(status[t]||status.select)}
 function addOpp(){if(frozen)return;const n=opps.length;const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x:72-(n%4)*8,y:25+Math.floor(n/4)*18,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();const startX=o.x,startY=o.y;let moved=false;try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;if(Math.abs(o.x-startX)+Math.abs(o.y-startY)>0.5)moved=true;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);if(!moved)msg("OPPONENT SELECTED");else persist();msg(moved?"OPPONENT POSITIONED":"OPPONENT SELECTED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
 function renderOpp(o){o.el.classList.add("player","opp");o.el.style.position="absolute";o.el.style.display="flex";o.el.style.visibility="visible";o.el.style.opacity="1";o.el.style.pointerEvents="auto";o.el.style.zIndex="19";o.el.style.left=o.x+"%";o.el.style.top=o.y+"%";if(!o.el.dataset.label)o.el.dataset.label="PRESS";o.el.setAttribute("aria-label","Opposition "+o.el.dataset.label)}
 function clearOpp(silent=false){if(!opps.length)return;if(!silent)pushHistory();opps.forEach(o=>o.el.remove());opps=[];if(!silent){persist();msg("OPPOSITION CLEARED")}}
@@ -720,7 +720,34 @@ document.getElementById("rebuild").onclick=function(){stopPlayback();clearSelect
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){document.getElementById("modal").classList.add("hidden");window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))}});
 pitch.addEventListener("pointercancel",()=>{window.passStart=null;players.forEach(p=>p.el.classList.remove("selected"))});
 notes.addEventListener("input",()=>{clearTimeout(window.__noteTimer);window.__noteTimer=setTimeout(persist,250)});
+function createSmartPattern(p){
+ if(frozen||!p)return;
+ pushHistory();
+ const bx=ballPos.x,by=ballPos.y;
+ const dir=by<50?1:-1;
+ const receiveX=clamp(p.x+(bx<p.x?-6:6),6,94);
+ const receiveY=clamp(by+dir*8,6,94);
+ const support=players.filter(q=>q!==p).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
+ const third=players.filter(q=>q!==p&&q!==support).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
+ const target={x:receiveX,y:receiveY};
+ arrows.push({type:"run",i:p.i,x1:p.x,y1:p.y,x2:target.x,y2:target.y});
+ sequence.push({type:"run",i:p.i,x1:p.x,y1:p.y,x2:target.x,y2:target.y});
+ arrows.push({type:"pass",x1:bx,y1:by,x2:target.x,y2:target.y,receiver:p.i});
+ sequence.push({type:"pass",x1:bx,y1:by,x2:target.x,y2:target.y,receiver:p.i});
+ if(support){
+  const sx=clamp(p.x+(p.x<50?7:-7),6,94), sy=clamp(p.y+dir*4,6,94);
+  arrows.push({type:"run",i:support.i,x1:support.x,y1:support.y,x2:sx,y2:sy});
+  sequence.push({type:"run",i:support.i,x1:support.x,y1:support.y,x2:sx,y2:sy});
+ }
+ if(third){
+  const tx=clamp(target.x+(target.x<50?10:-10),6,94), ty=clamp(target.y-dir*12,6,94);
+  arrows.push({type:"run",i:third.i,x1:third.x,y1:third.y,x2:tx,y2:ty});
+  sequence.push({type:"run",i:third.i,x1:third.x,y1:third.y,x2:tx,y2:ty});
+ }
+ draw();persist();msg("SMART PLAY CREATED • RECEIVE → SUPPORT → THIRD-MAN RUN");
+}
 pitch.addEventListener("pointerdown",e=>{if(tool==="opp"&&!frozen&&e.target===pitch){const q=posFromEvent(e);addOppAt(q.x,q.y)}});
+pitch.addEventListener("pointerdown",e=>{if(tool==="smart"&&!frozen){const hit=e.target.closest&&e.target.closest(".player:not(.opp)");if(hit){const p=players.find(q=>q.el===hit);if(p){createSmartPattern(p);return}}}});
 function addOppAt(x,y,silent=false){if(frozen)return;if(!silent)pushHistory();const el=document.createElement("div");el.className="player opp";el.textContent="O";pitch.appendChild(el);const o={x,y,el};opps.push(o);renderOpp(o);elDown(el,e=>{if(frozen)return;e.preventDefault();pushHistory();const startX=o.x,startY=o.y;let moved=false;try{el.setPointerCapture(e.pointerId)}catch(_){}const move=ev=>{const q=posFromEvent(ev);o.x=q.x;o.y=q.y;if(Math.abs(o.x-startX)+Math.abs(o.y-startY)>0.5)moved=true;renderOpp(o)};const up=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);if(!moved)history.pop();persist();msg(moved?"OPPONENT POSITIONED":"OPPONENT SELECTED")};el.addEventListener("pointermove",move);el.addEventListener("pointerup",up)});persist();msg("OPPONENT ADDED • drag to position")}
 
 for(let i=0;i<11;i++)createPlayer(i);
@@ -734,7 +761,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V17");
+msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V18");
 window.setViewMode=setViewMode;window.jumpToStep=jumpToStep;window.pressMenu=pressMenu;window.loadPress=loadPress;window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
