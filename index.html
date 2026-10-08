@@ -367,6 +367,26 @@ function showSolution(label,playersToShow,points){
  clearTimeout(window.__solutionTimer);
  window.__solutionTimer=setTimeout(clearSolutionVisuals,2600);
 }
+function executeCoachSolution(label,receiver,x,y,done){
+ const pressure=opps.map(o=>Math.hypot(o.x-x,o.y-y)).sort((a,b)=>a-b)[0]||99;
+ const candidates=players.filter(p=>p!==receiver).map(p=>({p,d:Math.hypot(p.x-x,p.y-y)})).sort((a,b)=>a.d-b.d);
+ let mover=null,target=null;
+ if(label.startsWith("THIRD-MAN")){mover=candidates.find(q=>q.p.y<y-5)?.p;target=mover?{x:clamp(mover.x+(mover.x<50?10:-10),6,94),y:clamp(mover.y-(pressure<18?14:9),6,94)}:null}
+ else if(label.startsWith("SWITCH")){mover=candidates.find(q=>q.p.x<22||q.p.x>78)?.p;target=mover?{x:clamp(mover.x+(mover.x<50?-10:10),6,94),y:clamp(mover.y+(y<50?3:-3),6,94)}:null}
+ else if(label.startsWith("BOUNCE")){mover=candidates[1]?.p;target=mover?{x:clamp(mover.x+(mover.x<50?8:-8),6,94),y:clamp(mover.y+6,6,94)}:null}
+ else {mover=candidates[0]?.p;target=mover?{x:clamp(mover.x+(mover.x<50?5:-5),6,94),y:clamp(mover.y-4,6,94)}:null}
+ if(!mover||!target){if(done)done();return}
+ const hx=mover.x,hy=mover.y;
+ mover.el.classList.add("running");
+ animate(420,t=>{mover.x=hx+(target.x-hx)*t;mover.y=hy+(target.y-hy)*t;renderPlayer(mover)},()=>{
+  mover.el.classList.remove("running");
+  mover.el.dataset.state=label.split(" • ")[0];
+  clearTimeout(mover.el.__coachTimer);
+  mover.el.__coachTimer=setTimeout(()=>delete mover.el.dataset.state,900);
+  if(done)done();
+ });
+}
+
 function coachDecision(receiver,x,y){
  const nearOpp=opps.map(o=>({o,d:Math.hypot(o.x-x,o.y-y)})).sort((a,b)=>a.d-b.d);
  const pressure=nearOpp[0]?.d||99;
@@ -509,9 +529,12 @@ function runStep(){
    if(receiver)receiver.el.classList.remove("receiving");
    settleReceiver(receiver?receiver.x:receiveX,receiver?receiver.y:receiveY);
    reactPress(receiver?receiver.x:receiveX,receiver?receiver.y:receiveY,()=>{
-    coachDecision(receiver,receiver?receiver.x:receiveX,receiver?receiver.y:receiveY);
-    msg("RECEIVE • SCAN • SUPPORT • PRESS RESPONSE");
-    finishQueuedReturns(next);
+    const rx=receiver?receiver.x:receiveX, ry=receiver?receiver.y:receiveY;
+    coachDecision(receiver,rx,ry);
+    const pressureNow=opps.map(o=>Math.hypot(o.x-rx,o.y-ry)).sort((a,b)=>a-b)[0]||99;
+    const solution=pressureNow<14?"BOUNCE":players.some(p=>p!==receiver&&p.y<ry-7&&Math.hypot(p.x-rx,p.y-ry)<48)?"THIRD-MAN":players.some(p=>p!==receiver&&(p.x<22||p.x>78))?"SWITCH":"PLAY THROUGH";
+    msg("RECEIVE • SCAN • "+solution+" • CONTINUE");
+    executeCoachSolution(solution,receiver,rx,ry,()=>finishQueuedReturns(next));
    });
   });
  }else if(a.type==="ball"){
@@ -796,7 +819,7 @@ if(saved){
     setBall(50,50);notes.value="";draw();
   }
 }
-msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V22");
+msg("READY • 11 PLAYERS + BALL • PRO COACHING ENGINE • V23");
 window.setViewMode=setViewMode;window.jumpToStep=jumpToStep;window.pressMenu=pressMenu;window.loadPress=loadPress;window.addEventListener("load",()=>{ensureBoardIntegrity();setBall(ballPos.x,ballPos.y);draw();});
 window.addEventListener("pageshow",()=>{ensureBoardIntegrity();ball.style.display="flex";setBall(ballPos.x,ballPos.y);players.forEach(renderPlayer);draw()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>("caches" in window)?caches.keys():[]).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{}));}
